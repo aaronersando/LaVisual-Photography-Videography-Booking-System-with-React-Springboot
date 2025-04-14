@@ -132,7 +132,7 @@ function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">Our Packages</h2>
             <p className="text-gray-400">
-              Choose the perfect package for your needs
+            Choose from our carefully crafted packages or contact us for custom solutions tailored to your specific needs.
             </p>
           </div>
 

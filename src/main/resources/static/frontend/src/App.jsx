@@ -5,6 +5,8 @@ import Home from "./pages/public/Home";
 import Error from "./pages/public/Error";
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Package from "./pages/public/Package"
+import Portfolio from "./pages/public/Portfolio"
 
 function App() {
   
@@ -12,11 +14,15 @@ function App() {
   return (
     <>
     <BrowserRouter>
-      <Error/>
-    </BrowserRouter>
       {/* <Login/> */}
       {/* <Contact/> */}
       {/* <Home/> */}
+      {/* <Error/> */}
+      {/* <Package/> */}
+      <Portfolio/>
+
+    </BrowserRouter>
+      
       
     </>
   )
