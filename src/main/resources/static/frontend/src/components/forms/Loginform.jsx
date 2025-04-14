@@ -1,32 +1,47 @@
-import React from "react";
-import "./forms.css";
-
-const LoginBox = () => {
+function Loginform() {
   return (
-    <div className="login-box">
-      <h2>Welcome Back</h2>
-      <p className="subtext">Sign in to your account</p>
+    <div className="w-[448px] h-[410px] bg-gray-800 rounded-lg p-8 mx-auto my-12 flex flex-col text-white">
+      <h2 className="text-2xl font-bold text-center mb-1">
+        Welcome Back
+      </h2>
+      
+      <p className="text-sm text-gray-400 text-center mb-6">
+        Sign in to your account
+      </p>
 
-      <label>Email Address</label>
-      <input type="email" placeholder="Enter your email" />
+      <div className="space-y-4">
+        <div className="flex flex-col">
+          <label className="text-sm font-medium mb-1.5">
+            Email Address
+          </label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            className="w-full bg-gray-700 border border-gray-600 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+          />
+        </div>
 
-      <label>Password</label>
-      <input type="password" placeholder="Enter your password" />
+        <div className="flex flex-col">
+          <label className="text-sm font-medium mb-1.5">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            className="w-full bg-gray-700 border border-gray-600 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+          />
+        </div>
 
-      {/* <div className="form-footer">
-        <label className="remember">
-          <input type="checkbox" /> Remember me
-        </label>
-        <a href="#">Forgot your password?</a>
-      </div> */}
+        <button
+          type="submit"
+          className="w-full bg-purple-600 text-white py-3 px-4 rounded-md text-sm font-medium hover:bg-purple-700 transition-colors duration-200 mt-4"
+        >
+          Sign in
+        </button>
 
-      <button type="submit">Sign in</button>
-
-      {/* <p className="signup-text">
-        Don’t have an account? <a href="#">Sign up</a>
-      </p> */}
+      </div>
     </div>
   );
-};
+}
 
-export default LoginBox;
+export default Loginform;

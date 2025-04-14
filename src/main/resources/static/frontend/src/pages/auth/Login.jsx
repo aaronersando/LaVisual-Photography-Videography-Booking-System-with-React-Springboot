@@ -1,16 +1,17 @@
+import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/FooterComp";
-import Nabvar from "../../components/common/Navbar";
-import Loginform from "../../components/forms/Loginform";
+import LoginBox from "../../components/forms/Loginform";
 
-function Login(){
-
-    return(
-        <>
-        <Nabvar/>
-        <Loginform/>
-        <Footer/>
-        </>
-    )
+function Login() {
+  return (
+    <>
+      <Navbar />
+      <main className="min-h-screen py-20">
+        <LoginBox />
+      </main>
+      <Footer />
+    </>
+  );
 }
 
 export default Login;
