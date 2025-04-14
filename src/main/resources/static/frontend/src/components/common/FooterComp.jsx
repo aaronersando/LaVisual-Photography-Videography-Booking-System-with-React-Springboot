@@ -7,7 +7,7 @@ function FooterComp(){
         <div className="container footer-content">
           <div className="footer-col branding-col">
             <h3>
-              La<span>Visual</span>
+            <span>La</span>Visual
             </h3>
             <p>
               Capturing moments that last a lifetime.
