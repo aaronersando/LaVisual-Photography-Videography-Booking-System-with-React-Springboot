@@ -1,5 +1,5 @@
 import React from "react";
-import "./Loginform.css";
+import "./forms.css";
 
 const LoginBox = () => {
   return (

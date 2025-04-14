@@ -1,64 +1,88 @@
-import "./common.css";
-
-function FooterComp(){
-    return(
-        <>
-        <footer className="footer">
-        <div className="container footer-content">
-          <div className="footer-col branding-col">
-            <h3>
-            <span>La</span>Visual
+function FooterComp() {
+  return (
+    <footer className="bg-black w-full pt-12 pb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Branding Column */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold">
+              <span className="text-purple-500">La</span>Visual
             </h3>
-            <p>
+            <p className="text-gray-400 text-sm leading-relaxed">
               Capturing moments that last a lifetime.
               <br />
-              Premium photography and videography services for all your special
-              occasions.
+              Premium photography and videography services for all your special occasions.
             </p>
-            <div className="social-icons">
-              <a href="#"><i className="fab fa-facebook-f"></i></a>
-              <a href="#"><i className="fab fa-instagram"></i></a>
-              <a href="#"><i className="fab fa-x-twitter"></i></a>
-              <a href="#"><i className="fab fa-youtube"></i></a>
+            <div className="flex space-x-4">
+              <a href="#" className="text-white hover:text-purple-500 transition-colors duration-200">
+                <i className="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" className="text-white hover:text-purple-500 transition-colors duration-200">
+                <i className="fab fa-instagram"></i>
+              </a>
+              <a href="#" className="text-white hover:text-purple-500 transition-colors duration-200">
+                <i className="fab fa-x-twitter"></i>
+              </a>
+              <a href="#" className="text-white hover:text-purple-500 transition-colors duration-200">
+                <i className="fab fa-youtube"></i>
+              </a>
             </div>
           </div>
 
-          <div className="footer-col">
-            <h4>Quick Links</h4>
-            <ul>
-              <li><a href="#">Portfolio</a></li>
-              <li><a href="#">Packages</a></li>
-              <li><a href="#">Book a Session</a></li>
-              <li><a href="#">About Us</a></li>
+          {/* Quick Links */}
+          <div className="space-y-4">
+            <h4 className="text-white font-bold text-sm">Quick Links</h4>
+            <ul className="space-y-2">
+              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Portfolio</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Packages</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Book a Session</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">About Us</a></li>
             </ul>
           </div>
 
-          <div className="footer-col">
-            <h4>Services</h4>
-            <ul>
-              <li><a href="#">Wedding Photography</a></li>
-              <li><a href="#">Portrait Sessions</a></li>
-              <li><a href="#">Pre-Photoshoot</a></li>
-              <li><a href="#">Event Coverage</a></li>
+          {/* Services */}
+          <div className="space-y-4">
+            <h4 className="text-white font-bold text-sm">Services</h4>
+            <ul className="space-y-2">
+              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Wedding Photography</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Portrait Sessions</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Pre-Photoshoot</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Event Coverage</a></li>
             </ul>
           </div>
 
-          <div className="footer-col">
-            <h4>Contact Us</h4>
-            <p><i className="fas fa-map-marker-alt"></i> San Jose, Paombong, Bulacan, Philippines</p>
-            <p><i className="fas fa-phone"></i> +63 926-0515-815</p>
-            <p><i className="fas fa-envelope"></i> lavisualmedia@gmail.com</p>
+          {/* Contact Info */}
+          <div className="space-y-4">
+            <h4 className="text-white font-bold text-sm">Contact Us</h4>
+            <div className="space-y-2">
+              <p className="flex items-center text-gray-400 text-sm">
+                <i className="fas fa-map-marker-alt mr-2"></i>
+                San Jose, Paombong, Bulacan, Philippines
+              </p>
+              <p className="flex items-center text-gray-400 text-sm">
+                <i className="fas fa-phone mr-2"></i>
+                +63 926-0515-815
+              </p>
+              <p className="flex items-center text-gray-400 text-sm">
+                <i className="fas fa-envelope mr-2"></i>
+                lavisualmedia@gmail.com
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="footer-divider container"></div>
+        {/* Divider */}
+        <div className="my-8 border-t border-gray-800"></div>
 
-        <div className="footer-bottom container">
-          <p>&copy; 2025 LaVisual. All rights reserved.</p>
+        {/* Copyright */}
+        <div className="text-center">
+          <p className="text-gray-400 text-xs">
+            &copy; {new Date().getFullYear()} LaVisual. All rights reserved.
+          </p>
         </div>
-      </footer>
-        </>
-    )
+      </div>
+    </footer>
+  );
 }
 
 export default FooterComp;
