@@ -1,26 +1,43 @@
-function PackageCard({ title, price, features }) {
-    return (
-      <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-colors duration-300">
-        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-        <div className="mb-4">
-          <span className="text-3xl font-bold text-white">₱{price}</span>
-          <span className="text-gray-400">/session</span>
+function PackageCard({ category, title, price, description, features }) {
+  return (
+    <div className="rounded-xl overflow-hidden border border-gray-700 bg-[#111827] text-white">
+      
+      {/* Top section */}
+      <div className="bg-[#1f2937] p-6">
+        <p className="text-sm text-[#C084FC] font-light mb-1">{category}</p>
+
+        <h3 className="text-xl font-semibold mb-1">{title}</h3>
+
+        <div className="mb-3 flex items-baseline gap-2">
+          <span className="text-2xl font-bold">₱{price}</span>
+          <span className="text-gray-400 text-sm">starting price</span>
         </div>
-        <ul className="space-y-2 mb-6">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-center text-gray-400">
-              <svg className="w-4 h-4 mr-2 text-purple-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              {feature}
+
+        <p className="text-sm text-gray-300 mb-5">{description}</p>
+
+        <button className="w-full bg-[#374151] hover:bg-[#4b5563] transition text-white py-2 rounded-md font-medium">
+          Book Now
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="h-[1px] bg-gray-700 w-full" />
+
+      {/* Bottom section */}
+      <div className="p-6 pb-12 bg-transparent">
+        <h4 className="text-sm font-semibold mb-3 text-white">What's included:</h4>
+        <ul className="space-y-3 text-sm text-gray-200">
+          {features?.map((feature, index) => (
+            <li key={index} className="flex items-start gap-2">
+              <span className="text-purple-400 mt-0.5">✔️</span>
+              <span>{feature}</span>
             </li>
           ))}
         </ul>
-        <button className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition-colors">
-          Select Package
-        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
   
   export default PackageCard;
