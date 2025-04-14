@@ -42,10 +42,10 @@ function HeroSection() {
               Professional photography and videography services for weddings, events, portraits, and pre-photoshoot projects.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <button className="w-full lg:px-12 sm:w-auto bg-[#9333EA] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-purple-800 transition-all duration-300 text-sm sm:text-base">
+              <button className="w-full lg:px-12 sm:w-auto bg-[#9333EA] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-purple-800 transition-all duration-300 text-sm sm:text-base hover:cursor-pointer">
                 View Portfolio
               </button>
-              <button className="w-full lg:px-16 sm:w-auto border border-white text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-white/10 transition-all duration-300 text-sm sm:text-base">
+              <button className="w-full lg:px-16 sm:w-auto border border-white text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-white/10 transition-all duration-300 text-sm sm:text-base hover:cursor-pointer">
                 Book a Session
               </button>
             </div>

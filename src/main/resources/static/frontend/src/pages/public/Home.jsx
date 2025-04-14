@@ -126,82 +126,84 @@ function Home() {
 
 
         {/* Packages Section */}
-        <section className="py-20 bg-g[#111827]">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-4">Our Packages</h2>
-              <p className="text-gray-400">Choose the perfect package for your needs</p>
+        <section className="py-20 bg-[#111827]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-34">
+          {/* Heading */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-white mb-4">Our Packages</h2>
+            <p className="text-gray-400">
+              Choose the perfect package for your needs
+            </p>
+          </div>
+
+          {/* Grid of Packages */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <PackageCard
+              category="Photography"
+              title="Intimate Session"
+              price="3,000"
+              description="Perfect for individuals wanting professional portraits."
+              features={[
+                '3-Hours Photography Session',
+                '1 Location',
+                '150 Digital Edited Photos',
+                'Online Gallery',
+                'Personal Use Rights',
+              ]}
+            />
+
+            <PackageCard
+              category="Videography"
+              title="Event Highlight"
+              price="7,000"
+              description="Perfect for capturing highlights of your special event."
+              features={[
+                '4-Hours of Coverage',
+                'Edited Highlight Reel (3-5 Minutes)',
+                'Professional Audio',
+                'Digital Delivery',
+                'Background Music',
+              ]}
+            />
+
+            <PackageCard
+              category="Photography + Videography"
+              title="Event Complete"
+              price="13,000"
+              description="Full Photo & Video Covarage For Your Special Event"
+              features={[
+                '8-Hours of Coverage',
+                '2 Photographers & 1 Videographer',
+                '400+ Edited Photos',
+                'Highlight Video (3-5 Minutes)',
+                'Online Gallery',
+                'Digital Delivery',
+              ]}
+            />
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-26">
-              <PackageCard
-                category={"Photography"}
-                title={"Intimate Session"}
-                price={"3,000"}
-                description={"Perfect for individuals wanting professional portraits."}
-                features={[
-                  "3-Hours Photography Session",
-                  "1 Location",
-                  "150 Digital Edited Photos",
-                  "Online Gallery",
-                  "Personal Use Rights"
-                ]}
-              />
-
-              <PackageCard
-                category={"Videography"}
-                title={"Event Highlight"}
-                price={"7,000"}
-                description={"Perfect for capturing highlights of your special event."}
-                features={[
-                  "4-Hours of Coverage",
-                  "Edited Highlight Reel (3-5 Minutes)",
-                  "Professional Audio",
-                  "Digital Delivery",
-                  "Background Music"
-                ]}
-              />
-
-              <PackageCard
-                category={"Photography + Videography"}
-                title={"Event Complete"}
-                price={"13,000"}
-                description={"Full Photo & Video Covarage For Your Special Event"}
-                features={[
-                  "8-Hours of Coverage",
-                  "2 Photographers & 1 Videographer",
-                  "400+ Edited Photos",
-                  "Highlight Video (3-5 Minutes)",
-                  "Online Gallery",
-                  "Digital Delivery"
-                ]}
-              />
-              
-              
-            </div>
-            <div className="flex flex-col justify-center mt-12">
-                <p className="text-center text-[#9CA3AF] font-regular text-sm mb-4">Need a custom solution for your project</p>
-                <a className="text-center text-[#C084FC] text-sm " href="#">Contact us form custom packages</a>
-              </div>
-
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 bg-purple-600">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">Ready to Capture Your Special Moments?</h2>
-            <p className="text-white/80 mb-8">Let's create memories that will last a lifetime</p>
-            <div className="flex justify-center space-x-4">
-              <button className="bg-white text-purple-600 px-6 py-3 rounded-md hover:bg-gray-100 transition-colors">
-                Book Now
-              </button>
-              <button className="border border-white text-white px-6 py-3 rounded-md hover:bg-white/10 transition-colors">
-                Contact Us
-              </button>
-            </div>
+        {/* Final Section */}
+        <section className="py-20 bg-gradient-to-b from-[#581C87] to-[#111827]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-[#F3F4F6] mb-4">
+            Ready to Capture Your Special Moments?
+          </h2>
+          <p className="text-[#D1D5DB] mb-8">
+            Book your photography or videography session today and let us create lasting memories for you.
+          </p>
+          <div className="flex justify-center space-x-4">
+            <button className="flex items-center bg-white text-[#581C87] px-8 py-3 rounded-md hover:bg-gray-100 transition-colors hover:cursor-pointer">
+              Book a Session
+            </button>
+            <button className="border border-white text-white px-6 py-3 rounded-md hover:bg-white/10 transition-colors hover:cursor-pointer">
+              Contact Us
+            </button>
           </div>
-        </section>
+        </div>
+      
+    </section>
       </main>
 
       <Footer />

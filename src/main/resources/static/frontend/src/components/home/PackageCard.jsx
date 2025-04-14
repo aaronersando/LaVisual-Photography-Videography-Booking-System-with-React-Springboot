@@ -1,7 +1,6 @@
 function PackageCard({ category, title, price, description, features }) {
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-700 bg-[#111827] text-white">
-      
+    <div className="rounded-xl overflow-hidden border border-gray-700 bg-[#111827] text-white w-full">
       {/* Top section */}
       <div className="bg-[#1f2937] p-6">
         <p className="text-sm text-[#C084FC] font-light mb-1">{category}</p>
@@ -15,7 +14,7 @@ function PackageCard({ category, title, price, description, features }) {
 
         <p className="text-sm text-gray-300 mb-5">{description}</p>
 
-        <button className="w-full bg-[#374151] hover:bg-[#4b5563] transition text-white py-2 rounded-md font-medium">
+        <button className="w-full bg-[#374151] hover:bg-[#4b5563] transition text-white py-2 rounded-md font-medium hover:cursor-pointer">
           Book Now
         </button>
       </div>
@@ -39,5 +38,4 @@ function PackageCard({ category, title, price, description, features }) {
   );
 }
 
-  
-  export default PackageCard;
+export default PackageCard;
