@@ -1,7 +1,8 @@
-.login-box {
+ 
+ .login-box {
     width: 448px;
     height: 410px;
-    background-color: #1f2937; /* dark background */
+    background-color: #1F2937; 
     border-radius: 8px;
     padding: 32px;
     color: white;
@@ -10,9 +11,8 @@
     flex-direction: column;
     justify-content: flex-start;
     box-sizing: border-box;
-
   }
-  
+ 
   .login-box h2 {
     font-size: 24px;
     font-weight: 700;
@@ -67,7 +67,7 @@
   }
   
   .login-box button {
-    background-color: #a855f7;
+    background-color: #9333EA;
     border: none;
     color: white;
     padding: 12px;
@@ -81,7 +81,7 @@
   }
   
   .login-box button:hover {
-    background-color: #9333ea;
+    background-color: #6d13c2;
   }
   
   .signup-text {
@@ -91,11 +91,10 @@
   }
   
   .signup-text a {
-    color: #a855f7;
+    color: #9333EA;
     text-decoration: none;
   }
   
   .signup-text a:hover {
     text-decoration: underline;
   }
-  

@@ -1,11 +1,11 @@
-import "./common.css";
+// import "./common.css"
 
 function Navbar(){
     return(
         <><header className="navbar">
         <div className="container navbar-inner">
           <div className="logo">
-            La<span>Visual</span>
+          <span>La</span>Visual
           </div>
           <nav className="nav-links">
             <a href="#">Home</a>
@@ -16,8 +16,8 @@ function Navbar(){
             <a href="#">Contact</a>
           </nav>
           <div className="auth-buttons">
-            <a href="#" className="login">Log in</a>
-            <a href="#" className="signup">Sign up</a>
+            <a href="#" className="login hover:bg-sky-700">Log in</a>
+            {/* <a href="#" className="signup">Sign up</a> */}
           </div>
         </div>
       </header>
