@@ -14,42 +14,119 @@ function Home() {
         <HeroSection />
 
         {/* Services Section */}
-        <section className="py-20 bg-gray-900">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-20 bg-[#111827]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 w-11/12">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-white mb-4">Our Services</h2>
-              <p className="text-gray-400">Professional photography and videography services</p>
+              <p className="text-gray-400">We offer a wide range of professional photography and videography services to capture your special moments.</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 px-10">
               <ServiceCard
-                icon={<svg className="w-6 h-6 text-purple-500" /* Add icon SVG path */ />}
-                title="Weddings"
-                description="Capture your special day with our professional wedding photography services."
+                icon={<img src={"/src/assets/home/camera.svg"} />}
+                title="Photography"
+                description="Portfolio photography for weddings, events, portraits and more."
               />
-              {/* Add more ServiceCards */}
-            </div>
+
+              <ServiceCard
+                icon={<img src={"/src/assets/home/Videography.svg"} />}
+                title="Videography"
+                description="Cinematic videos for weddings, commercials, music videos, and events."
+              />
+
+              <ServiceCard
+                icon={<img src={"/src/assets/home/events.svg"} />}
+                title="Events"
+                description="Comprehensive coverage for corporate events, parties, and gatherings."
+              />
+
+              <ServiceCard
+                icon={<img src={"/src/assets/home/bookings.svg"} />}
+                title="Bookings"
+                description="Easy online booking system to schedule your photography sessions."
+              />
+              </div>
           </div>
         </section>
 
+
+
+
         {/* Portfolio Section */}
         <section className="py-20 bg-black">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-20 w-11/12">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-white mb-4">Our Portfolio</h2>
-              <p className="text-gray-400">Browse through our recent work</p>
+              <p className="text-gray-400">Browse through our collection of stunning photography and videography projects.</p>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <PortfolioCard
-                image="/path-to-image.jpg"
+                image="/src/assets/home/h_wedding.svg"
                 category="Wedding"
-                title="John & Sarah's Wedding"
+                title="Dino & Jasmine's Wedding"
               />
-              {/* Add more PortfolioCards */}
+
+              <PortfolioCard    
+                image="/src/assets/home/h_portrait.svg"
+                category="Portrait"
+                title="Ann's Portrait"
+              />
+
+              <PortfolioCard
+                image="/src/assets/home/h_debut.svg"
+                category="18th-Birthday/Debut"
+                title="Kimberly's Pre-Debut"
+              />
+
+              <PortfolioCard
+                image="/src/assets/home/h_prenup.svg"
+                category="Pre-Nuptial"
+                title="Keight's & Shaira Pre-Nuptial"
+              />
+
+              <PortfolioCard
+                image="/src/assets/home/h_baptism.svg"
+                category="Baptismal"
+                title="Astrid's Baptism"
+              />
+
+              <PortfolioCard    
+                image="/src/assets/home/h_sports.svg"
+                category="Sports"
+                title="San Jose Basketball League"
+              />
+
+              <PortfolioCard    
+                image="/src/assets/home/h_occassion.svg"
+                category="Occasion"
+                title="Zeny's 60th Birthday"
+              />
+
+              <PortfolioCard    
+                image="/src/assets/home/h_videos.svg"
+                category="Videos"
+                title="Khay & Jha's SDE Video"
+              />
+
+              <a href="/portfolio" className="block relative group overflow-hidden">
+                <PortfolioCard    
+                  image="/src/assets/home/h_final.svg"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/70 transition-all duration-500">
+                  <h1 className="text-[#C084FC] text-2xl font-extralight transform group-hover:scale-110 group-hover:text-3xl transition-all duration-500 hover:animate-pulse">
+                    View Full Portfolio
+                    <span className="block scale-0 group-hover:scale-100 transition-transform duration-500 text-base mt-2">
+                      Click to explore more →
+                    </span>
+                  </h1>
+                </div>
+              </a>
             </div>
           </div>
         </section>
+
 
         {/* Packages Section */}
         <section className="py-20 bg-gray-900">
