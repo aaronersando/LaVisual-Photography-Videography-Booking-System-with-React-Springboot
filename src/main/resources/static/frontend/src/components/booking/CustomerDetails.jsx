@@ -5,6 +5,7 @@ function CustomerDetails({ onNext, onBack, updateData, data }) {
     name: '',
     email: '',
     phone: '',
+    location: '', // Add location field
     notes: ''
   });
   const [errors, setErrors] = useState({});
@@ -14,6 +15,7 @@ function CustomerDetails({ onNext, onBack, updateData, data }) {
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.location.trim()) newErrors.location = 'Event location is required'; // Add location validation
     
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) newErrors.email = 'Invalid email format';
@@ -95,11 +97,25 @@ function CustomerDetails({ onNext, onBack, updateData, data }) {
         </div>
 
         <div>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder="Event Location"
+            className={`w-full p-2 bg-gray-700 text-white rounded ${
+              errors.location ? 'border border-red-500' : 'border border-gray-600'
+            }`}
+          />
+          {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
+        </div>
+
+        <div>
           <textarea
             name="notes"
             value={formData.notes}
             onChange={handleChange}
-            placeholder="Special Requests/Additional Notes (Optional)"
+            placeholder="Special Requests (Optional)"
             className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
             rows={4}
           />

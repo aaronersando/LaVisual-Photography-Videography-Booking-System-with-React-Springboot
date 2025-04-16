@@ -1,7 +1,14 @@
 
-
-
 function BookingConfirmation({ bookingData }) {
+
+  const formatTime = (timeString) => {
+    const [hour] = timeString.split(':');
+    const hourNum = parseInt(hour);
+    const ampm = hourNum >= 12 ? 'PM' : 'AM';
+    const hour12 = hourNum % 12 || 12;
+    return `${hour12}:00 ${ampm}`;
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-6 text-center">
       <div className="mb-6">
@@ -20,7 +27,12 @@ function BookingConfirmation({ bookingData }) {
           <p>Booking Reference: <span className="text-white">{bookingData.reference}</span></p>
           <p>Package: <span className="text-white">{bookingData.package}</span></p>
           <p>Date: <span className="text-white">{new Date(bookingData.date).toLocaleDateString()}</span></p>
-          <p>Time: <span className="text-white">{bookingData.time}</span></p>
+          <p>Time: <span className="text-white">
+            {bookingData.timeRange 
+              ? `${formatTime(bookingData.timeRange.startTime)} - ${formatTime(bookingData.timeRange.endTime)}`
+              : 'Not selected'}
+          </span></p>
+          <p>Location: <span className="text-white">{bookingData.customerDetails.location}</span></p>
           <p>Amount Paid: <span className="text-purple-400">₱{bookingData.paymentAmount.toLocaleString()}</span></p>
         </div>
       </div>

@@ -12,7 +12,12 @@ function PackageSelection({ onNext, updateData, data }) {
   const handlePackageSelect = (packageItem) => {
     updateData({
       package: packageItem.name,
-      price: packageItem.price
+      price: packageItem.price,
+      packageDetails: {
+        hours: packageItem.hours,
+        category: packageItem.category,
+        description: packageItem.description
+      }
     });
     onNext();
   };
@@ -52,7 +57,7 @@ function PackageSelection({ onNext, updateData, data }) {
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-white font-semibold">{pkg.name}</h3>
+                    <h3 className="text-white font-semibold">{pkg.name} <span className="text-gray-400 text-sm ">({pkg.hours}-Hours)</span></h3>
                     <p className="text-gray-400 text-sm">{pkg.description}</p>
                   </div>
                   <div className="text-purple-400 font-semibold">

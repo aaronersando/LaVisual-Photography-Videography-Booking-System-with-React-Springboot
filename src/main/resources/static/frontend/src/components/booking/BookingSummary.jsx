@@ -24,6 +24,14 @@ function BookingSummary({ onBack, data, onComplete }) {
     });
   };
 
+  const formatTime = (timeString) => {
+    const [hour] = timeString.split(':');
+    const hourNum = parseInt(hour);
+    const ampm = hourNum >= 12 ? 'PM' : 'AM';
+    const hour12 = hourNum % 12 || 12;
+    return `${hour12}:00 ${ampm}`;
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-6">
       <h2 className="text-xl text-white mb-6">Review & Payment</h2>
@@ -42,9 +50,24 @@ function BookingSummary({ onBack, data, onComplete }) {
               <span className="font-medium">{data.category}</span>
             </div>
             <div className="flex justify-between">
-              <span>Date & Time:</span>
+              <span>Date:</span>
               <span className="font-medium">
-                {new Date(data.date).toLocaleDateString()} at {data.time}
+                {new Date(data.date).toLocaleDateString()} 
+              </span>
+            </div>
+            {/* <div className="flex justify-between">
+              <span>Time:</span>
+              <span className="font-medium">
+                {data.timeRange} 
+              </span>
+            </div> */}
+            <div className="flex justify-between">
+              <span>Time:</span>
+              <span className="font-medium">
+                {data.timeRange 
+                  ? `${formatTime(data.timeRange.startTime)} - ${formatTime(data.timeRange.endTime)}`
+                  : 'Not selected'
+                }
               </span>
             </div>
             <div className="flex justify-between text-lg font-semibold text-purple-400 mt-4">
@@ -61,8 +84,9 @@ function BookingSummary({ onBack, data, onComplete }) {
             <p><span className="text-gray-400">Name:</span> {data.customerDetails.name}</p>
             <p><span className="text-gray-400">Email:</span> {data.customerDetails.email}</p>
             <p><span className="text-gray-400">Phone:</span> {data.customerDetails.phone}</p>
+            <p><span className="text-gray-400">Location:</span> {data.customerDetails.location}</p>
             {data.customerDetails.notes && (
-              <p><span className="text-gray-400">Notes:</span> {data.customerDetails.notes}</p>
+              <p><span className="text-gray-400">Requests:</span> {data.customerDetails.notes}</p>
             )}
           </div>
         </div>

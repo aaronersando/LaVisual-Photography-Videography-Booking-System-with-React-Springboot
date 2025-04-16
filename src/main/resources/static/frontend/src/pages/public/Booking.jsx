@@ -14,9 +14,18 @@ function Booking() {
     package: '',
     category: '',
     date: '',
-    time: '',
-    customerDetails: {},
+    timeRange: null,
+    customerDetails: {
+      name: '',
+      email: '',
+      phone: '',
+      location: '', // Add location field
+      notes: ''
+    },
     price: 0,
+    packageDetails: {
+      hours: 4
+    },
     reference: `BK${Math.random().toString(36).substr(2, 9).toUpperCase()}`
   });
 
