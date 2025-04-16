@@ -7,6 +7,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Package from "./pages/public/Package"
 import Portfolio from "./pages/public/Portfolio"
+import Booking from "./pages/public/Booking";
 
 function App() {
   
@@ -19,7 +20,8 @@ function App() {
       {/* <Home/> */}
       {/* <Error/> */}
       {/* <Package/> */}
-      <Portfolio/>
+      {/* <Portfolio/> */}
+      <Booking/>
 
     </BrowserRouter>
       
