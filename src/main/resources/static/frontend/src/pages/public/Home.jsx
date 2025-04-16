@@ -23,25 +23,25 @@ function Home() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 px-11">
               <ServiceCard
-                icon={<img src={"/src/assets/home/camera.svg"} />}
+                icon={<img src={"/src/assets/home/p.webp"} />}
                 title="Photography"
                 description="Portfolio photography for weddings, events, portraits and more."
               />
 
               <ServiceCard
-                icon={<img src={"/src/assets/home/Videography.svg"} />}
+                icon={<img src={"/src/assets/home/v.webp"} />}
                 title="Videography"
                 description="Cinematic videos for weddings, commercials, music videos, and events."
               />
 
               <ServiceCard
-                icon={<img src={"/src/assets/home/events.svg"} />}
+                icon={<img src={"/src/assets/home/e.webp"} />}
                 title="Events"
                 description="Comprehensive coverage for corporate events, parties, and gatherings."
               />
 
               <ServiceCard
-                icon={<img src={"/src/assets/home/bookings.svg"} />}
+                icon={<img src={"/src/assets/home/b.webp"} />}
                 title="Bookings"
                 description="Easy online booking system to schedule your photography sessions."
               />
@@ -60,56 +60,56 @@ function Home() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <PortfolioCard
-                image="/src/assets/home/h_wedding.svg"
+                image="/src/assets/home/h_wedding.webp"
                 category="Wedding"
                 title="Dino & Jasmine's Wedding"
               />
 
               <PortfolioCard    
-                image="/src/assets/home/h_portrait.svg"
+                image="/src/assets/home/h_portrait.webp"
                 category="Portrait"
                 title="Ann's Portrait"
               />
 
               <PortfolioCard
-                image="/src/assets/home/h_debut.svg"
+                image="/src/assets/home/h_debut.webp"
                 category="18th-Birthday/Debut"
                 title="Kimberly's Pre-Debut"
               />
 
               <PortfolioCard
-                image="/src/assets/home/h_prenup.svg"
+                image="/src/assets/home/h_prenup.webp"
                 category="Pre-Nuptial"
                 title="Keight's & Shaira Pre-Nuptial"
               />
 
               <PortfolioCard
-                image="/src/assets/home/h_baptism.svg"
+                image="/src/assets/home/h_baptism.webp"
                 category="Baptismal"
                 title="Astrid's Baptism"
               />
 
               <PortfolioCard    
-                image="/src/assets/home/h_sports.svg"
+                image="/src/assets/home/h_sports.webp"
                 category="Sports"
                 title="San Jose Basketball League"
               />
 
               <PortfolioCard    
-                image="/src/assets/home/h_occassion.svg"
+                image="/src/assets/home/h_occassion.webp"
                 category="Occasion"
                 title="Zeny's 60th Birthday"
               />
 
               <PortfolioCard    
-                image="/src/assets/home/h_videos.svg"
+                image="/src/assets/home/h_videos.webp"
                 category="Videos"
                 title="Khay & Jha's SDE Video"
               />
 
               <a href="/portfolio" className="block relative group overflow-hidden">
                 <PortfolioCard    
-                  image="/src/assets/home/h_final.svg"
+                  image="/src/assets/home/h_final.webp"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/70 transition-all duration-500">
                   <h1 className="text-[#C084FC] text-2xl font-extralight transform group-hover:scale-110 group-hover:text-3xl transition-all duration-500 hover:animate-pulse">

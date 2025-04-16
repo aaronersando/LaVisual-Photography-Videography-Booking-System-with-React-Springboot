@@ -1,4 +1,4 @@
-// import heroImage from '/src/assets/home/hero.svg'
+
 
 function HeroSection() {
   return (
@@ -9,18 +9,18 @@ function HeroSection() {
           {/* Desktop */}
           <source 
             media="(min-width: 1024px)" 
-            srcSet="/src/assets/home/hero.png"
+            srcSet="/src/assets/home/hero.webp"
             className="w-full h-full object-cover"
           />
           {/* Tablet */}
           <source 
             media="(min-width: 768px)" 
-            srcSet="/src/assets/home/hero.png"
+            srcSet="/src/assets/home/hero.webp"
             className="w-full h-full object-cover"
           />
           {/* Mobile - default */}
           <img 
-            src="/src/assets/home/hero.png" 
+            src="/src/assets/home/hero.webp" 
             alt="hero background" 
             className="w-full h-full object-cover object-center"
             loading="eager"
