@@ -16,10 +16,10 @@ function App() {
     <BrowserRouter>
       {/* <Login/> */}
       {/* <Contact/> */}
-      <Home/>
+      {/* <Home/> */}
       {/* <Error/> */}
       {/* <Package/> */}
-      {/* <Portfolio/> */}
+      <Portfolio/>
 
     </BrowserRouter>
       

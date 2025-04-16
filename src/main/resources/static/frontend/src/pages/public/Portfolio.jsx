@@ -2,6 +2,7 @@ import { useState } from "react";
 import FooterComp from "../../components/common/FooterComp";
 import Navbar from "../../components/common/Navbar";
 import PortfolioCard from "../../components/home/PortfolioCard";
+import VideoCard from "../../components/home/VideoCard";
 
 const portfolioItems = [
 // Wedding
@@ -410,6 +411,30 @@ const portfolioItems = [
   },
 
 
+  // Video Items
+  {
+    type: "video",
+    videoUrl: "/src/assets/portfolio/video/kj.mp4",
+    thumbnail: "/src/assets/portfolio/video/1.webp",
+    title: "Khay & Jha's SDE Video",
+    category: "Video"
+  },
+  {
+    type: "video",
+    videoUrl: "/src/assets/portfolio/video/j-bday.mp4",
+    thumbnail: "/src/assets/portfolio/video/2.webp",
+    title: "Joesan's Birthday Highlights",
+    category: "Video"
+  },
+  {
+    type: "video",
+    videoUrl: "/src/assets/portfolio/video/ks.mp4",
+    thumbnail: "/src/assets/portfolio/video/3.webp",
+    title: "Keight and Shaira's Photo Highlights",
+    category: "Video"
+  },
+
+
 
 ];
 
@@ -428,6 +453,22 @@ function Portfolio() {
     "Occasion",
     "Sports",
   ];
+
+  const renderPortfolioItem = (item, index) => {
+    if (item.type === "video") {
+      return (
+        <VideoCard
+          key={index}
+          videoUrl={item.videoUrl}
+          thumbnail={item.thumbnail}
+          category={item.category}
+          title={item.title}
+        />
+      );
+    }
+    
+    return <PortfolioCard key={index} {...item} />;
+  };
 
   return (
     <>
@@ -463,9 +504,7 @@ function Portfolio() {
 
           {/* Portfolio Grid */}
           <div className="grid grid-cols-1 mx-16 md:mx-4 lg:mx-20 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {filteredItems.map((item, index) => (
-              <PortfolioCard key={index} {...item} />
-            ))}
+            {filteredItems.map((item, index) => renderPortfolioItem(item, index))}
           </div>
         </div>
       </section>
