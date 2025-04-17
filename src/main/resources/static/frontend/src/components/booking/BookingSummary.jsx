@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import emailjs from '@emailjs/browser';
 
 function BookingSummary({ onBack, data, onComplete }) {
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -13,15 +14,60 @@ function BookingSummary({ onBack, data, onComplete }) {
     return data.price * 0.5; // 50% down payment
   };
 
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+
+  //   emailjs.sendForm('service_cs4kvtp', 'template_7wcsaqq', e.target, 'XEOTxlS2BnBaqReO4')
+  //   alert("Message Sent!")
+  // }
+
+  // const handlePaymentSubmit = (e) => {
+  //   e.preventDefault();
+  //   // Add payment processing logic here
+  //   onComplete({
+  //     ...data,
+  //     paymentMethod,
+  //     paymentType,
+  //     paymentAmount: paymentType === 'full' ? data.price : calculateDownPayment()
+  //   });
+
+  //   emailjs.sendForm('service_cs4kvtp', 'template_7wcsaqq', e.target, 'XEOTxlS2BnBaqReO4')
+  //   alert("Message Sent!")
+  // };
+
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
-    // Add payment processing logic here
-    onComplete({
-      ...data,
-      paymentMethod,
+  
+    const emailParams = {
+      name: data.customerDetails.name,
+      email: data.customerDetails.email,
+      phone: data.customerDetails.phone,
+      location: data.customerDetails.location,
+      package: data.package,
+      category: data.category,
+      date: new Date(data.date).toLocaleDateString(),
+      startTime: formatTime(data.timeRange?.startTime || ''),
+      endTime: formatTime(data.timeRange?.endTime || ''),
+      paymentAmount: paymentType === 'full' ? data.price : calculateDownPayment(),
       paymentType,
-      paymentAmount: paymentType === 'full' ? data.price : calculateDownPayment()
-    });
+      paymentMethod,
+    };
+  
+    emailjs
+      .send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4')
+      .then(() => {
+        alert('Message Sent!');
+        onComplete({
+          ...data,
+          paymentMethod,
+          paymentType,
+          paymentAmount: emailParams.paymentAmount,
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to send email:', error);
+        alert('Failed to send confirmation. Please try again.');
+      });
   };
 
   const formatTime = (timeString) => {
