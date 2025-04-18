@@ -4,12 +4,7 @@ function Calendar({ onDateClick, onScheduleClick }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events] = useState(
     [
-    { date: '2025-04-12', name: 'John Doe', status: 'booking' },
-    // { date: '2025-04-13', name: 'Available', status: 'available' },
-    // { date: '2025-04-14', name: 'Sarah Smith', status: 'booking' },
-    // { date: '2025-04-15', name: 'Mike Johnson', status: 'booking' },
-    // { date: '2025-04-16', name: 'Unavailable', status: 'unavailable' },
-    // { date: '2025-04-17', name: 'Emily Davis', status: 'booking' },
+    { date: '2025-04-12', name: 'John Lei', status: 'booking' }
   ]
 );
 
@@ -115,7 +110,7 @@ function Calendar({ onDateClick, onScheduleClick }) {
       <div className="mb-4 pt-6">
         {/* Calendar Header */}
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl text-white">Calendar Dashboard</h2>
+          <h2 className="text-xl text-white">Schedule Dashboard</h2>
           <div className="flex items-center space-x-2">
             <button 
               onClick={handlePrevMonth}

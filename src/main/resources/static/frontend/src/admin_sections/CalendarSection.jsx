@@ -6,7 +6,7 @@ function CalendarSection() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [bookings, setBookings] = useState([
-    // This would normally come from your backend
+    //  come from  backend
     {
       id: 1,
       date: '2025-04-18', // Example booking
@@ -15,10 +15,10 @@ function CalendarSection() {
         endTime: '13:00'
       },
       customerDetails: {
-        name: 'John Doe',
+        name: 'John Lei',
         email: 'john@example.com',
-        phone: '123-456-7890',
-        location: 'City Center'
+        phone: '09665469008',
+        location: 'Paombong, Bulacan'
       },
       package: 'Event Coverage',
       category: 'Photography',
@@ -40,9 +40,9 @@ function CalendarSection() {
     setSelectedDate(null);
   };
 
-  // This would fetch bookings from your backend
+  // This would fetch bookings from  backend
   useEffect(() => {
-    // Example API call
+    // Example 
     // const fetchBookings = async () => {
     //   const response = await fetch('/api/bookings');
     //   const data = await response.json();
