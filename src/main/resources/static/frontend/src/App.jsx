@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Package from "./pages/public/Package"
 import Portfolio from "./pages/public/Portfolio"
 import Booking from "./pages/public/Booking";
+import Admin from "./pages/admin/Admin";
 
 function App() {
   
@@ -21,7 +22,8 @@ function App() {
       {/* <Error/> */}
       {/* <Package/> */}
       {/* <Portfolio/> */}
-      <Booking/>
+      {/* <Booking/> */}
+      <Admin/>
 
     </BrowserRouter>
       
