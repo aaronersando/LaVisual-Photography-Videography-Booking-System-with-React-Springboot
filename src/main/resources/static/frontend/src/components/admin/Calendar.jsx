@@ -1,12 +1,14 @@
 import { useState } from 'react';
 
+// Calendar Component for the Calendar Section 
 function Calendar({ onDateClick, onScheduleClick }) {
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events] = useState(
     [
     { date: '2025-04-12', name: 'John Lei', status: 'booking' }
-  ]
-);
+    ]
+  );
 
   const daysInMonth = new Date(
     currentDate.getFullYear(),

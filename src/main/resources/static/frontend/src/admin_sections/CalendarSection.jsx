@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Calendar from '../components/admin/Calendar';
+import Calendar2 from '../components/admin/Calendar2';
 import SetScheduleModal from '../components/admin/SetScheduleModal';
 
 function CalendarSection() {
@@ -65,7 +65,7 @@ function CalendarSection() {
     <div className="space-y-6">
       <h2 className="text-2xl text-white font-bold">Calendar Dashboard</h2>
       
-      <Calendar 
+      <Calendar2 
         onDateClick={handleDateClick}
         bookings={bookings} // Pass bookings to Calendar component
       />

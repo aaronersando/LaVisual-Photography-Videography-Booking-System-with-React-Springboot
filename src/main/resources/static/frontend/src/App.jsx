@@ -9,6 +9,7 @@ import Package from "./pages/public/Package"
 import Portfolio from "./pages/public/Portfolio"
 import Booking from "./pages/public/Booking";
 import Admin from "./pages/admin/Admin";
+import Calendar2 from "./components/admin/Calendar2";
 
 function App() {
   
@@ -24,6 +25,7 @@ function App() {
       {/* <Portfolio/> */}
       {/* <Booking/> */}
       <Admin/>
+      {/* <Calendar2/> */}
 
     </BrowserRouter>
       
