@@ -1,16 +1,39 @@
 import { useState, useEffect } from 'react';
 import SetManualSchedule from './SetManualSchedule';
+import ShowScheduleDetails from './ShowScheduleDetails';
 
 function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings }) {
     const formatDate = (date) => date.toISOString().split('T')[0];
     const currentDateStr = formatDate(date);
     const [showManualSchedule, setShowManualSchedule] = useState(false);
     const [selectedTimeRange, setSelectedTimeRange] = useState(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState(null);
+    
+
     
     const handleSetManual = (timeRange) => {
         setSelectedTimeRange(timeRange);
         setShowManualSchedule(true);
     };
+
+
+    const handleShowDetails = (booking) => {
+        setSelectedBooking(booking);
+        setShowDetailsModal(true);
+      };
+      
+      const handleCloseDetails = () => {
+        setShowDetailsModal(false);
+        setSelectedBooking(null);
+      };
+      
+      const handleUpdateBooking = (booking) => {
+        // Handle the update logic here
+        console.log('Update booking:', booking);
+        // You might want to navigate to an edit form or open another modal
+        setShowDetailsModal(false);
+      };
     
     
 
@@ -242,7 +265,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                                       {/* Show Details button - shows when there's a booking */}
                                       {range.booking && (
                                           <button
-                                              onClick={() => onShowDetails(range.booking)}
+                                              onClick={() => handleShowDetails(range.booking)}
                                               className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
                                           >
                                               Show Details
@@ -297,7 +320,14 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                 selectedTimeRange={selectedTimeRange}
                 selectedDate={date}
             />
-)}
+            )}
+            {showDetailsModal && selectedBooking && (
+            <ShowScheduleDetails
+                booking={selectedBooking}
+                onClose={handleCloseDetails}
+                onUpdate={handleUpdateBooking}
+            />
+            )}
         </div>
     );
 }
