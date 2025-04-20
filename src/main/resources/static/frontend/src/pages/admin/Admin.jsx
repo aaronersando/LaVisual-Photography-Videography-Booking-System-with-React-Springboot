@@ -3,10 +3,23 @@ import { Link, Routes, Route } from 'react-router-dom';
 import CalendarSection from '../../admin_sections/CalendarSection';
 import AdminAccountsSection from '../../admin_sections/AdminAccountsSection';
 import YourProfileSection from '../../admin_sections/YourProfileSection';
+import AdminService from '../../components/service/AdminService';
+
 
 function Admin() {
   const [isNavOpen, setIsNavOpen] = useState(true);
   const [currentSection, setCurrentSection] = useState('calendar');
+
+  const isAuthenticated = AdminService.isAuthenticated();
+  const isAdmin = AdminService.isAdmin();
+
+  const handleLogout = () => {
+    const confirmDelete = window.confirm('Are you sure you want to logout this user?');
+    if (confirmDelete) {
+        AdminService.logout();
+    }
+};
+
 
   const toggleNav = () => {
     setIsNavOpen(!isNavOpen);
@@ -28,7 +41,7 @@ function Admin() {
             </button>
             <h1 className="text-2xl text-white font-bold">Admin Dashboard</h1>
           </div>
-          <Link to="/admin/profile" className="flex items-center space-x-2">
+          <Link to="/admin/profile" className="flex items-center space-x-2" onClick={handleLogout}>
             <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
               <span className="text-white font-medium">A</span>
             </div>
@@ -72,12 +85,14 @@ function Admin() {
               <span>Your Profile</span>
             </button>
 
-            <button
-              className={`flex items-center space-x-2 p-3 rounded-lg ${currentSection === 'logout' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
-            >
-              <i className="fa fa-sign-out pl-2" aria-hidden="true"></i>
-              <span>Log out</span>
-            </button>
+            <Link to={"/"}>
+              <button
+                className={`flex items-center space-x-2 p-3 rounded-lg ${currentSection === 'logout' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+              >
+                <i className="fa fa-sign-out pl-2" aria-hidden="true"></i>
+                <span>Log out</span>
+              </button>
+            </Link>
           </div>
         </nav>
 
