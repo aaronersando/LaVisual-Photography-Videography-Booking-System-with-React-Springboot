@@ -10,6 +10,8 @@ import Portfolio from "./pages/public/Portfolio"
 import Booking from "./pages/public/Booking";
 import Admin from "./pages/admin/Admin";
 import Calendar2 from "./components/admin/Calendar2";
+import AddAdminModal from "./components/admin/AddAdminModal";
+import SetManualSchedule from "./components/admin/SetManualSchedule";
 
 function App() {
   
@@ -25,6 +27,8 @@ function App() {
       {/* <Portfolio/> */}
       {/* <Booking/> */}
       <Admin/>
+
+      {/* <SetManualSchedule/> */}
       {/* <Calendar2/> */}
 
     </BrowserRouter>
