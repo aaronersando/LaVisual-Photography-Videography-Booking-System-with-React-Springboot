@@ -85,9 +85,9 @@ function Admin() {
               <span>Your Profile</span>
             </button>
 
-            <Link to={"/"}>
+            <Link to={"/"} onClick={handleLogout}>
               <button
-                className={`flex items-center space-x-2 p-3 rounded-lg ${currentSection === 'logout' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+                className={`flex items-center space-x-2 p-3 rounded-lg ${currentSection === 'logout' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700 w-full  active:bg-purple-600'}`}
               >
                 <i className="fa fa-sign-out pl-2" aria-hidden="true"></i>
                 <span>Log out</span>

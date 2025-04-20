@@ -1,16 +1,35 @@
-import { useState } from 'react';
+import { useState , useEffect} from 'react';
+import AdminService from '../components/service/AdminService';
+import { Link } from 'react-router-dom';
 
 function YourProfileSection() {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    name: 'Admin 1',
-    email: 'agersando29@gmail.com',
-    password: 'testing 1',
-    address: 'Plaridel Bulacan',
-    phoneNumber: '09665469008'
-  });
+  // const [profile, setProfile] = useState({
+  //   name: 'Admin 1',
+  //   email: 'agersando29@gmail.com',
+  //   password: 'testing 1',
+  //   address: 'Plaridel Bulacan',
+  //   phoneNumber: '09665469008'
+  // });
+  const [profileInfo, setProfileInfo] = useState({});
 
-  const [formData, setFormData] = useState(profile);
+  useEffect(() => {
+    fetchProfileInfo();
+}, []);
+
+  const fetchProfileInfo = async () => {
+    try {
+
+        const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+        const response = await AdminService.getYourProfile(token);
+        setProfileInfo(response.ourUsers);
+    } catch (error) {
+        console.error('Error fetching profile information:', error);
+    }
+};
+
+
+  const [formData, setFormData] = useState(profileInfo);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,7 +52,8 @@ function YourProfileSection() {
         <div className="p-6 border-b border-gray-700 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-2xl">{(formData.name[0]).toUpperCase()}</span>
+              {/* <span className="text-white text-2xl">{(formData.name[0]).toUpperCase()}</span> */}
+              <span className="text-white text-2xl">A</span>
             </div>
             <div>
               <h2 className="text-2xl text-white font-bold">Your Profile</h2>
@@ -56,7 +76,7 @@ function YourProfileSection() {
             <input
               type="text"
               name="name"
-              value={isEditing ? formData.name : profile.name}
+              value={isEditing ? formData.name : profileInfo.name}
               onChange={handleChange}
               disabled={!isEditing}
               className={`w-full mt-1 p-3 rounded bg-gray-700/50 text-white border ${
@@ -70,7 +90,7 @@ function YourProfileSection() {
             <input
               type="password"
               name="password"
-              value={isEditing ? formData.password : profile.password}
+              value={isEditing ? formData.password : profileInfo.password}
               onChange={handleChange}
               disabled={!isEditing}
               className={`w-full mt-1 p-3 rounded bg-gray-700/50 text-white border ${
@@ -84,7 +104,7 @@ function YourProfileSection() {
             <input
               type="email"
               name="email"
-              value={isEditing ? formData.email : profile.email}
+              value={isEditing ? formData.email : profileInfo.email}
               onChange={handleChange}
               disabled={!isEditing}
               className={`w-full mt-1 p-3 rounded bg-gray-700/50 text-white border ${
@@ -98,21 +118,7 @@ function YourProfileSection() {
             <input
               type="text"
               name="address"
-              value={isEditing ? formData.address : profile.address}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className={`w-full mt-1 p-3 rounded bg-gray-700/50 text-white border ${
-                isEditing ? 'border-purple-500' : 'border-transparent'
-              } ${!isEditing && 'cursor-not-allowed'}`}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-400">Phone Number</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={isEditing ? formData.phoneNumber : profile.phoneNumber}
+              value={isEditing ? formData.address : profileInfo.city}
               onChange={handleChange}
               disabled={!isEditing}
               className={`w-full mt-1 p-3 rounded bg-gray-700/50 text-white border ${
