@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import {Link} from 'react-router-dom';
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,20 +15,20 @@ function Navbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="/" className="text-white hover:text-purple-500 transition-colors duration-200">Home</a>
-            <a href="/portfolio" className="text-white hover:text-purple-500 transition-colors duration-200">Portfolio</a>
-            <a href="/packages" className="text-white hover:text-purple-500 transition-colors duration-200">Packages</a>
-            <a href="/booking" className="text-white hover:text-purple-500 transition-colors duration-200">Booking</a>
-            <a href="/about" className="text-white hover:text-purple-500 transition-colors duration-200">About</a>
-            <a href="/contact" className="text-white hover:text-purple-500 transition-colors duration-200">Contact</a>
+            <Link to="/" className="text-white hover:text-purple-500 transition-colors duration-200">Home</Link>
+            <Link to="/portfolio" className="text-white hover:text-purple-500 transition-colors duration-200">Portfolio</Link>
+            <Link to="/packages" className="text-white hover:text-purple-500 transition-colors duration-200">Packages</Link>
+            <Link to="/booking" className="text-white hover:text-purple-500 transition-colors duration-200">Booking</Link>
+            <Link to="/about" className="text-white hover:text-purple-500 transition-colors duration-200">About</Link>
+            <Link to="/contact" className="text-white hover:text-purple-500 transition-colors duration-200">Contact</Link>
           </nav>
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <a href="/login" 
+            <Link to="/login" 
               className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700 transition-colors duration-200">
               Log in
-            </a>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}

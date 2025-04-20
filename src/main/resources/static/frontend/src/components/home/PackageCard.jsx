@@ -1,3 +1,5 @@
+import {Link} from "react-router-dom";
+
 function PackageCard({ category, title, price, description, features }) {
   return (
     <div className="group rounded-xl overflow-hidden border border-gray-700 bg-[#111827] text-white w-full transition-colors duration-300 hover:border-purple-500">
@@ -14,9 +16,11 @@ function PackageCard({ category, title, price, description, features }) {
 
         <p className="text-sm text-gray-300 mb-5">{description}</p>
 
-        <button className="w-full bg-[#374151] transition text-white py-2 rounded-md font-medium hover:cursor-pointer group-hover:bg-purple-600">
-          Book Now
-        </button>
+        <Link to={"/booking"}>
+          <button className="w-full bg-[#374151] transition text-white py-2 rounded-md font-medium hover:cursor-pointer group-hover:bg-purple-600">
+            Book Now
+          </button>
+        </Link>
       </div>
 
       {/* Divider */}

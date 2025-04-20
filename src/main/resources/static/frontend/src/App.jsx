@@ -12,28 +12,42 @@ import Admin from "./pages/admin/Admin";
 import Calendar2 from "./components/admin/Calendar2";
 import AddAdminModal from "./components/admin/AddAdminModal";
 import SetManualSchedule from "./components/admin/SetManualSchedule";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Router } from "lucide-react";
+
+const router = createBrowserRouter([
+  {path:"/", element: <Home/>},
+  {path:"/home", element: <Home/>},
+  {path:"/contact", element: <Contact/>},
+  {path:"/portfolio", element: <Portfolio/>},
+  {path:"/packages", element: <Package/>},
+  // {path:"/about", element: <About/>},
+  {path:"/booking", element: <Booking/>},
+  {path:"/login", element: <Login/>},
+  {path:"*", element: <Error/>},
+  
+
+])
 
 function App() {
   
 
   return (
     <>
-    <BrowserRouter>
+    <RouterProvider router={router}/>
+
+    {/* <BrowserRouter> */}
       {/* <Login/> */}
       {/* <Contact/> */}
-      {/* <Home/> */}
+      {/* <Home/> */} 
       {/* <Error/> */}
       {/* <Package/> */}
       {/* <Portfolio/> */}
       {/* <Booking/> */}
-      <Admin/>
-
+      {/* <Admin/> */}
       {/* <SetManualSchedule/> */}
       {/* <Calendar2/> */}
-
-    </BrowserRouter>
-      
-      
+    {/* </BrowserRouter> */} 
     </>
   )
 }

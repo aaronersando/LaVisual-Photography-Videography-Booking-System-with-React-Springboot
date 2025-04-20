@@ -1,6 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
+import UpdateSchedule from './UpdateSchedule';
 
 function ShowScheduleDetails({ booking, onClose, onUpdate }) {
+
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [bookingToUpdate, setBookingToUpdate] = useState(null);
     // Destructure booking data for easier access
     const { 
         package: packageName, 
@@ -27,6 +31,20 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
         const ampm = hourNum >= 12 ? 'PM' : 'AM';
         const hour12 = hourNum % 12 || 12;
         return `${hour12}:00 ${ampm}`;
+    };
+    
+
+    const handleUpdateBooking = (booking) => {
+        setBookingToUpdate(booking);
+        // setShowDetailsModal(false);
+        setShowUpdateModal(true);
+    };
+    
+    const handleSaveUpdatedBooking = (updatedBooking) => {
+        // tO save the updated booking to your backend
+        // After success:
+        setShowUpdateModal(false);
+        // If want to refresh the booking data here
     };
 
     return (
@@ -140,13 +158,20 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
                         Close
                     </button>
                     <button
-                        onClick={() => onUpdate(booking)}
+                        onClick={() => handleUpdateBooking(booking)}
                         className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
                     >
                         Update
                     </button>
                 </div>
             </div>
+            {showUpdateModal && bookingToUpdate && (
+            <UpdateSchedule
+                booking={bookingToUpdate}
+                onClose={() => setShowUpdateModal(false)}
+                onUpdate={handleSaveUpdatedBooking}
+            />
+)}
         </div>
     );
 }

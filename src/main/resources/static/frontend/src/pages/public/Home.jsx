@@ -4,6 +4,7 @@ import HeroSection from "../../components/home/HeroSection";
 import ServiceCard from "../../components/home/ServiceCard";
 import PortfolioCard from "../../components/home/PortfolioCard";
 import PackageCard from "../../components/home/PackageCard";
+import {Link} from 'react-router-dom';
 
 function Home() {
   return (
@@ -107,7 +108,7 @@ function Home() {
                 title="Khay & Jha's SDE Video"
               />
 
-              <a href="/portfolio" className="block relative group overflow-hidden">
+              <Link to="/portfolio" className="block relative group overflow-hidden">
                 <PortfolioCard    
                   image="/src/assets/home/h_final.webp"
                 />
@@ -119,7 +120,7 @@ function Home() {
                     </span>
                   </h1>
                 </div>
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -170,7 +171,7 @@ function Home() {
               category="Photography + Videography"
               title="Event Complete"
               price="13,000"
-              description="Full Photo & Video Covarage For Your Special Event"
+              description="Full Photo & Video Coverage For Your Special Event"
               features={[
                 '8-Hours of Coverage',
                 '2 Photographers & 1 Videographer',
@@ -194,12 +195,16 @@ function Home() {
             Book your photography or videography session today and let us create lasting memories for you.
           </p>
           <div className="flex justify-center space-x-4">
-            <button className="flex items-center bg-white text-[#581C87] px-8 py-3 rounded-md hover:bg-gray-100 transition-colors hover:cursor-pointer">
-              Book a Session
-            </button>
-            <button className="border border-white text-white px-6 py-3 rounded-md hover:bg-white/10 transition-colors hover:cursor-pointer">
-              Contact Us
-            </button>
+            <Link to={"/booking"}>
+              <button className="flex items-center bg-white text-[#581C87] px-8 py-3 rounded-md hover:bg-gray-100 transition-colors hover:cursor-pointer">
+                Book a Session
+              </button>
+            </Link>
+            <Link to={"/contact"}>
+              <button className="border border-white text-white px-6 py-3 rounded-md hover:bg-white/10 transition-colors hover:cursor-pointer">
+                Contact Us
+              </button>
+              </Link>
           </div>
         </div>
       
