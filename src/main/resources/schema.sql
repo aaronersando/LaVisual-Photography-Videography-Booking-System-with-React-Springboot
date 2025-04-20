@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS bookings (
    guest_email VARCHAR(255) NOT NULL,
    guest_phone VARCHAR(20) NOT NULL,   
    booking_date DATE NOT NULL,
-   booking_time TIME NOT NULL,     
+   booking_time_start TIME NOT NULL,     
+   booking_time_end TIME NOT NULL,   
+   booking_hours INT,  
    location VARCHAR(255) NOT NULL,
    category_name VARCHAR(255) NOT NULL,
    package_name VARCHAR(255) NOT NULL,
@@ -40,5 +42,4 @@ CREATE TABLE IF NOT EXISTS payments (
 
 ALTER TABLE bookings
 ADD FOREIGN KEY (payment_id) REFERENCES payments(payment_id);
-
 

@@ -4,6 +4,10 @@ import Contactform from "../../components/forms/Contactform";
 import FAQcard from "../../components/common/FAQcard";
 
 function Contact() {
+
+  
+
+  
   return (
     <>
       <Navbar />

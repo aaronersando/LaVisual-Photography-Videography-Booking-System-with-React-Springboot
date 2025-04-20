@@ -1,3 +1,6 @@
+import {Link} from 'react-router-dom';
+
+
 function FooterComp() {
   return (
     <footer className="bg-black w-full pt-12 pb-6">
@@ -14,18 +17,10 @@ function FooterComp() {
               Premium photography and videography services for all your special occasions.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-white hover:text-purple-500 transition-colors duration-200">
-                <i className="fab fa-facebook-f"></i>
-              </a>
-              <a href="#" className="text-white hover:text-purple-500 transition-colors duration-200">
-                <i className="fab fa-instagram"></i>
-              </a>
-              <a href="#" className="text-white hover:text-purple-500 transition-colors duration-200">
-                <i className="fab fa-x-twitter"></i>
-              </a>
-              <a href="#" className="text-white hover:text-purple-500 transition-colors duration-200">
-                <i className="fab fa-youtube"></i>
-              </a>
+              <Link to="https://www.facebook.com/share/1Fj1cgEdN6/?mibextid=wwXIfr" className="text-white hover:text-purple-500 transition-colors duration-200">
+                <i class="fa-brands fa-facebook"></i>
+              </Link>
+              
             </div>
           </div>
 
@@ -33,10 +28,10 @@ function FooterComp() {
           <div className="space-y-4">
             <h4 className="text-white font-bold text-sm">Quick Links</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Portfolio</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Packages</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Book a Session</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">About Us</a></li>
+              <li><Link to="/portfolio" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Portfolio</Link></li>
+              <li><Link to="/packages" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Packages</Link></li>
+              <li><Link to="/booking" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Book a Session</Link></li>
+              <li><Link to="/about" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">About Us</Link></li>
             </ul>
           </div>
 
@@ -44,10 +39,10 @@ function FooterComp() {
           <div className="space-y-4">
             <h4 className="text-white font-bold text-sm">Services</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Wedding Photography</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Portrait Sessions</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Pre-Photoshoot</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Event Coverage</a></li>
+              <li><Link to="/portfolio" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Wedding Photography</Link></li>
+              <li><Link to="/portfolio" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Portrait Sessions</Link></li>
+              <li><Link to="/portfolio" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Pre-Photoshoot</Link></li>
+              <li><Link to="/portfolio" className="text-gray-400 hover:text-purple-500 text-sm transition-colors duration-200">Event Coverage</Link></li>
             </ul>
           </div>
 
