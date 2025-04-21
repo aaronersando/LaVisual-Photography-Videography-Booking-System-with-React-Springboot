@@ -47,7 +47,7 @@ function Loginform() {
   };
 
   return (
-    <div className="w-[448px] h-[410px] bg-gray-800 rounded-lg p-8 mx-auto my-12 flex flex-col text-white">
+    <div className="w-[448px] h-auto min-h-[300px] bg-gray-800 rounded-lg p-8 mx-auto my-12 flex flex-col text-white">
       <h2 className="text-2xl font-bold text-center mb-1">
         Welcome Back
       </h2>
@@ -55,15 +55,10 @@ function Loginform() {
       <p className="text-sm text-gray-400 text-center mb-6">
         Sign in to your account
       </p>
-      
-      {error && (
-        <div className="bg-red-500/20 border border-red-500 text-red-100 px-4 py-2 rounded mb-4">
-          {error}
-        </div>
-      )}
+    
       
       <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div className="flex flex-col">
             <label className="text-sm font-medium mb-1.5">
               Email Address
@@ -98,13 +93,35 @@ function Loginform() {
             type="submit"
             className={`w-full ${isLoading ? 'bg-purple-700' : 'bg-purple-600 hover:bg-purple-700'} 
                        text-white py-3 px-4 rounded-md text-sm font-medium 
-                       transition-colors duration-200 mt-4`}
+                       transition-colors duration-200 my-2`}
             disabled={isLoading}
           >
             {isLoading ? 'Redirecting...' : 'Sign in'}
           </button>
         </div>
       </form>
+
+      <div className="h-[30px] flex items-center mt-4">
+        {error && (
+          <div className="w-full bg-red-500/20 border border-red-500 text-red-100 px-4 py-2 rounded">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>
+                {error.toLowerCase().includes('unauthorized') || 
+                error.toLowerCase().includes('401') || 
+                error.toLowerCase().includes('invalid') ? 
+                  'Invalid email or password' : 
+                  error.toLowerCase().includes('network') ?
+                  'Network error. Please check your connection.' :
+                  'Login failed. Please try again.'}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
