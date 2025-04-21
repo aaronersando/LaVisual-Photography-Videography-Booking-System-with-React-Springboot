@@ -20,7 +20,7 @@ function Error(){
                     </p>
                     <div className="mt-6">
                     <Link
-                        to="/home"
+                        to="/"
                         className="inline-flex items-center rounded-md bg-[#A855F7] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                         Go to Homepage
