@@ -5,8 +5,8 @@ function AddAdminModal({ onClose, onAdd }) {
     name: '',
     email: '',
     password: '',
-    address: '',
-    phoneNumber: ''
+    city: '',
+    role: 'ADMIN' // Default role is ADMIN
   });
 
   const handleChange = (e) => {
@@ -18,12 +18,12 @@ function AddAdminModal({ onClose, onAdd }) {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     onAdd(formData);
   };
 
   return (
-    <div className="fixed mt-10 inset-0 bg-black/50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 mt-10 flex items-center justify-center p-4">
       <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
@@ -82,25 +82,15 @@ function AddAdminModal({ onClose, onAdd }) {
             <label className="text-sm text-gray-400">Address</label>
             <input
               type="text"
-              name="address"
-              value={formData.address}
+              name="city"
+              value={formData.city}
               onChange={handleChange}
               className="w-full mt-1 p-2 bg-gray-700 text-white rounded border border-gray-600"
               required
             />
           </div>
 
-          <div>
-            <label className="text-sm text-gray-400">Phone Number</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              className="w-full mt-1 p-2 bg-gray-700 text-white rounded border border-gray-600"
-              required
-            />
-          </div>
+          
         </form>
 
         {/* Footer */}
@@ -113,8 +103,10 @@ function AddAdminModal({ onClose, onAdd }) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={Object.values(formData).some(value => value.trim() === '')}
-            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+            disabled={Object.values(formData).some(value => 
+              typeof value === 'string' && value.trim() === ''
+            )}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Create Account
           </button>

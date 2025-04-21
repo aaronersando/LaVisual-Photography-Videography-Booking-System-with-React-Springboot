@@ -1,32 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import AdminService from '../components/service/AdminService';
 import ShowDetailsModal from '../components/admin/ShowDetailsModal';
 import EditAdminModal from '../components/admin/EditAdminModal';
 import AddAdminModal from '../components/admin/AddAdminModal';
 
 function AdminAccountsSection() {
-  const [admins, setAdmins] = useState([
-    {
-      id: 1,
-      name: 'Admin 1',
-      email: 'agersando@gmail.com',
-      password: 'testing 1',
-      address: 'Plaridel, Bulacan',
-      phoneNumber: '09665469008'
-    },
-    {
-      id: 2,
-      name: 'Admin 2',
-      email: 'cuevas@gmail.com',
-      password: 'testing 2',
-      address: 'Plaridel, Bulacan',
-      phoneNumber: '09665469008'
-    }
-  ]);
-
+  const [admins, setAdmins] = useState([]);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+  
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await AdminService.getAllUsers(token);
+      setAdmins(response.ourUsersList);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
 
   const handleShowDetails = (admin) => {
     setSelectedAdmin(admin);
@@ -38,22 +36,40 @@ function AdminAccountsSection() {
     setShowEditModal(true);
   };
 
-  const handleDelete = (adminId) => {
-    if (window.confirm('Are you sure you want to delete this admin account?')) {
-      setAdmins(admins.filter(admin => admin.id !== adminId));
+  const handleDelete = async (adminId) => {
+    try {
+      if (window.confirm('Are you sure you want to delete this admin account?')) {
+        const token = localStorage.getItem('token');
+        await AdminService.deleteUser(adminId, token);
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error deleting admin:', error);
     }
   };
 
-  const handleAddAdmin = (newAdmin) => {
-    setAdmins([...admins, { ...newAdmin, id: admins.length + 1 }]);
-    setShowAddModal(false);
+  const handleAddAdmin = async (newAdmin) => {
+    try {
+      const token = localStorage.getItem('token');
+      await AdminService.register(newAdmin, token);
+      fetchUsers();
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error adding admin:', error);
+      alert('Failed to add admin: ' + (error.response?.data?.message || error.message));
+    }
   };
 
-  const handleUpdateAdmin = (updatedAdmin) => {
-    setAdmins(admins.map(admin => 
-      admin.id === updatedAdmin.id ? updatedAdmin : admin
-    ));
-    setShowEditModal(false);
+  const handleUpdateAdmin = async (updatedAdmin) => {
+    try {
+      const token = localStorage.getItem('token');
+      await AdminService.updateUser(updatedAdmin.id, updatedAdmin, token);
+      fetchUsers();
+      setShowEditModal(false);
+    } catch (error) {
+      console.error('Error updating admin:', error);
+      alert('Failed to update admin: ' + (error.response?.data?.message || error.message));
+    }
   };
 
   return (
@@ -68,7 +84,7 @@ function AdminAccountsSection() {
           <div key={admin.id} className="bg-gray-800/50 rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg">A</span>
+                <span className="text-white text-lg">{admin.name ? admin.name[0].toUpperCase() : 'A'}</span>
               </div>
               <div>
                 <h3 className="text-white font-medium">{admin.name}</h3>

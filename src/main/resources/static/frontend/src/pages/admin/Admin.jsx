@@ -41,7 +41,7 @@ function Admin() {
             </button>
             <h1 className="text-2xl text-white font-bold">Admin Dashboard</h1>
           </div>
-          <Link to="/admin/profile" className="flex items-center space-x-2" onClick={handleLogout}>
+          <Link to="/" className="flex items-center space-x-2" onClick={handleLogout}>
             <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
               <span className="text-white font-medium">A</span>
             </div>

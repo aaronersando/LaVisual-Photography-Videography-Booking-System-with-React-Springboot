@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 function ShowDetailsModal({ admin, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
@@ -29,11 +31,9 @@ function ShowDetailsModal({ admin, onClose }) {
               <span className="text-gray-400">Email:</span> {admin.email}
             </p>
             <p>
-              <span className="text-gray-400">Address:</span> {admin.address}
+              <span className="text-gray-400">Address:</span> {admin.city}
             </p>
-            <p>
-              <span className="text-gray-400">Phone:</span> {admin.phoneNumber}
-            </p>
+            {/* Phone number field removed */}
           </div>
         </div>
 

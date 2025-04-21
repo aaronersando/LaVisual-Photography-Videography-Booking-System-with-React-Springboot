@@ -1,13 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function EditAdminModal({ admin, onClose, onSave }) {
   const [formData, setFormData] = useState({
-    name: admin.name,
-    email: admin.email,
+    name: '',
+    email: '',
     password: '',
-    address: admin.address,
-    phoneNumber: admin.phoneNumber
+    city: '',
+    role: ''
   });
+
+  // Initialize form data when admin prop changes
+  useEffect(() => {
+    if (admin) {
+      setFormData({
+        name: admin.name || '',
+        email: admin.email || '',
+        password: '', // Clear password field on open
+        city: admin.city || '',
+        role: admin.role || 'ADMIN'
+      });
+    }
+  }, [admin]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,11 +32,20 @@ function EditAdminModal({ admin, onClose, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
-      ...admin,
-      ...formData,
-      password: formData.password || admin.password
-    });
+    
+    // Create data object to submit to API (matching YourProfileSection approach)
+    const updateData = {
+      id: admin.id,
+      name: formData.name,
+      email: formData.email,
+      // Only include password if provided
+      ...(formData.password && formData.password.trim() !== '' ? { password: formData.password } : {}),
+      city: formData.city,
+      role: formData.role || admin.role // Preserve existing role
+    };
+    
+    // Pass the update data to parent component's onSave handler
+    onSave(updateData);
   };
 
   return (
@@ -33,7 +55,7 @@ function EditAdminModal({ admin, onClose, onSave }) {
         <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xl">{formData.name[0].toUpperCase()}</span>
+              <span className="text-white text-xl">{admin.name ? admin.name[0]?.toUpperCase() : 'A'}</span>
             </div>
             <h2 className="text-xl font-semibold text-white">Edit Admin</h2>
           </div>
@@ -86,20 +108,8 @@ function EditAdminModal({ admin, onClose, onSave }) {
             <label className="text-sm text-gray-400">Address</label>
             <input
               type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className="w-full mt-1 p-2 bg-gray-700 text-white rounded border border-gray-600"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-400">Phone Number</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={formData.phoneNumber}
+              name="city"
+              value={formData.city}
               onChange={handleChange}
               className="w-full mt-1 p-2 bg-gray-700 text-white rounded border border-gray-600"
               required
