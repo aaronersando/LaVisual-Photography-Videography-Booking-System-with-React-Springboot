@@ -7,6 +7,7 @@ function Loginform() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -24,7 +25,6 @@ function Loginform() {
         localStorage.setItem('token', userData.token);
         localStorage.setItem('role', userData.role);
         
-
         setIsLoading(true);
         
         setTimeout(() => {
@@ -46,6 +46,10 @@ function Loginform() {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="w-[448px] h-auto min-h-[300px] bg-gray-800 rounded-lg p-8 mx-auto my-12 flex flex-col text-white">
       <h2 className="text-2xl font-bold text-center mb-1">
@@ -56,7 +60,6 @@ function Loginform() {
         Sign in to your account
       </p>
     
-      
       <form onSubmit={handleSubmit}>
         <div className="space-y-2">
           <div className="flex flex-col">
@@ -78,20 +81,34 @@ function Loginform() {
             <label className="text-sm font-medium mb-1.5">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full bg-gray-700 border border-gray-600 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
-              disabled={isLoading}
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full bg-gray-700 border border-gray-600 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+                disabled={isLoading}
+                required
+              />
+              <button 
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-600 hover:text-purple-800 focus:outline-none"
+                onClick={togglePasswordVisibility}
+                tabIndex="-1"
+              >
+                {showPassword ? (
+                  <i className="fa-solid fa-eye-slash text-sm"></i>
+                ) : (
+                  <i className="fa-solid fa-eye text-sm"></i>
+                )}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
-            className={`w-full ${isLoading ? 'bg-purple-700' : 'bg-purple-600 hover:bg-purple-700'} 
+            className={`w-full ${isLoading ? 'bg-purple-700' : 'bg-purple-600 hover:bg-purple-800'} 
                        text-white py-3 px-4 rounded-md text-sm font-medium 
                        transition-colors duration-200 my-2`}
             disabled={isLoading}
@@ -105,10 +122,7 @@ function Loginform() {
         {error && (
           <div className="w-full bg-red-500/20 border border-red-500 text-red-100 px-4 py-2 rounded">
             <div className="flex items-center">
-              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <i className="fa fa-exclamation-circle mt-2 w-5 h-5 mr-2 flex-shrink-0 text-red-100" aria-hidden="true"></i>
               <span>
                 {error.toLowerCase().includes('unauthorized') || 
                 error.toLowerCase().includes('401') || 
