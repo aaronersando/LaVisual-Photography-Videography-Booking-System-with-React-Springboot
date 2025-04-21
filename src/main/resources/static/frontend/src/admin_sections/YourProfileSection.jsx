@@ -174,7 +174,7 @@ function YourProfileSection() {
             <input
               type="password"
               name="password"
-              value={formData.password || ''}
+              value="***************"
               onChange={handleChange}
               disabled={!isEditing}
               className={`w-full mt-1 p-3 rounded bg-gray-700/50 text-white border ${
