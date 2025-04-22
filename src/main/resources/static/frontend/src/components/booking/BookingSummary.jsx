@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import emailjs from '@emailjs/browser';
+import BookingService from '../service/BookingService';
 
 function BookingSummary({ onBack, data, onComplete }) {
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -9,68 +10,98 @@ function BookingSummary({ onBack, data, onComplete }) {
     expiry: '',
     cvc: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const calculateDownPayment = () => {
     return data.price * 0.5; // 50% down payment
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-
-  //   emailjs.sendForm('service_cs4kvtp', 'template_7wcsaqq', e.target, 'XEOTxlS2BnBaqReO4')
-  //   alert("Message Sent!")
-  // }
-
-  // const handlePaymentSubmit = (e) => {
-  //   e.preventDefault();
-  //   // Add payment processing logic here
-  //   onComplete({
-  //     ...data,
-  //     paymentMethod,
-  //     paymentType,
-  //     paymentAmount: paymentType === 'full' ? data.price : calculateDownPayment()
-  //   });
-
-  //   emailjs.sendForm('service_cs4kvtp', 'template_7wcsaqq', e.target, 'XEOTxlS2BnBaqReO4')
-  //   alert("Message Sent!")
-  // };
-
-  const handlePaymentSubmit = (e) => {
+  const handlePaymentSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
   
-    const emailParams = {
-      name: data.customerDetails.name,
-      email: data.customerDetails.email,
-      phone: data.customerDetails.phone,
-      location: data.customerDetails.location,
-      package: data.package,
-      category: data.category,
-      date: new Date(data.date).toLocaleDateString(),
-      startTime: formatTime(data.timeRange?.startTime || ''),
-      endTime: formatTime(data.timeRange?.endTime || ''),
-      paymentAmount: paymentType === 'full' ? data.price : calculateDownPayment(),
-      paymentType,
-      paymentMethod,
-    };
+    const paymentAmount = paymentType === 'full' ? data.price : calculateDownPayment();
+    
+    try {
+      // Prepare email parameters
+      const emailParams = {
+        name: data.customerDetails.name,
+        email: data.customerDetails.email,
+        phone: data.customerDetails.phone,
+        location: data.customerDetails.location,
+        package: data.package,
+        category: data.category,
+        date: new Date(data.date).toLocaleDateString(),
+        startTime: formatTime(data.timeRange?.startTime || ''),
+        endTime: formatTime(data.timeRange?.endTime || ''),
+        paymentAmount: paymentAmount,
+        paymentType: paymentType === 'full' ? 'Full Payment' : 'Down Payment',
+        paymentMethod: paymentMethod === 'gcash' ? 'GCash' : 'Bank Transfer',
+        accountNumber: cardDetails.number, 
+      };
   
-    emailjs
-      .send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4')
-      .then(() => {
-        alert('Message Sent!');
-        onComplete({
+      // Calculate booking hours from time range
+      const startHour = parseInt(data.timeRange?.startTime?.split(':')[0] || 0);
+      const endHour = parseInt(data.timeRange?.endTime?.split(':')[0] || 0);
+      const bookingHours = endHour - startHour;
+  
+      // Prepare data for backend API
+      const bookingRequest = {
+        guestName: data.customerDetails.name,
+        guestEmail: data.customerDetails.email,
+        guestPhone: data.customerDetails.phone,
+        bookingDate: data.date,
+        bookingTimeStart: data.timeRange?.startTime,
+        bookingTimeEnd: data.timeRange?.endTime,
+        bookingHours: bookingHours > 0 ? bookingHours : data.packageDetails.hours,
+        location: data.customerDetails.location,
+        categoryName: data.category,
+        packageName: data.package,
+        packagePrice: data.price,
+        specialRequests: data.customerDetails.notes || '',
+        
+        // Payment details
+        paymentType: paymentType === 'full' ? 'FULL' : 'DOWNPAYMENT',
+        paymentMethod: paymentMethod.toUpperCase(),
+        amount: paymentAmount,
+        accountNumber: cardDetails.number
+      };
+  
+      // Save booking to backend - REMOVE THE DUPLICATE CALL BELOW THIS TRY BLOCK
+      const response = await BookingService.createBooking(bookingRequest);
+      
+      if (response.success) {
+        // Add booking ID and payment info to the data
+        const completedBookingData = {
           ...data,
           paymentMethod,
           paymentType,
-          paymentAmount: emailParams.paymentAmount,
-        });
-      })
-      .catch((error) => {
-        console.error('Failed to send email:', error);
-        alert('Failed to send confirmation. Please try again.');
-      });
+          paymentAmount,
+          bookingId: response.data.bookingId,
+          paymentId: response.data.paymentId,
+          reference: response.data.bookingReference || data.reference
+        };
+  
+        // Send confirmation email
+        await emailjs.send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4');
+        
+        // Complete booking process
+        onComplete(completedBookingData);
+      } else {
+        setError(response.message || 'Failed to save booking');
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      setError(error.message || 'Failed to process booking. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatTime = (timeString) => {
+    if (!timeString) return '';
     const [hour] = timeString.split(':');
     const hourNum = parseInt(hour);
     const ampm = hourNum >= 12 ? 'PM' : 'AM';
@@ -101,12 +132,6 @@ function BookingSummary({ onBack, data, onComplete }) {
                 {new Date(data.date).toLocaleDateString()} 
               </span>
             </div>
-            {/* <div className="flex justify-between">
-              <span>Time:</span>
-              <span className="font-medium">
-                {data.timeRange} 
-              </span>
-            </div> */}
             <div className="flex justify-between">
               <span>Time:</span>
               <span className="font-medium">
@@ -213,6 +238,7 @@ function BookingSummary({ onBack, data, onComplete }) {
                   className="w-full p-2 bg-gray-600 rounded border border-gray-500"
                   value={cardDetails.number}
                   onChange={(e) => setCardDetails(prev => ({ ...prev, number: e.target.value }))}
+                  required
                 />
               </div>
               {paymentMethod === 'bank' && (
@@ -223,6 +249,7 @@ function BookingSummary({ onBack, data, onComplete }) {
                     className="p-2 bg-gray-600 rounded border border-gray-500"
                     value={cardDetails.expiry}
                     onChange={(e) => setCardDetails(prev => ({ ...prev, expiry: e.target.value }))}
+                    required={paymentMethod === 'bank'}
                   />
                   <input
                     type="text"
@@ -230,6 +257,7 @@ function BookingSummary({ onBack, data, onComplete }) {
                     className="p-2 bg-gray-600 rounded border border-gray-500"
                     value={cardDetails.cvc}
                     onChange={(e) => setCardDetails(prev => ({ ...prev, cvc: e.target.value }))}
+                    required={paymentMethod === 'bank'}
                   />
                 </div>
               )}
@@ -238,20 +266,31 @@ function BookingSummary({ onBack, data, onComplete }) {
         </div>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-100 rounded">
+          <p className="flex items-center">
+            <i className="fa fa-exclamation-circle w-5 h-5 mr-2 flex-shrink-0" aria-hidden="true"></i>
+            {error}
+          </p>
+        </div>
+      )}
+
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
         <button
           onClick={onBack}
           className="px-4 py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded"
+          disabled={isSubmitting}
         >
           Back
         </button>
         <button
           onClick={handlePaymentSubmit}
-          disabled={!paymentMethod || !paymentType}
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+          disabled={!paymentMethod || !paymentType || isSubmitting}
+          className={`px-4 py-2 ${isSubmitting ? 'bg-purple-700 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded disabled:opacity-50`}
         >
-          Confirm & Pay
+          {isSubmitting ? 'Processing...' : 'Confirm & Pay'}
         </button>
       </div>
     </div>

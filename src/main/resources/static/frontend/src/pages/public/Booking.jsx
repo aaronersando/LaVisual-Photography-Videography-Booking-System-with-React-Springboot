@@ -10,6 +10,8 @@ import BookingConfirmation from '../../components/booking/BookingConfirmation';
 
 function Booking() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [bookingError, setBookingError] = useState(null);
   const [bookingData, setBookingData] = useState({
     package: '',
     category: '',
@@ -53,6 +55,31 @@ function Booking() {
     updateBookingData(paymentData);
     handleNext();
   };
+
+  if (bookingError) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-[#111827] py-20">
+          <div className="container mx-auto px-4">
+            <div className="bg-red-500/20 border border-red-500 text-red-100 p-4 rounded">
+              <h2 className="text-xl font-bold">An error occurred</h2>
+              <p>{bookingError}</p>
+              <button 
+                onClick={() => setBookingError(null)}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </main>
+        <FooterComp />
+      </>
+    );
+  }
+
+  
 
   return (
     <>

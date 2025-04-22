@@ -1,0 +1,27 @@
+package com.La.Visual.entity;
+
+import lombok.Builder;
+import lombok.With;
+
+import java.time.LocalDateTime;
+
+@Builder
+@With
+public record Payment(
+    Integer paymentId,
+    Integer bookingId,
+    Double amount,
+    String paymentType,
+    String paymentMethod,
+    String paymentStatus,
+    Double remainingBalance,
+    LocalDateTime paymentDate
+) {
+    public boolean isFullPayment() {
+        return "FULL".equalsIgnoreCase(paymentType);
+    }
+    
+    public boolean isCompleted() {
+        return "COMPLETED".equalsIgnoreCase(paymentStatus);
+    }
+}

@@ -17,6 +17,8 @@ public class RequestResponse {
     private int statusCode;
     private String message;
     private String error;
+    private Object data;
+    private boolean success;
     private String token;
     private String refreshToken;
     private String expirationTime;
@@ -27,4 +29,15 @@ public class RequestResponse {
     private String password;
     private OurUsers ourUsers; // Include the OurUsers object
     private List<OurUsers> ourUsersList; // For lists of users
+
+    public RequestResponse(String message, Object data, int statusCode, boolean success) {
+        this.message = message;
+        this.data = data;
+        this.statusCode = statusCode;
+        this.success = success;
+    }
+
+    public RequestResponse() {
+        //TODO Auto-generated constructor stub
+    }
 }

@@ -23,18 +23,21 @@ function BookingConfirmation({ bookingData }) {
 
       <div className="bg-gray-700 p-4 rounded-lg text-left mb-6">
         <h3 className="font-semibold text-white mb-4">Booking Details</h3>
-        <div className="space-y-2 text-gray-300">
-          <p>Booking Reference: <span className="text-white">{bookingData.reference}</span></p>
-          <p>Package: <span className="text-white">{bookingData.package}</span></p>
-          <p>Date: <span className="text-white">{new Date(bookingData.date).toLocaleDateString()}</span></p>
-          <p>Time: <span className="text-white">
-            {bookingData.timeRange 
-              ? `${formatTime(bookingData.timeRange.startTime)} - ${formatTime(bookingData.timeRange.endTime)}`
-              : 'Not selected'}
-          </span></p>
-          <p>Location: <span className="text-white">{bookingData.customerDetails.location}</span></p>
-          <p>Amount Paid: <span className="text-purple-400">₱{bookingData.paymentAmount.toLocaleString()}</span></p>
-        </div>
+          <div className="space-y-2 text-gray-300">
+            <p>Booking Reference: <span className="text-white">{bookingData.reference}</span></p>
+            <p>Booking ID: <span className="text-white">{bookingData.bookingId}</span></p>
+            <p>Package: <span className="text-white">{bookingData.package}</span></p>
+            <p>Date: <span className="text-white">{new Date(bookingData.date).toLocaleDateString()}</span></p>
+            <p>Time: <span className="text-white">
+              {bookingData.timeRange 
+                ? `${formatTime(bookingData.timeRange.startTime)} - ${formatTime(bookingData.timeRange.endTime)}`
+                : 'Not selected'}
+            </span></p>
+            <p>Location: <span className="text-white">{bookingData.customerDetails.location}</span></p>
+            <p>Amount Paid: <span className="text-purple-400">₱{bookingData.paymentAmount.toLocaleString()}</span></p>
+            <p>Payment Method: <span className="text-white">{bookingData.paymentMethod}</span></p>
+            <p>Payment Type: <span className="text-white">{bookingData.paymentType === 'full' ? 'Full Payment' : 'Down Payment'}</span></p>
+          </div>
       </div>
 
       <div className="text-gray-400 text-sm">
