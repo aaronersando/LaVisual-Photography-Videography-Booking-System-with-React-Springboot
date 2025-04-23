@@ -59,6 +59,10 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
                         <h3 className="font-semibold text-lg mb-4 text-white">Booking Summary</h3>
                         <div className="space-y-2 text-white">
                             <div className="flex justify-between">
+                                <span>Reference:</span>
+                                <span className="font-medium">{booking.bookingReference}</span>
+                            </div>
+                            <div className="flex justify-between">
                                 <span>Package:</span>
                                 <span className="font-medium">{packageName}</span>
                             </div>

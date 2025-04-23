@@ -24,7 +24,10 @@ function BookingConfirmation({ bookingData }) {
       <div className="bg-gray-700 p-4 rounded-lg text-left mb-6">
         <h3 className="font-semibold text-white mb-4">Booking Details</h3>
           <div className="space-y-2 text-gray-300">
-            <p>Booking Reference: <span className="text-white">{bookingData.reference}</span></p>
+            <p className="bg-purple-500/10 p-2 rounded border border-purple-500/30">
+              <span className="font-medium">Booking Reference:</span> 
+              <span className="text-white text-lg ml-2">{bookingData.reference}</span>
+            </p>
             <p>Booking ID: <span className="text-white">{bookingData.bookingId}</span></p>
             <p>Package: <span className="text-white">{bookingData.package}</span></p>
             <p>Date: <span className="text-white">{new Date(bookingData.date).toLocaleDateString()}</span></p>

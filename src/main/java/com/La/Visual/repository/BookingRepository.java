@@ -34,6 +34,7 @@ public class BookingRepository {
         .packagePrice(rs.getDouble("package_price"))
         .specialRequests(rs.getString("special_requests"))
         .bookingStatus(rs.getString("booking_status"))
+        .bookingReference(rs.getString("booking_reference"))
         .paymentId(rs.getInt("payment_id"))
         .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
         .build();
@@ -50,8 +51,8 @@ public class BookingRepository {
                 "INSERT INTO bookings (guest_name, guest_email, guest_phone, " +
                 "booking_date, booking_time_start, booking_time_end, booking_hours, " +
                 "location, category_name, package_name, package_price, " +
-                "special_requests, booking_status, payment_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "special_requests, booking_status, booking_reference, payment_id) " + // Add booking_reference
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, booking.guestName());
@@ -67,7 +68,8 @@ public class BookingRepository {
             ps.setDouble(11, booking.packagePrice());
             ps.setString(12, booking.specialRequests());
             ps.setString(13, booking.bookingStatus());
-            ps.setInt(14, booking.paymentId());
+            ps.setString(14, booking.bookingReference()); // Add this line
+            ps.setInt(15, booking.paymentId());
             return ps;
         }, keyHolder);
         
@@ -118,7 +120,7 @@ public class BookingRepository {
             "UPDATE bookings SET guest_name = ?, guest_email = ?, guest_phone = ?, " +
             "booking_date = ?, booking_time_start = ?, booking_time_end = ?, booking_hours = ?, " +
             "location = ?, category_name = ?, package_name = ?, package_price = ?, " +
-            "special_requests = ?, booking_status = ? " +
+            "special_requests = ?, booking_status = ?, booking_reference = ? " + // Add booking_reference
             "WHERE booking_id = ?",
             booking.guestName(),
             booking.guestEmail(),
@@ -133,6 +135,7 @@ public class BookingRepository {
             booking.packagePrice(),
             booking.specialRequests(),
             booking.bookingStatus(),
+            booking.bookingReference(), // Add this line
             booking.bookingId()
         );
         

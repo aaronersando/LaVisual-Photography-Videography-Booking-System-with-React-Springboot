@@ -61,6 +61,7 @@ function BookingSummary({ onBack, data, onComplete }) {
         packageName: data.package,
         packagePrice: data.price,
         specialRequests: data.customerDetails.notes || '',
+        bookingReference: data.reference,
         
         // Payment details
         paymentType: paymentType === 'full' ? 'FULL' : 'DOWNPAYMENT',
@@ -73,7 +74,6 @@ function BookingSummary({ onBack, data, onComplete }) {
       const response = await BookingService.createBooking(bookingRequest);
       
       if (response.success) {
-        // Add booking ID and payment info to the data
         const completedBookingData = {
           ...data,
           paymentMethod,
@@ -81,7 +81,7 @@ function BookingSummary({ onBack, data, onComplete }) {
           paymentAmount,
           bookingId: response.data.bookingId,
           paymentId: response.data.paymentId,
-          reference: response.data.bookingReference || data.reference
+          reference: response.data.bookingReference // Use the reference from the backend
         };
   
         // Send confirmation email

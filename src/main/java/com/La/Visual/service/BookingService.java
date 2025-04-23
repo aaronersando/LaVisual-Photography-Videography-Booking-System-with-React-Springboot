@@ -9,6 +9,7 @@ import com.La.Visual.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -38,6 +39,12 @@ public class BookingService {
                 request.paymentMethod()
             );
             
+            // Use provided reference or generate a new one if not provided
+            String bookingReference = request.bookingReference();
+            if (bookingReference == null || bookingReference.isEmpty()) {
+                bookingReference = generateBookingReference();
+            }
+            
             // Step 2: Create booking with payment_id
             Booking booking = Booking.builder()
                 .guestName(request.guestName())
@@ -53,6 +60,7 @@ public class BookingService {
                 .packagePrice(request.packagePrice())
                 .specialRequests(request.specialRequests())
                 .bookingStatus("PENDING") // Initial status
+                .bookingReference(bookingReference) // Add this line
                 .paymentId(initialPayment.paymentId())
                 .build();
             
@@ -69,6 +77,7 @@ public class BookingService {
             Map<String, Object> data = new HashMap<>();
             data.put("bookingId", savedBooking.bookingId());
             data.put("paymentId", initialPayment.paymentId());
+            data.put("bookingReference", savedBooking.bookingReference()); // Add this line
             
             return new RequestResponse(
                 "Booking created successfully",
@@ -85,6 +94,10 @@ public class BookingService {
                 false
             );
         }
+    }
+    
+    private String generateBookingReference() {
+        return "BK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
     
     public RequestResponse getBookingById(Integer id) {

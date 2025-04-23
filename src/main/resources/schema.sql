@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS our_users (
 );
 
 CREATE TABLE IF NOT EXISTS bookings (
-   booking_id INT AUTO_INCREMENT PRIMARY KEY, 
+   booking_id INT AUTO_INCREMENT PRIMARY KEY,
+   booking_reference VARCHAR(50) UNIQUE NOT NULL,
    guest_name VARCHAR(255) NOT NULL,
    guest_email VARCHAR(255) NOT NULL,
    guest_phone VARCHAR(20) NOT NULL,   

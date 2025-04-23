@@ -24,6 +24,7 @@ public record Booking(
     Double packagePrice,
     String specialRequests,
     String bookingStatus,
+    String bookingReference,
     Integer paymentId,
     LocalDateTime createdAt
 ) {

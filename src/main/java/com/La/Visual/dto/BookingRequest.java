@@ -16,6 +16,7 @@ public record BookingRequest(
     String packageName,
     Double packagePrice,
     String specialRequests,
+    String bookingReference,
     
     // Payment information
     String paymentType,
