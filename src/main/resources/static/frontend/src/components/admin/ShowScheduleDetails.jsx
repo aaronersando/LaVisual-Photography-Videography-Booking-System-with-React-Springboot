@@ -150,6 +150,36 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
                                 </div>
                             </div>
                         )}
+                        
+                        {/* Payment Proof (if available) */}
+                            {paymentDetails?.paymentProof && (
+                                <div className="mb-4">
+                                    <h4 className="text-sm text-gray-400 mb-2">Payment Proof</h4>
+                                    <div className="p-3 rounded-lg border border-gray-600 bg-gray-700/50">
+                                        <img 
+                                            src={`/api/files/download/${paymentDetails.paymentProof}`}
+                                            alt="Payment Proof" 
+                                            className="w-full rounded"
+                                            onClick={() => window.open(`/api/files/download/${paymentDetails.paymentProof}`, '_blank')}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        <p className="text-xs text-gray-400 text-center mt-2">Click to view full image</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* GCash Number (if GCash was selected) */}
+                            {paymentDetails?.paymentMethod === 'GCASH' && paymentDetails?.gcashNumber && (
+                                <div className="mb-4">
+                                    <h4 className="text-sm text-gray-400 mb-2">GCash Number</h4>
+                                    <div className="p-3 rounded-lg border border-gray-600 bg-gray-700/50">
+                                        <div className="text-lg font-semibold text-white">
+                                            {paymentDetails.gcashNumber}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                     </div>
                 </div>
 

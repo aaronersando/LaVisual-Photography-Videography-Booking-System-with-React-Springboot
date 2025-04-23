@@ -22,5 +22,6 @@ public record BookingRequest(
     String paymentType,
     String paymentMethod,
     Double amount,
-    String accountNumber // Not stored but may be useful for reference
+    String accountNumber, // Not stored but may be useful for reference
+    String gcashNumber
 ) {}

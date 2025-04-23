@@ -15,6 +15,8 @@ public record Payment(
     String paymentMethod,
     String paymentStatus,
     Double remainingBalance,
+    String gcashNumber,     
+    String paymentProof,    
     LocalDateTime paymentDate
 ) {
     public boolean isFullPayment() {

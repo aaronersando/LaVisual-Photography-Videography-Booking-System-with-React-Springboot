@@ -26,6 +26,8 @@ public class PaymentRepository {
         .paymentMethod(rs.getString("payment_method"))
         .paymentStatus(rs.getString("payment_status"))
         .remainingBalance(rs.getDouble("remaining_balance"))
+        .gcashNumber(rs.getString("gcash_number")) 
+        .paymentProof(rs.getString("payment_proof"))
         .paymentDate(rs.getTimestamp("payment_date").toLocalDateTime())
         .build();
 
@@ -34,7 +36,7 @@ public class PaymentRepository {
     }
 
     // Initial save - without booking_id (for circular reference handling)
-    public Payment saveInitial(Payment payment, Double amount, String paymentType, String paymentMethod) {
+    public Payment saveInitial(Payment payment, Double amount, String paymentType, String paymentMethod, String gcashNumber) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         
         Double remainingBalance = 0.0;
@@ -44,17 +46,19 @@ public class PaymentRepository {
         
         // Create a final copy that can be used in the lambda
         final Double finalRemainingBalance = remainingBalance;
+        final String finalGcashNumber = gcashNumber;
         
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO payments (booking_id, amount, payment_type, payment_method, payment_status, remaining_balance) " +
-                "VALUES (NULL, ?, ?, ?, 'PENDING', ?)",  // Use NULL instead of -1
+                "INSERT INTO payments (booking_id, amount, payment_type, payment_method, payment_status, remaining_balance, gcash_number) " +
+                "VALUES (NULL, ?, ?, ?, 'PENDING', ?, ?)",
                 Statement.RETURN_GENERATED_KEYS
             );
             ps.setDouble(1, amount);
             ps.setString(2, paymentType);
             ps.setString(3, paymentMethod);
-            ps.setDouble(4, finalRemainingBalance); // Use the final copy here
+            ps.setDouble(4, finalRemainingBalance);
+            ps.setString(5, finalGcashNumber);
             return ps;
         }, keyHolder);
         
@@ -66,7 +70,16 @@ public class PaymentRepository {
             .paymentMethod(paymentMethod)
             .paymentStatus("PENDING")
             .remainingBalance(remainingBalance)
+            .gcashNumber(gcashNumber)
             .build();
+    }
+
+    public void updatePaymentProof(Integer paymentId, String paymentProof) {
+        jdbcTemplate.update(
+            "UPDATE payments SET payment_proof = ? WHERE payment_id = ?",
+            paymentProof,
+            paymentId
+        );
     }
 
     // Update payment with booking_id once booking is created

@@ -44,13 +44,17 @@ public class SecurityConfig {
                         .requestMatchers("/user/**").hasAnyAuthority("USER")
                         .requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN", "USER")
                         .requestMatchers("/api/bookings").permitAll()  // Allow booking creation
-                        .requestMatchers("/api/bookings/**").hasAuthority("ADMIN") // Admin endpoints
+                        .requestMatchers("/api/bookings/with-proof").permitAll()  // ADD THIS LINE
+                        .requestMatchers("/api/bookings/*/payment-proof").permitAll() 
+                        .requestMatchers("/api/files/upload").permitAll() 
+                        .requestMatchers("/api/files/download/**").permitAll() 
+                        .requestMatchers("/api/bookings/**").hasAuthority("ADMIN") 
                         .anyRequest().authenticated())
                     .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authenticationProvider(authenticationProvider()).addFilterBefore(
                         jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
-    }
+}
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

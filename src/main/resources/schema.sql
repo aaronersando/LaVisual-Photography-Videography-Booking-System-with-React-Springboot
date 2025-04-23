@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS payments (
    payment_method VARCHAR(50) NOT NULL,
    payment_status ENUM('PENDING', 'COMPLETED', 'FAILED') DEFAULT 'PENDING',
    remaining_balance DECIMAL(10, 2) NOT NULL,
+   gcash_number VARCHAR(20), 
+   payment_proof VARCHAR(255),
    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
 
