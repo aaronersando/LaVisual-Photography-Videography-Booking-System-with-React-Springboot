@@ -2,6 +2,8 @@ package com.La.Visual.controller;
 
 import com.La.Visual.dto.BookingRequest;
 import com.La.Visual.dto.RequestResponse;
+import com.La.Visual.entity.Booking;
+import com.La.Visual.repository.BookingRepository;
 import com.La.Visual.repository.PaymentRepository;
 import com.La.Visual.service.BookingService;
 import com.La.Visual.service.FileStorageService;
@@ -14,10 +16,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.La.Visual.entity.Booking;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -26,14 +32,17 @@ public class BookingController {
     private final BookingService bookingService;
     private final FileStorageService fileStorageService;
     private final PaymentRepository paymentRepository;
+    private final BookingRepository bookingRepository;
 
     @Autowired
     public BookingController(BookingService bookingService, 
                             FileStorageService fileStorageService,
-                            PaymentRepository paymentRepository) {
+                            PaymentRepository paymentRepository,
+                            BookingRepository bookingRepository) {
         this.bookingService = bookingService;
         this.fileStorageService = fileStorageService;
         this.paymentRepository = paymentRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     @PostMapping
@@ -166,6 +175,36 @@ public class BookingController {
                 false
             ));
         }
+    }
+
+    @GetMapping("/booked-slots")
+    public ResponseEntity<RequestResponse> getBookedSlots() {
+        try {
+            System.out.println("Fetching upcoming bookings...");
+            List<Booking> bookings = bookingRepository.findUpcomingBookings();
+            System.out.println("Found " + bookings.size() + " upcoming bookings");
+            
+            return ResponseEntity.ok(new RequestResponse(
+                "Booked slots retrieved successfully",
+                Map.of("bookings", bookings),
+                200,
+                true
+            ));
+        } catch (Exception e) {
+            e.printStackTrace(); // Add this for better debugging
+            return ResponseEntity.status(500).body(new RequestResponse(
+                "Error retrieving booked slots: " + e.getMessage(),
+                null,
+                500,
+                false
+            ));
+        }
+    }
+
+    @GetMapping("/test-endpoint")
+    public ResponseEntity<String> testEndpoint() {
+        System.out.println("Test endpoint called!");
+        return ResponseEntity.ok("Test endpoint working!");
     }
 
 }

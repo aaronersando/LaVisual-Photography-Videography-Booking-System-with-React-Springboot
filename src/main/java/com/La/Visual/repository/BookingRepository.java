@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -140,5 +141,25 @@ public class BookingRepository {
         );
         
         return booking;
+    }
+
+    public List<Booking> findUpcomingBookings() {
+        try {
+            LocalDate today = LocalDate.now();
+            System.out.println("Finding bookings from date: " + today);
+            
+            List<Booking> bookings = jdbcTemplate.query(
+                "SELECT * FROM bookings WHERE booking_date >= ? AND booking_status != 'CANCELLED' ORDER BY booking_date, booking_time_start",
+                bookingRowMapper,
+                java.sql.Date.valueOf(today)
+            );
+            
+            System.out.println("SQL query executed successfully");
+            return bookings;
+        } catch (Exception e) {
+            System.err.println("Error in findUpcomingBookings: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();  // Return empty list instead of throwing exception
+        }
     }
 }

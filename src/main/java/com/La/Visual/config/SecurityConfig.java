@@ -40,21 +40,26 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/auth/**", "/public/**").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
                         .requestMatchers("/user/**").hasAnyAuthority("USER")
                         .requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN", "USER")
-                        .requestMatchers("/api/bookings").permitAll()  // Allow booking creation
-                        .requestMatchers("/api/bookings/with-proof").permitAll()  // ADD THIS LINE
-                        .requestMatchers("/api/bookings/*/payment-proof").permitAll() 
-                        .requestMatchers("/api/files/upload").permitAll() 
-                        .requestMatchers("/api/files/download/**").permitAll() 
-                        .requestMatchers("/api/bookings/**").hasAuthority("ADMIN") 
+                        // These specific API endpoints should come BEFORE the catch-all
+                        .requestMatchers("/api/bookings/booked-slots").permitAll()
+                        .requestMatchers("/api/bookings").permitAll()
+                        .requestMatchers("/api/bookings/with-proof").permitAll()
+                        .requestMatchers("/api/bookings/*/payment-proof").permitAll()
+                        .requestMatchers("/api/bookings/test-endpoint").permitAll() // ADD THIS LINE
+                        .requestMatchers("/api/files/upload").permitAll()
+                        .requestMatchers("/api/files/download/**").permitAll()
+                        // This catch-all should come LAST
+                        .requestMatchers("/api/bookings/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated())
                     .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authenticationProvider(authenticationProvider()).addFilterBefore(
                         jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
-}
+    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
