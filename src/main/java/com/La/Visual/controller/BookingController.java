@@ -1,6 +1,7 @@
 package com.La.Visual.controller;
 
 import com.La.Visual.dto.BookingRequest;
+import com.La.Visual.dto.BookingTimeUpdateRequest;
 import com.La.Visual.dto.BookingUpdateRequest;
 import com.La.Visual.dto.RequestResponse;
 import com.La.Visual.entity.Booking;
@@ -232,6 +233,37 @@ public class BookingController {
             response.put("message", e.getMessage());
             
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PutMapping("/{id}/time-range")
+    public ResponseEntity<RequestResponse> updateBookingTimeRange(
+            @PathVariable Integer id,
+            @RequestBody BookingTimeUpdateRequest request) {
+        
+        try {
+            // Validate that the provided ID matches the request
+            if (!id.equals(request.getBookingId())) {
+                return ResponseEntity.badRequest().body(new RequestResponse(
+                    "Booking ID in path and request body do not match", 
+                    null, 
+                    400, 
+                    false
+                ));
+            }
+            
+            // Call the service method to update the time range
+            RequestResponse response = bookingService.updateBookingTimeRange(request);
+            
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(new RequestResponse(
+                "Error updating booking time range: " + e.getMessage(), 
+                null, 
+                500, 
+                false
+            ));
         }
     }
 

@@ -13,6 +13,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [bookingToDelete, setBookingToDelete] = useState(null);
     const [pendingDeletions, setPendingDeletions] = useState([]);
+    const [editedBookings, setEditedBookings] = useState([]);
 
     // Load time ranges when date changes
     useEffect(() => {
@@ -395,7 +396,34 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const timeOptions = generateTimeOptions();
 
     const handleSaveChanges = async () => {
+        // Process any edited bookings first
+        if (editedBookings.length > 0) {
+            try {
+                let allSuccess = true;
+                
+                for (const booking of editedBookings) {
+                    const updateSuccess = await updateBookingTimeRange(booking);
+                    if (!updateSuccess) {
+                        allSuccess = false;
+                    }
+                }
+                
+                if (!allSuccess) {
+                    const proceed = window.confirm('Some booking time range updates failed. Do you want to continue with other changes?');
+                    if (!proceed) return;
+                }
+                
+                // Clear the edited bookings after processing
+                setEditedBookings([]);
+            } catch (error) {
+                console.error('Error updating booking time ranges:', error);
+                alert(`Error occurred while updating booking time ranges: ${error.message}`);
+                return;
+            }
+        }
+
         console.log('Pending deletions:', pendingDeletions);
+
         for (const bookingId of pendingDeletions) {
             console.log(`Attempting to delete booking with database ID: ${bookingId}`);
         }
@@ -457,6 +485,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
             });
             alert("Changes saved successfully!");
             onClose();
+            window.location.reload();
         }
 
     };
@@ -561,8 +590,8 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const handleTimeChange = (id, field, value) => {
         const range = timeRanges.find(r => r.id === id);
         
-        // Skip if trying to change a booking or if range not found
-        if (!range || range.status === 'booking') return;
+        // If range is not found, exit early
+        if (!range) return;
         
         // Calculate new start and end times
         const newStart = field === 'start' ? value : range.start;
@@ -573,7 +602,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
         const endMins = timeToMinutes(newEnd);
         const durationMins = endMins - startMins;
         
-        // If less than 3 hours, show warning
+        // Check for adequate duration
         if (durationMins < 180 && durationMins > 0) {
             const proceed = window.confirm(
                 `This booking is only ${Math.floor(durationMins/60)} hours and ${durationMins%60} minutes long. The minimum recommended booking is 3 hours. Continue anyway?`
@@ -581,7 +610,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
             if (!proceed) return;
         }
         
-        // Check for conflicts
+        // Check for conflicts with other bookings, excluding this one
         let wouldConflict = false;
         
         if (field === 'start') {
@@ -590,7 +619,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
             wouldConflict = isTimeRangeOverlapping(range.start, value, id);
         }
         
-        // If conflict and not forcing, show warning
+        // If conflict, show warning
         if (wouldConflict) {
             const proceed = window.confirm(
                 `This time range overlaps with an existing booking. Are you sure you want to continue?`
@@ -598,7 +627,12 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
             if (!proceed) return;
         }
         
-        // Update the time range
+        // If this is a booked range, track it for backend update
+        if (range.status === 'booking') {
+            trackEditedBooking(id, field === 'start' ? 'startTime' : 'endTime', value);
+        }
+        
+        // Update the time range in UI
         setTimeRanges(timeRanges.map(r => {
             if (r.id === id) {
                 return { ...r, [field]: value };
@@ -679,6 +713,115 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
         });
     };
 
+    const trackEditedBooking = (rangeId, field, value) => {
+        const range = timeRanges.find(r => r.id === rangeId);
+        if (!range || !range.booking) return;
+        
+        const bookingId = range.booking.databaseId || range.booking.bookingId || range.booking.id;
+        
+        // Check if this booking is already in our edited list
+        const existingIndex = editedBookings.findIndex(eb => eb.bookingId === bookingId);
+        
+        if (existingIndex >= 0) {
+            // Update the existing entry
+            const updatedEditedBookings = [...editedBookings];
+            updatedEditedBookings[existingIndex] = {
+                ...updatedEditedBookings[existingIndex],
+                [field]: value
+            };
+            setEditedBookings(updatedEditedBookings);
+        } else {
+            // Add a new entry
+            const newEditedBooking = {
+                bookingId: bookingId,
+                rangeId: rangeId,
+                [field]: value
+            };
+            setEditedBookings([...editedBookings, newEditedBooking]);
+        }
+    };
+
+    const updateBookingTimeRange = async (booking) => {
+        try {
+            // Get auth token from local storage
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                alert('You need to be logged in as an admin to update bookings');
+                return false;
+            }
+            
+            const bookingId = booking.bookingId;
+            
+            // Find the corresponding range to get start and end times
+            const range = timeRanges.find(r => 
+                r.booking && (
+                    r.booking.id === bookingId || 
+                    r.booking.bookingId === bookingId || 
+                    r.booking.databaseId === bookingId
+                )
+            );
+            
+            if (!range) {
+                console.error('Could not find range for booking:', bookingId);
+                return false;
+            }
+            
+            // Prepare the data to send to the backend
+            const timeUpdateData = {
+                bookingId: bookingId,
+                startTime: convertToTime24Format(range.start),
+                endTime: convertToTime24Format(range.end)
+            };
+            
+            console.log('Updating booking time range:', timeUpdateData);
+            
+            // Call the backend API
+            const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}/time-range`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(timeUpdateData)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Failed to update booking time range:', errorData);
+                alert(`Failed to update booking time range: ${errorData.message || 'Unknown error'}`);
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Error updating booking time range:', error);
+            alert(`Error occurred while updating booking time range: ${error.message}`);
+            return false;
+        }
+    };
+
+    // Helper function to convert time from 12h to 24h format for the backend
+    const convertToTime24Format = (timeStr) => {
+        if (!timeStr) return null;
+        
+        // If already in 24-hour format, return as is
+        if (!timeStr.includes('AM') && !timeStr.includes('PM')) {
+            return timeStr;
+        }
+        
+        // Convert from "hh:mm AM/PM" to "HH:mm" format
+        const [time, period] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':').map(Number);
+        
+        if (period === 'PM' && hours !== 12) {
+            hours += 12;
+        } else if (period === 'AM' && hours === 12) {
+            hours = 0;
+        }
+        
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    };
 
 
     return (
@@ -706,21 +849,25 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                             // Generate time options specific to this range
                             const startOptions = generateTimeOptions(range.id, 'start');
                             const endOptions = generateTimeOptions(range.id, 'end');
+
+                            const isEdited = range.status === 'booking' && editedBookings.some(
+                                eb => eb.rangeId === range.id
+                            );
                             
                             return (
-                                <div key={range.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/50">
+                                <div key={range.id} className={`bg-gray-700/50 rounded-lg p-4 border ${
+                                    isEdited ? 'border-yellow-400' : 'border-gray-600/50'
+                                }`}>
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                         <div className="flex items-center space-x-2">
                                             <select
                                                 value={range.start}
                                                 onChange={(e) => handleTimeChange(range.id, 'start', e.target.value)}
-                                                disabled={range.status === 'booking'}
+                                                // Now allowing editing of booked slots
                                                 className={`min-w-[120px] bg-gray-600 text-white rounded px-3 py-2 border ${
-                                                    range.status === 'booking' 
-                                                        ? 'border-gray-500 opacity-50 cursor-not-allowed' 
-                                                        : isTimeRangeOverlapping(range.start, range.end, range.id)
-                                                            ? 'border-red-500' 
-                                                            : 'border-gray-500'
+                                                    isTimeRangeOverlapping(range.start, range.end, range.id)
+                                                        ? 'border-red-500' 
+                                                        : isEdited ? 'border-yellow-400' : 'border-gray-500'
                                                 }`}
                                             >
                                                 {startOptions.map((option, i) => (
@@ -734,18 +881,16 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                                                 ))}
                                             </select>
                                             <span className="text-white">to</span>
-                                            <select
-                                                value={range.end}
-                                                onChange={(e) => handleTimeChange(range.id, 'end', e.target.value)}
-                                                disabled={range.status === 'booking'}
-                                                className={`min-w-[120px] bg-gray-600 text-white rounded px-3 py-2 border ${
-                                                    range.status === 'booking' 
-                                                        ? 'border-gray-500 opacity-50 cursor-not-allowed' 
-                                                        : isTimeRangeOverlapping(range.start, range.end, range.id)
+                                                <select
+                                                    value={range.end}
+                                                    onChange={(e) => handleTimeChange(range.id, 'end', e.target.value)}
+                                                    // Remove the disabled attribute to allow editing end time for booked slots
+                                                    className={`min-w-[120px] bg-gray-600 text-white rounded px-3 py-2 border ${
+                                                        isTimeRangeOverlapping(range.start, range.end, range.id)
                                                             ? 'border-red-500' 
-                                                            : 'border-gray-500'
-                                                }`}
-                                            >
+                                                            : isEdited ? 'border-yellow-400' : 'border-gray-500'
+                                                    }`}
+                                                >
                                                 {endOptions.map((option, i) => (
                                                     <option 
                                                         key={i} 
@@ -757,15 +902,21 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                                                 ))}
                                             </select>
                                             
+                                            {/* Show edited indicator for bookings */}
+                                            {isEdited && (
+                                                <span className="text-yellow-400 font-bold ml-2">
+                                                    ⚠️ Time Changed
+                                                </span>
+                                            )}
+                                            
                                             {/* Conflict indicator */}
-                                            {range.status !== 'booking' && isTimeRangeOverlapping(range.start, range.end, range.id) && (
+                                            {isTimeRangeOverlapping(range.start, range.end, range.id) && (
                                                 <span className="text-red-500 font-bold ml-2">
                                                     ⚠️ Conflict
                                                 </span>
                                             )}
                                         </div>
 
-                                        {/* Rest of your existing UI */}
                                         <div className="flex items-center space-x-2">
                                             <button
                                                 disabled={range.status === 'booking'}

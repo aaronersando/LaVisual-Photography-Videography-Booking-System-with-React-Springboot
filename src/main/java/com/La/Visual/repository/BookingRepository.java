@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -160,6 +161,32 @@ public class BookingRepository {
             System.err.println("Error in findUpcomingBookings: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();  // Return empty list instead of throwing exception
+        }
+    }
+
+    public List<Booking> findOverlappingBookings(LocalDate date, LocalTime startTime, LocalTime endTime, Integer excludeBookingId) {
+        try {
+            return jdbcTemplate.query(
+                "SELECT * FROM bookings " +
+                "WHERE booking_date = ? " +
+                "AND booking_id != ? " +
+                "AND booking_status != 'CANCELLED' " +
+                "AND (" +
+                "  (booking_time_start < ? AND booking_time_end > ?) OR " + // starts before, ends after our start
+                "  (booking_time_start < ? AND booking_time_end > ?) OR " + // starts before, ends after our end
+                "  (booking_time_start >= ? AND booking_time_end <= ?)" +   // contained within our range
+                ")",
+                bookingRowMapper,
+                java.sql.Date.valueOf(date),
+                excludeBookingId,
+                java.sql.Time.valueOf(endTime), java.sql.Time.valueOf(startTime),
+                java.sql.Time.valueOf(startTime), java.sql.Time.valueOf(startTime),
+                java.sql.Time.valueOf(startTime), java.sql.Time.valueOf(endTime)
+            );
+        } catch (Exception e) {
+            System.err.println("Error in findOverlappingBookings: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 }

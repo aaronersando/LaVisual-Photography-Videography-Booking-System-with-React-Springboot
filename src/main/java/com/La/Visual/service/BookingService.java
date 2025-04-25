@@ -1,6 +1,7 @@
 package com.La.Visual.service;
 
 import com.La.Visual.dto.BookingRequest;
+import com.La.Visual.dto.BookingTimeUpdateRequest;
 import com.La.Visual.dto.BookingUpdateRequest;
 import com.La.Visual.dto.RequestResponse;
 import com.La.Visual.entity.Booking;
@@ -13,9 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class BookingService {
@@ -366,5 +369,79 @@ public class BookingService {
         
         // Save the updated booking
         return bookingRepository.update(updatedBooking);
+    }
+
+    @Transactional
+    public RequestResponse updateBookingTimeRange(BookingTimeUpdateRequest request) {
+        try {
+            // Get the booking from the database
+            Optional<Booking> bookingOpt = bookingRepository.findById(request.getBookingId());
+            
+            if (bookingOpt.isEmpty()) {
+                return new RequestResponse(
+                    "Booking not found with ID: " + request.getBookingId(), 
+                    null, 
+                    404, 
+                    false
+                );
+            }
+            
+            Booking booking = bookingOpt.get();
+            
+            // Parse the time strings
+            LocalTime startTime = LocalTime.parse(request.getStartTime());
+            LocalTime endTime = LocalTime.parse(request.getEndTime());
+            
+            // Calculate the new booking hours
+            int startHour = startTime.getHour();
+            int endHour = endTime.getHour();
+            int bookingHours = endHour - startHour;
+            
+            // If end hour is earlier than start hour (overnight booking), add 24 hours
+            if (bookingHours < 0) {
+                bookingHours += 24;
+            }
+            
+            // Check if there are any overlapping bookings (excluding the current booking)
+            List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(
+                booking.bookingDate(), 
+                startTime, 
+                endTime,
+                booking.bookingId()
+            );
+            
+            if (!overlappingBookings.isEmpty()) {
+                return new RequestResponse(
+                    "Cannot update booking time: overlaps with existing bookings", 
+                    Map.of("overlappingBookings", overlappingBookings), 
+                    409, 
+                    false
+                );
+            }
+            
+            // Create updated booking with new time range
+            Booking updatedBooking = booking
+                .withBookingTimeStart(startTime)
+                .withBookingTimeEnd(endTime)
+                .withBookingHours(bookingHours);
+            
+            // Save the updated booking
+            Booking savedBooking = bookingRepository.update(updatedBooking);
+            
+            return new RequestResponse(
+                "Booking time range updated successfully", 
+                Map.of("booking", savedBooking), 
+                200, 
+                true
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new RequestResponse(
+                "Error updating booking time range: " + e.getMessage(), 
+                null, 
+                500, 
+                false
+            );
+        }
     }
 }
