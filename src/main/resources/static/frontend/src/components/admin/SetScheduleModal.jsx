@@ -14,6 +14,147 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const [bookingToDelete, setBookingToDelete] = useState(null);
     const [pendingDeletions, setPendingDeletions] = useState([]);
 
+    // Load time ranges when date changes
+    useEffect(() => {
+        // Format date as YYYY-MM-DD for comparison with a fixed time (noon)
+        const selectedDate = new Date(date);
+        selectedDate.setHours(12, 0, 0, 0);
+        const formattedDateStr = selectedDate.toISOString().split('T')[0];
+        
+        console.log("SetScheduleModal - Selected date:", formattedDateStr);
+        
+        // Filter bookings for the selected date with strict date comparison
+        const dateBookings = bookings?.filter(booking => {
+            let bookingDateStr;
+            
+            try {
+                // Handle booking.date field
+                if (booking.date) {
+                    if (typeof booking.date === 'string') {
+                        // If already in YYYY-MM-DD format, use directly
+                        if (booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            bookingDateStr = booking.date;
+                        } else {
+                            // Otherwise parse and format consistently
+                            const bookingDate = new Date(booking.date);
+                            bookingDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+                            bookingDateStr = bookingDate.toISOString().split('T')[0];
+                        }
+                    } else {
+                        // Handle Date object
+                        const bookingDate = new Date(booking.date);
+                        bookingDate.setHours(12, 0, 0, 0);
+                        bookingDateStr = bookingDate.toISOString().split('T')[0];
+                    }
+                } 
+                // Handle booking.bookingDate field
+                else if (booking.bookingDate) {
+                    if (typeof booking.bookingDate === 'string') {
+                        if (booking.bookingDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            bookingDateStr = booking.bookingDate;
+                        } else {
+                            const bookingDate = new Date(booking.bookingDate);
+                            bookingDate.setHours(12, 0, 0, 0);
+                            bookingDateStr = bookingDate.toISOString().split('T')[0];
+                        }
+                    } else {
+                        const bookingDate = new Date(booking.bookingDate);
+                        bookingDate.setHours(12, 0, 0, 0);
+                        bookingDateStr = bookingDate.toISOString().split('T')[0];
+                    }
+                }
+                
+                console.log(`Comparing booking date: ${bookingDateStr} with selected date: ${formattedDateStr} - Match: ${bookingDateStr === formattedDateStr}`);
+                
+                return bookingDateStr === formattedDateStr;
+            } catch (e) {
+                console.error("Error processing booking date:", e, booking);
+                return false;
+            }
+        }) || [];
+        
+        console.log("Filtered bookings for this date:", dateBookings);
+        
+        // Create initial time ranges including any bookings
+        let initialRanges = [];
+        if (dateBookings.length > 0) {
+            // Sort bookings by start time before mapping
+            initialRanges = dateBookings
+                .sort((a, b) => {
+                    // Parse times for comparison
+                    const aTimeStr = a.timeRange?.startTime || a.bookingTimeStart || '00:00';
+                    const bTimeStr = b.timeRange?.startTime || b.bookingTimeStart || '00:00';
+                    
+                    // Convert to comparable format
+                    const aTime = convertTimeStringTo24Hr(aTimeStr);
+                    const bTime = convertTimeStringTo24Hr(bTimeStr);
+                    
+                    return aTime.localeCompare(bTime);
+                })
+                .map((booking, index) => {
+                    // Extract proper time format from booking
+                    const startTime = parseTimeFormat(booking.timeRange?.startTime || booking.bookingTimeStart || '12:00');
+                    const endTime = parseTimeFormat(booking.timeRange?.endTime || booking.bookingTimeEnd || '15:00');
+                    
+                    console.log(`Booking ${index+1} time range: ${startTime} - ${endTime}`);
+                    
+                    // Create a properly formatted booking object with the correct date
+                    const bookingData = {
+                        // Use the actual database booking ID, which could be bookingId or id
+                        id: booking.bookingId || booking.id || index + 1,
+                        // Keep track of the actual booking ID separately to ensure we have the right one
+                        databaseId: booking.bookingId || booking.id,
+                        bookingReference: booking.bookingReference || booking.reference || `BKLQ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+                        client: booking.customerDetails?.name || booking.guestName || 'Client',
+                        clientEvent: booking.package || booking.packageName || 'Booking',
+                        category: booking.category || 'Photography',
+                        date: formattedDateStr, // Use the selected date to ensure consistency
+                        timeRange: {
+                            startTime: startTime,
+                            endTime: endTime
+                        },
+                        customerDetails: {
+                            name: booking.customerDetails?.name || booking.guestName || 'Client',
+                            email: booking.customerDetails?.email || booking.guestEmail || '',
+                            phone: booking.customerDetails?.phone || booking.guestPhone || '',
+                            location: booking.customerDetails?.location || booking.location || 'ewan',
+                            notes: booking.customerDetails?.notes || booking.specialRequests || ''
+                        },
+                        paymentDetails: {
+                            type: booking.paymentDetails?.type || booking.paymentType || 'Full Payment',
+                            method: booking.paymentDetails?.method || booking.paymentMethod || 'GCash',
+                            amount: booking.paymentDetails?.amount || booking.amount || 3000,
+                            accountNumber: booking.paymentDetails?.accountNumber || booking.gcashNumber || '09665469008'
+                        },
+                        totalAmount: booking.totalAmount || booking.packagePrice || booking.price || 3000
+                    };
+                    
+                    return {
+                        id: index + 1,
+                        start: startTime,
+                        end: endTime,
+                        status: 'booking',
+                        date: formattedDateStr,
+                        booking: bookingData
+                    };
+                });
+        }
+    
+        // Add a default available time range if no bookings
+        if (initialRanges.length === 0) {
+            initialRanges.push({
+                id: 1,
+                start: '06:00 AM',
+                end: '10:00 PM',
+                status: 'available',
+                date: formattedDateStr,
+                booking: null
+            });
+        }
+    
+        setTimeRanges(initialRanges);
+    }, [date, bookings]);
+
 
     // Function to handle booking deletion
     const handleDeleteBooking = (booking, rangeId) => {
@@ -207,156 +348,46 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
         );
     };
 
-    // Load time ranges when date changes
-    useEffect(() => {
-        // Format date as YYYY-MM-DD for comparison with a fixed time (noon)
-        const selectedDate = new Date(date);
-        selectedDate.setHours(12, 0, 0, 0);
-        const formattedDateStr = selectedDate.toISOString().split('T')[0];
-        
-        console.log("SetScheduleModal - Selected date:", formattedDateStr);
-        
-        // Filter bookings for the selected date with strict date comparison
-        const dateBookings = bookings?.filter(booking => {
-            let bookingDateStr;
-            
-            try {
-                // Handle booking.date field
-                if (booking.date) {
-                    if (typeof booking.date === 'string') {
-                        // If already in YYYY-MM-DD format, use directly
-                        if (booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                            bookingDateStr = booking.date;
-                        } else {
-                            // Otherwise parse and format consistently
-                            const bookingDate = new Date(booking.date);
-                            bookingDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
-                            bookingDateStr = bookingDate.toISOString().split('T')[0];
-                        }
-                    } else {
-                        // Handle Date object
-                        const bookingDate = new Date(booking.date);
-                        bookingDate.setHours(12, 0, 0, 0);
-                        bookingDateStr = bookingDate.toISOString().split('T')[0];
-                    }
-                } 
-                // Handle booking.bookingDate field
-                else if (booking.bookingDate) {
-                    if (typeof booking.bookingDate === 'string') {
-                        if (booking.bookingDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                            bookingDateStr = booking.bookingDate;
-                        } else {
-                            const bookingDate = new Date(booking.bookingDate);
-                            bookingDate.setHours(12, 0, 0, 0);
-                            bookingDateStr = bookingDate.toISOString().split('T')[0];
-                        }
-                    } else {
-                        const bookingDate = new Date(booking.bookingDate);
-                        bookingDate.setHours(12, 0, 0, 0);
-                        bookingDateStr = bookingDate.toISOString().split('T')[0];
-                    }
-                }
-                
-                console.log(`Comparing booking date: ${bookingDateStr} with selected date: ${formattedDateStr} - Match: ${bookingDateStr === formattedDateStr}`);
-                
-                return bookingDateStr === formattedDateStr;
-            } catch (e) {
-                console.error("Error processing booking date:", e, booking);
-                return false;
-            }
-        }) || [];
-        
-        console.log("Filtered bookings for this date:", dateBookings);
-        
-        // Create initial time ranges including any bookings
-        let initialRanges = [];
-        if (dateBookings.length > 0) {
-            // Sort bookings by start time before mapping
-            initialRanges = dateBookings
-                .sort((a, b) => {
-                    // Parse times for comparison
-                    const aTimeStr = a.timeRange?.startTime || a.bookingTimeStart || '00:00';
-                    const bTimeStr = b.timeRange?.startTime || b.bookingTimeStart || '00:00';
-                    
-                    // Convert to comparable format
-                    const aTime = convertTimeStringTo24Hr(aTimeStr);
-                    const bTime = convertTimeStringTo24Hr(bTimeStr);
-                    
-                    return aTime.localeCompare(bTime);
-                })
-                .map((booking, index) => {
-                    // Extract proper time format from booking
-                    const startTime = parseTimeFormat(booking.timeRange?.startTime || booking.bookingTimeStart || '12:00');
-                    const endTime = parseTimeFormat(booking.timeRange?.endTime || booking.bookingTimeEnd || '15:00');
-                    
-                    console.log(`Booking ${index+1} time range: ${startTime} - ${endTime}`);
-                    
-                    // Create a properly formatted booking object with the correct date
-                    const bookingData = {
-                        // Use the actual database booking ID, which could be bookingId or id
-                        id: booking.bookingId || booking.id || index + 1,
-                        // Keep track of the actual booking ID separately to ensure we have the right one
-                        databaseId: booking.bookingId || booking.id,
-                        bookingReference: booking.bookingReference || booking.reference || `BKLQ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-                        client: booking.customerDetails?.name || booking.guestName || 'Client',
-                        clientEvent: booking.package || booking.packageName || 'Booking',
-                        category: booking.category || 'Photography',
-                        date: formattedDateStr, // Use the selected date to ensure consistency
-                        timeRange: {
-                            startTime: startTime,
-                            endTime: endTime
-                        },
-                        customerDetails: {
-                            name: booking.customerDetails?.name || booking.guestName || 'Client',
-                            email: booking.customerDetails?.email || booking.guestEmail || '',
-                            phone: booking.customerDetails?.phone || booking.guestPhone || '',
-                            location: booking.customerDetails?.location || booking.location || 'ewan',
-                            notes: booking.customerDetails?.notes || booking.specialRequests || ''
-                        },
-                        paymentDetails: {
-                            type: booking.paymentDetails?.type || booking.paymentType || 'Full Payment',
-                            method: booking.paymentDetails?.method || booking.paymentMethod || 'GCash',
-                            amount: booking.paymentDetails?.amount || booking.amount || 3000,
-                            accountNumber: booking.paymentDetails?.accountNumber || booking.gcashNumber || '09665469008'
-                        },
-                        totalAmount: booking.totalAmount || booking.packagePrice || booking.price || 3000
-                    };
-                    
-                    return {
-                        id: index + 1,
-                        start: startTime,
-                        end: endTime,
-                        status: 'booking',
-                        date: formattedDateStr,
-                        booking: bookingData
-                    };
-                });
-        }
     
-        // Add a default available time range if no bookings
-        if (initialRanges.length === 0) {
-            initialRanges.push({
-                id: 1,
-                start: '06:00 AM',
-                end: '10:00 PM',
-                status: 'available',
-                date: formattedDateStr,
-                booking: null
-            });
-        }
-    
-        setTimeRanges(initialRanges);
-    }, [date, bookings]);
 
     // Generate time options in AM/PM format
-    const generateTimeOptions = () => {
+    const generateTimeOptions = (rangeId = null, field = null) => {
         const options = [];
+        
+        // Get current start/end times for the range if we're editing
+        let currentStart = null, currentEnd = null;
+        if (rangeId !== null) {
+            const range = timeRanges.find(r => r.id === rangeId);
+            if (range) {
+                currentStart = range.start;
+                currentEnd = range.end;
+            }
+        }
+        
         for (let hour = 0; hour < 24; hour++) {
             const period = hour >= 12 ? 'PM' : 'AM';
             const displayHour = hour % 12 === 0 ? 12 : hour % 12;
             const timeString = `${displayHour.toString().padStart(2, '0')}:00 ${period}`;
-            const value = `${displayHour.toString().padStart(2, '0')}:00 ${period}`;
-            options.push({ value, label: timeString });
+            
+            // Check if this time would create a conflict
+            let isConflict = false;
+            
+            // Only check for conflicts if we're generating options for a specific range field
+            if (rangeId !== null && field !== null) {
+                if (field === 'start') {
+                    // If setting start time, check if it's overlapping with any booking using the current end time
+                    isConflict = isTimeRangeOverlapping(timeString, currentEnd, rangeId);
+                } else if (field === 'end') {
+                    // If setting end time, check if it's overlapping with any booking using the current start time
+                    isConflict = isTimeRangeOverlapping(currentStart, timeString, rangeId);
+                }
+            }
+            
+            options.push({ 
+                value: timeString, 
+                label: timeString,
+                isConflict: isConflict
+            });
         }
         return options;
     };
@@ -437,11 +468,80 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
             return;
         }
         
+        // Find all booked time ranges
+        const bookedRanges = timeRanges
+            .filter(range => range.status === 'booking')
+            .map(range => ({
+                start: timeToMinutes(range.start),
+                end: timeToMinutes(range.end)
+            }))
+            .sort((a, b) => a.start - b.start);
+        
+        // Find available slots (minimum 3 hours / 180 minutes)
+        const availableSlots = [];
+        
+        // Check early morning slot (12:00 AM to first booking)
+        if (bookedRanges.length > 0 && bookedRanges[0].start >= 180) {
+            availableSlots.push({
+                start: 0, // 12:00 AM
+                end: bookedRanges[0].start
+            });
+        }
+        
+        // Check slots between bookings
+        for (let i = 0; i < bookedRanges.length - 1; i++) {
+            const gapStart = bookedRanges[i].end;
+            const gapEnd = bookedRanges[i+1].start;
+            
+            if (gapEnd - gapStart >= 180) {
+                availableSlots.push({
+                    start: gapStart,
+                    end: gapEnd
+                });
+            }
+        }
+        
+        // Check evening slot (last booking to midnight)
+        if (bookedRanges.length > 0) {
+            const lastEnd = bookedRanges[bookedRanges.length - 1].end;
+            if (1440 - lastEnd >= 180) { // 1440 = minutes in a day
+                availableSlots.push({
+                    start: lastEnd,
+                    end: 1440
+                });
+            }
+        } else {
+            // No bookings at all
+            availableSlots.push({
+                start: 360, // 6:00 AM
+                end: 1320 // 10:00 PM
+            });
+        }
+        
+        // Convert minutes back to time strings
+        const convertMinutesToTimeStr = (mins) => {
+            const hours = Math.floor(mins / 60);
+            const minutes = mins % 60;
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const hour12 = hours % 12 || 12;
+            return `${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+        };
+        
+        // Use the first available slot, or default if nothing available
+        let defaultStart = '06:00 AM';
+        let defaultEnd = '10:00 PM';
+        
+        if (availableSlots.length > 0) {
+            const slot = availableSlots[0];
+            defaultStart = convertMinutesToTimeStr(slot.start);
+            defaultEnd = convertMinutesToTimeStr(slot.end);
+        }
+        
         const newId = timeRanges.length > 0 ? Math.max(...timeRanges.map(r => r.id)) + 1 : 1;
         setTimeRanges([...timeRanges, {
             id: newId,
-            start: '06:00 AM',
-            end: '10:00 PM',
+            start: defaultStart,
+            end: defaultEnd,
             status: 'available',
             date: currentDateStr,
             booking: null
@@ -459,11 +559,51 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     };
 
     const handleTimeChange = (id, field, value) => {
-        setTimeRanges(timeRanges.map(range => {
-            if (range.id === id && range.status !== 'booking') { // Prevent editing booked slots
-                return { ...range, [field]: value };
+        const range = timeRanges.find(r => r.id === id);
+        
+        // Skip if trying to change a booking or if range not found
+        if (!range || range.status === 'booking') return;
+        
+        // Calculate new start and end times
+        const newStart = field === 'start' ? value : range.start;
+        const newEnd = field === 'end' ? value : range.end;
+        
+        // Ensure minimum 3-hour booking
+        const startMins = timeToMinutes(newStart);
+        const endMins = timeToMinutes(newEnd);
+        const durationMins = endMins - startMins;
+        
+        // If less than 3 hours, show warning
+        if (durationMins < 180 && durationMins > 0) {
+            const proceed = window.confirm(
+                `This booking is only ${Math.floor(durationMins/60)} hours and ${durationMins%60} minutes long. The minimum recommended booking is 3 hours. Continue anyway?`
+            );
+            if (!proceed) return;
+        }
+        
+        // Check for conflicts
+        let wouldConflict = false;
+        
+        if (field === 'start') {
+            wouldConflict = isTimeRangeOverlapping(value, range.end, id);
+        } else if (field === 'end') {
+            wouldConflict = isTimeRangeOverlapping(range.start, value, id);
+        }
+        
+        // If conflict and not forcing, show warning
+        if (wouldConflict) {
+            const proceed = window.confirm(
+                `This time range overlaps with an existing booking. Are you sure you want to continue?`
+            );
+            if (!proceed) return;
+        }
+        
+        // Update the time range
+        setTimeRanges(timeRanges.map(r => {
+            if (r.id === id) {
+                return { ...r, [field]: value };
             }
-            return range;
+            return r;
         }));
     };
 
@@ -490,6 +630,57 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
       }
     };
 
+    const timeToMinutes = (timeStr) => {
+        if (!timeStr) return 0;
+        
+        try {
+            // Handle "HH:MM AM/PM" format
+            if (timeStr.includes('AM') || timeStr.includes('PM')) {
+                const [time, period] = timeStr.split(' ');
+                let [hours, minutes] = time.split(':').map(Number);
+                
+                // Convert to 24-hour format
+                if (period === 'PM' && hours !== 12) {
+                    hours += 12;
+                } else if (period === 'AM' && hours === 12) {
+                    hours = 0;
+                }
+                
+                return hours * 60 + (minutes || 0);
+            } 
+            // Handle "HH:MM" 24-hour format
+            else {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return hours * 60 + (minutes || 0);
+            }
+        } catch (e) {
+            console.error("Error converting time to minutes:", e, timeStr);
+            return 0;
+        }
+    };
+
+    const isTimeRangeOverlapping = (start, end, excludeId = null) => {
+        const startMinutes = timeToMinutes(start);
+        const endMinutes = timeToMinutes(end);
+        
+        return timeRanges.some(range => {
+            // Skip comparison with self or available/unavailable ranges
+            if (range.id === excludeId || range.status !== 'booking') return false;
+            
+            const rangeStartMinutes = timeToMinutes(range.start);
+            const rangeEndMinutes = timeToMinutes(range.end);
+            
+            // Modified logic: Allow adjacent bookings
+            // A conflict exists only if the new booking actually overlaps with existing booking
+            // No conflict if new booking ends exactly when existing one starts, 
+            // or new booking starts exactly when existing one ends
+            return (startMinutes < rangeEndMinutes && endMinutes > rangeStartMinutes) && 
+                   !(endMinutes === rangeStartMinutes || startMinutes === rangeEndMinutes);
+        });
+    };
+
+
+
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
@@ -511,101 +702,130 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                 <div className="px-6 py-4 overflow-y-auto flex-grow">
                     {/* Time Ranges */}
                     <div className="space-y-4 mb-6">
-                        {timeRanges.map(range => (
-                            <div key={range.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/50">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div className="flex items-center space-x-2">
-                                        <select
-                                            value={range.start}
-                                            onChange={(e) => handleTimeChange(range.id, 'start', e.target.value)}
-                                            disabled={range.status === 'booking'}
-                                            className={`min-w-[120px] bg-gray-600 text-white rounded px-3 py-2 border border-gray-500 ${
-                                                range.status === 'booking' ? 'opacity-50 cursor-not-allowed' : ''
-                                            }`}
-                                        >
-                                            {timeOptions.map((option, i) => (
-                                                <option key={i} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <span className="text-white">to</span>
-                                        <select
-                                            value={range.end}
-                                            onChange={(e) => handleTimeChange(range.id, 'end', e.target.value)}
-                                            disabled={range.status === 'booking'}
-                                            className={`min-w-[120px] bg-gray-600 text-white rounded px-3 py-2 border border-gray-500 ${
-                                                range.status === 'booking' ? 'opacity-50 cursor-not-allowed' : ''
-                                            }`}
-                                        >
-                                            {timeOptions.map((option, i) => (
-                                                <option key={i} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                        {timeRanges.map(range => {
+                            // Generate time options specific to this range
+                            const startOptions = generateTimeOptions(range.id, 'start');
+                            const endOptions = generateTimeOptions(range.id, 'end');
+                            
+                            return (
+                                <div key={range.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/50">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="flex items-center space-x-2">
+                                            <select
+                                                value={range.start}
+                                                onChange={(e) => handleTimeChange(range.id, 'start', e.target.value)}
+                                                disabled={range.status === 'booking'}
+                                                className={`min-w-[120px] bg-gray-600 text-white rounded px-3 py-2 border ${
+                                                    range.status === 'booking' 
+                                                        ? 'border-gray-500 opacity-50 cursor-not-allowed' 
+                                                        : isTimeRangeOverlapping(range.start, range.end, range.id)
+                                                            ? 'border-red-500' 
+                                                            : 'border-gray-500'
+                                                }`}
+                                            >
+                                                {startOptions.map((option, i) => (
+                                                    <option 
+                                                        key={i} 
+                                                        value={option.value}
+                                                        className={option.isConflict ? 'text-red-500' : ''}
+                                                    >
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="text-white">to</span>
+                                            <select
+                                                value={range.end}
+                                                onChange={(e) => handleTimeChange(range.id, 'end', e.target.value)}
+                                                disabled={range.status === 'booking'}
+                                                className={`min-w-[120px] bg-gray-600 text-white rounded px-3 py-2 border ${
+                                                    range.status === 'booking' 
+                                                        ? 'border-gray-500 opacity-50 cursor-not-allowed' 
+                                                        : isTimeRangeOverlapping(range.start, range.end, range.id)
+                                                            ? 'border-red-500' 
+                                                            : 'border-gray-500'
+                                                }`}
+                                            >
+                                                {endOptions.map((option, i) => (
+                                                    <option 
+                                                        key={i} 
+                                                        value={option.value}
+                                                        className={option.isConflict ? 'text-red-500' : ''}
+                                                    >
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            
+                                            {/* Conflict indicator */}
+                                            {range.status !== 'booking' && isTimeRangeOverlapping(range.start, range.end, range.id) && (
+                                                <span className="text-red-500 font-bold ml-2">
+                                                    ⚠️ Conflict
+                                                </span>
+                                            )}
+                                        </div>
 
-                                    <div className="flex items-center space-x-2">
-                                      {/* Status button */}
-                                      <button
-                                          disabled={range.status === 'booking'}
-                                          onClick={() => range.status !== 'booking' ? handleToggleStatus(range.id) : null}
-                                          className={`px-3 py-2 rounded text-white ${getStatusColor(range.status)} ${
-                                            range.status === 'booking' ? 'opacity-100 cursor-default' : ''
-                                          }`}
-                                      >
-                                          {range.status === 'booking' ? 'Booked' : 
-                                           range.status === 'available' ? 'Available' : 'Unavailable'}
-                                      </button>
+                                        {/* Rest of your existing UI */}
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                disabled={range.status === 'booking'}
+                                                onClick={() => range.status !== 'booking' ? handleToggleStatus(range.id) : null}
+                                                className={`px-3 py-2 rounded text-white ${getStatusColor(range.status)} ${
+                                                range.status === 'booking' ? 'opacity-100 cursor-default' : ''
+                                                }`}
+                                            >
+                                                {range.status === 'booking' ? 'Booked' : 
+                                                range.status === 'available' ? 'Available' : 'Unavailable'}
+                                            </button>
 
-                                      {/* Action buttons */}
-                                      {range.status === 'available' && (
-                                        <button
-                                            onClick={() => handleSetManual({
-                                                start: range.start,
-                                                end: range.end
-                                            })}
-                                            className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                                        >
-                                            Set Manual Schedule
-                                        </button>
-                                      )}
+                                            {/* Action buttons */}
+                                            {range.status === 'available' && (
+                                            <button
+                                                onClick={() => handleSetManual({
+                                                    start: range.start,
+                                                    end: range.end
+                                                })}
+                                                className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                                                disabled={isTimeRangeOverlapping(range.start, range.end, range.id)}
+                                            >
+                                                Set Manual Schedule
+                                            </button>
+                                            )}
 
-                                        {range.booking && (
-                                            <>
+                                            {range.booking && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleShowDetails(range.booking)}
+                                                        className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                                                    >
+                                                        Show Details
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteBooking(range.booking, range.id)}
+                                                        className="text-red-400 hover:text-red-300 p-2"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </>
+                                            )}
+
+                                            {range.status !== 'booking' && (
                                                 <button
-                                                    onClick={() => handleShowDetails(range.booking)}
-                                                    className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                                                >
-                                                    Show Details
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteBooking(range.booking, range.id)}
+                                                    onClick={() => handleDeleteTimeRange(range.id)}
                                                     className="text-red-400 hover:text-red-300 p-2"
                                                 >
                                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
                                                 </button>
-                                            </>
-                                        )}
-
-                                      {/* Delete button - trash icon */}
-                                      {range.status !== 'booking' && (
-                                          <button
-                                              onClick={() => handleDeleteTimeRange(range.id)}
-                                              className="text-red-400 hover:text-red-300 p-2"
-                                          >
-                                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                              </svg>
-                                          </button>
-                                      )}
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {/* Add Time Range Button - disable if full day is booked */}
@@ -634,6 +854,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                     <button
                         onClick={handleSaveChanges}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                        disabled={timeRanges.some(range => range.status !== 'booking' && isTimeRangeOverlapping(range.start, range.end, range.id))}
                     >
                         Save Changes
                     </button>
