@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -205,6 +206,12 @@ public class BookingController {
     public ResponseEntity<String> testEndpoint() {
         System.out.println("Test endpoint called!");
         return ResponseEntity.ok("Test endpoint working!");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<RequestResponse> deleteBooking(@PathVariable Integer id) {
+        RequestResponse response = bookingService.deleteBooking(id);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
     }
 
 }

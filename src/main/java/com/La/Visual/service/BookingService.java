@@ -286,4 +286,65 @@ public class BookingService {
             );
         }
     }
+
+
+    @Transactional
+    public RequestResponse deleteBooking(Integer id) {
+        try {
+            // First check if the booking exists
+            return bookingRepository.findById(id)
+                .map(booking -> {
+                    try {
+                        // Step 1: Break the circular reference by unlinking payments from this booking
+                        paymentRepository.unlinkPaymentsFromBooking(id);
+                        
+                        // Step 2: Now that no payments reference this booking, delete it
+                        boolean bookingDeleted = bookingRepository.deleteById(id);
+                        if (!bookingDeleted) {
+                            return new RequestResponse(
+                                "Failed to delete booking",
+                                null,
+                                500,
+                                false
+                            );
+                        }
+                        
+                        // Step 3: Delete any associated payments (optional if they're already unlinked)
+                        Integer paymentId = booking.paymentId();
+                        if (paymentId != null) {
+                            paymentRepository.deleteById(paymentId);
+                        }
+                        
+                        return new RequestResponse(
+                            "Booking deleted successfully",
+                            null,
+                            200,
+                            true
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return new RequestResponse(
+                            "Error in deletion process: " + e.getMessage(),
+                            null,
+                            500,
+                            false
+                        );
+                    }
+                })
+                .orElse(new RequestResponse(
+                    "Booking not found",
+                    null,
+                    404,
+                    false
+                ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new RequestResponse(
+                "Error deleting booking: " + e.getMessage(),
+                null,
+                500,
+                false
+            );
+        }
+    }
 }

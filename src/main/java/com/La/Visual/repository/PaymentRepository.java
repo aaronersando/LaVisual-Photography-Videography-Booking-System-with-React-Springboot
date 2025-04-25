@@ -138,4 +138,11 @@ public class PaymentRepository {
         int rowsAffected = jdbcTemplate.update("DELETE FROM payments WHERE payment_id = ?", id);
         return rowsAffected > 0;
     }
+
+    public void unlinkPaymentsFromBooking(Integer bookingId) {
+        jdbcTemplate.update(
+            "UPDATE payments SET booking_id = NULL WHERE booking_id = ?",
+            bookingId
+        );
+    }
 }

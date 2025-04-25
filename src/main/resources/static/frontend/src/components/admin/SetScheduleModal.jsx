@@ -10,6 +10,100 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [timeRanges, setTimeRanges] = useState([]);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [bookingToDelete, setBookingToDelete] = useState(null);
+    const [pendingDeletions, setPendingDeletions] = useState([]);
+
+
+    // Function to handle booking deletion
+    const handleDeleteBooking = (booking, rangeId) => {
+        // Check if we have a valid database ID to use
+        const databaseId = booking.databaseId || booking.bookingId || booking.id;
+        
+        if (!databaseId) {
+            alert('Cannot delete this booking: Missing database ID');
+            return;
+        }
+        
+        const isConfirmed = window.confirm(
+            `Are you sure you want to delete the booking for ${booking.client || booking.customerDetails?.name}? This will be deleted when you save changes.`
+        );
+        
+        if (isConfirmed) {
+            // Add the actual database ID to pending deletions
+            setPendingDeletions([...pendingDeletions, databaseId]);
+            
+            // Remove from UI only (temporarily)
+            setTimeRanges(timeRanges.filter(range => range.id !== rangeId));
+            
+            console.log(`Booking with database ID ${databaseId} marked for deletion`);
+        }
+    };
+
+    // Function to handle confirmed deletion from database
+    // const handleConfirmDelete = async () => {
+    //     if (!bookingToDelete) return;
+        
+    //     try {
+    //         // Get authentication token from localStorage
+    //         const token = localStorage.getItem('token');
+            
+    //         console.log("Auth token:", token ? "Found" : "Not found");
+            
+    //         // Check if we are authenticated
+    //         if (!token) {
+    //             console.error('Authentication token not found');
+    //             alert('You need to be logged in as an admin to delete bookings');
+    //             setBookingToDelete(null);
+    //             return;
+    //         }
+            
+    //         // Log the ID we're trying to delete for debugging
+    //         console.log(`Attempting to delete booking with ID: ${bookingToDelete.booking.id}`);
+            
+    //         // Delete from database
+    //         const response = await fetch(`http://localhost:8080/api/bookings/${bookingToDelete.booking.id}`, {
+    //             method: 'DELETE',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'Authorization': `Bearer ${token}`
+    //             }
+    //         });
+            
+    //         // Parse response even if it's an error
+    //         let responseData;
+    //         const responseText = await response.text();
+    //         try {
+    //             responseData = responseText ? JSON.parse(responseText) : {};
+    //         } catch (e) {
+    //             responseData = { message: responseText };
+    //         }
+            
+    //         console.log("Delete response status:", response.status);
+    //         console.log("Delete response body:", responseData);
+            
+    //         if (response.ok) {
+    //             console.log(`Booking ${bookingToDelete.booking.bookingReference} deleted successfully`);
+    //             // Remove from UI
+    //             setTimeRanges(timeRanges.filter(range => range.id !== bookingToDelete.rangeId));
+    //             alert("Booking deleted successfully");
+                
+    //             // Refresh page to see updated data
+    //             window.location.reload();
+    //         } else {
+    //             // Enhanced error reporting
+    //             const errorMessage = responseData.message || `Error ${response.status}: Failed to delete booking`;
+    //             console.error('Failed to delete booking:', errorMessage);
+    //             alert(`Failed to delete booking: ${errorMessage}. Please try again.`);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error deleting booking:', error);
+    //         alert(`Error occurred while deleting booking: ${error.message}`);
+    //     } finally {
+    //         // Reset booking to delete
+    //         setBookingToDelete(null);
+    //     }
+    // };
 
     const handleSetManual = (timeRange) => {
         setSelectedTimeRange(timeRange);
@@ -182,7 +276,10 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                     
                     // Create a properly formatted booking object with the correct date
                     const bookingData = {
-                        id: booking.id || index + 1,
+                        // Use the actual database booking ID, which could be bookingId or id
+                        id: booking.bookingId || booking.id || index + 1,
+                        // Keep track of the actual booking ID separately to ensure we have the right one
+                        databaseId: booking.bookingId || booking.id,
                         bookingReference: booking.bookingReference || booking.reference || `BKLQ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
                         client: booking.customerDetails?.name || booking.guestName || 'Client',
                         clientEvent: booking.package || booking.packageName || 'Booking',
@@ -249,15 +346,71 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
 
     const timeOptions = generateTimeOptions();
 
-    const handleSaveChanges = () => {
-        // Here you would save the changes to your backend
-        // Including the date information with each time range
-        const updatedSchedule = {
-            date: currentDateStr,
-            timeRanges: timeRanges
-        };
-        console.log('Saving schedule:', updatedSchedule);
-        onClose();
+    const handleSaveChanges = async () => {
+        console.log('Pending deletions:', pendingDeletions);
+        for (const bookingId of pendingDeletions) {
+            console.log(`Attempting to delete booking with database ID: ${bookingId}`);
+        }
+        // Process any pending deletions
+        if (pendingDeletions.length > 0) {
+            try {
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    alert('You need to be logged in as an admin to delete bookings');
+                    return;
+                }
+                
+                // Process each deletion sequentially
+                for (const bookingId of pendingDeletions) {
+                    console.log(`Deleting booking ID: ${bookingId}`);
+                    
+                    const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error(`Failed to delete booking ${bookingId}:`, errorData);
+                        alert(`Error deleting booking ${bookingId}: ${errorData.message || 'Unknown error'}`);
+                        // Continue with other deletions even if one fails
+                    }
+                }
+                
+                // Clear the pending deletions
+                setPendingDeletions([]);
+                
+                // Here you would also save other changes to your backend
+                const updatedSchedule = {
+                    date: currentDateStr,
+                    timeRanges: timeRanges
+                };
+                console.log('Saving schedule:', updatedSchedule);
+                
+                alert("Changes saved successfully!");
+                onClose();
+                
+                // Refresh the page to see the updated data
+                window.location.reload();
+                
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                alert(`Error occurred while saving changes: ${error.message}`);
+            }
+        } else {
+            // No deletions to process, just save other changes
+            console.log('Saving schedule:', {
+                date: currentDateStr,
+                timeRanges: timeRanges
+            });
+            alert("Changes saved successfully!");
+            onClose();
+        }
+
     };
 
     const handleAddTimeRange = () => {
@@ -402,14 +555,24 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                                         </button>
                                       )}
 
-                                      {range.booking && (
-                                          <button
-                                              onClick={() => handleShowDetails(range.booking)}
-                                              className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                                          >
-                                              Show Details
-                                          </button>
-                                      )}
+                                        {range.booking && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleShowDetails(range.booking)}
+                                                    className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                                                >
+                                                    Show Details
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteBooking(range.booking, range.id)}
+                                                    className="text-red-400 hover:text-red-300 p-2"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </>
+                                        )}
 
                                       {/* Delete button - trash icon */}
                                       {range.status !== 'booking' && (
