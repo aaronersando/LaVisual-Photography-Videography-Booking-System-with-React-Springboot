@@ -16,12 +16,15 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
         amount: ''
     });
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
+
     // Populate form with booking data on mount
     useEffect(() => {
         if (booking) {
             setFormData({
                 category: booking.category || 'Photography',
-                package: booking.package || '',
+                package: booking.clientEvent || booking.package || '',
                 fullName: booking.customerDetails?.name || booking.customerDetails?.fullName || '',
                 phoneNumber: booking.customerDetails?.phone || booking.customerDetails?.phoneNumber || '',
                 location: booking.customerDetails?.location || '',
@@ -46,18 +49,44 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
         setFormData(prev => ({
             ...prev,
             [name]: value,
-            ...(name === 'category' && { package: '' })
+            ...(name === 'category' && { package: '' }) // Reset package when category changes
         }));
+        
+        // Clear validation error when field is changed
+        if (formErrors[name]) {
+            setFormErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const validateForm = () => {
+        const errors = {};
+        
+        if (!formData.category) errors.category = 'Category is required';
+        if (!formData.package) errors.package = 'Package is required';
+        if (!formData.fullName) errors.fullName = 'Full name is required';
+        if (!formData.phoneNumber) errors.phoneNumber = 'Phone number is required';
+        if (!formData.location) errors.location = 'Location is required';
+        
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        if (!validateForm()) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        setIsSubmitting(true);
         
         // Prepare updated booking data
         const updatedBooking = {
             ...booking,
             category: formData.category,
             package: formData.package,
+            clientEvent: formData.package, // Ensure both fields are updated
             customerDetails: {
                 ...booking.customerDetails,
                 name: formData.fullName,
@@ -71,7 +100,9 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
             // Not updating payment details as those are read-only
         };
         
+        // Call onUpdate from parent component
         onUpdate(updatedBooking);
+        setIsSubmitting(false);
     };
 
     return (
@@ -110,7 +141,9 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
                             name="package"
                             value={formData.package}
                             onChange={handleChange}
-                            className="w-full bg-gray-700 text-white rounded-md px-3 py-2"
+                            className={`w-full bg-gray-700 text-white rounded-md px-3 py-2 ${
+                                formErrors.package ? 'border border-red-500' : ''
+                            }`}
                         >
                             <option value="">Select a package</option>
                             {filteredPackages.map(pkg => (
@@ -119,12 +152,15 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
                                 </option>
                             ))}
                         </select>
+                        {formErrors.package && (
+                            <p className="mt-1 text-sm text-red-400">{formErrors.package}</p>
+                        )}
                     </div>
 
                     {/* Client Details */}
                     <div className="space-y-4">
                         <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Enter Your Details
+                            Client Details
                         </label>
                         <input
                             type="text"
@@ -132,24 +168,42 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
                             placeholder="Full Name"
                             value={formData.fullName}
                             onChange={handleChange}
-                            className="w-full bg-gray-700 text-white rounded-md px-3 py-2"
+                            className={`w-full bg-gray-700 text-white rounded-md px-3 py-2 ${
+                                formErrors.fullName ? 'border border-red-500' : ''
+                            }`}
                         />
+                        {formErrors.fullName && (
+                            <p className="mt-1 text-sm text-red-400">{formErrors.fullName}</p>
+                        )}
+                        
                         <input
                             type="text"
                             name="phoneNumber"
                             placeholder="Phone Number"
                             value={formData.phoneNumber}
                             onChange={handleChange}
-                            className="w-full bg-gray-700 text-white rounded-md px-3 py-2"
+                            className={`w-full bg-gray-700 text-white rounded-md px-3 py-2 ${
+                                formErrors.phoneNumber ? 'border border-red-500' : ''
+                            }`}
                         />
+                        {formErrors.phoneNumber && (
+                            <p className="mt-1 text-sm text-red-400">{formErrors.phoneNumber}</p>
+                        )}
+                        
                         <input
                             type="text"
                             name="location"
                             placeholder="Location"
                             value={formData.location}
                             onChange={handleChange}
-                            className="w-full bg-gray-700 text-white rounded-md px-3 py-2"
+                            className={`w-full bg-gray-700 text-white rounded-md px-3 py-2 ${
+                                formErrors.location ? 'border border-red-500' : ''
+                            }`}
                         />
+                        {formErrors.location && (
+                            <p className="mt-1 text-sm text-red-400">{formErrors.location}</p>
+                        )}
+                        
                         <textarea
                             name="specialRequest"
                             placeholder="Special Request (Optional)"
@@ -220,14 +274,16 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
                     <button
                         onClick={onClose}
                         className="px-4 py-2 text-white border border-gray-600 rounded hover:bg-gray-700"
+                        disabled={isSubmitting}
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
                         className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                        disabled={isSubmitting}
                     >
-                        Update Booking
+                        {isSubmitting ? 'Updating...' : 'Update Booking'}
                     </button>
                 </div>
             </div>

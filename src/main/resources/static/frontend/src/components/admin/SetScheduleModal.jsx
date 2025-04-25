@@ -128,10 +128,27 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
         setSelectedBooking(null);
     };
       
-    const handleUpdateBooking = (booking) => {
-        // Handle the update logic here
-        console.log('Update booking:', booking);
+    const handleUpdateBooking = (updatedBooking) => {
+        console.log('Booking updated:', updatedBooking);
+        
+        // Close the details modal
         setShowDetailsModal(false);
+        
+        // Update the local state to reflect changes
+        const updatedTimeRanges = timeRanges.map(range => {
+            if (range.booking && 
+                (range.booking.id === updatedBooking.id || 
+                 range.booking.bookingId === updatedBooking.bookingId ||
+                 range.booking.databaseId === updatedBooking.databaseId)) {
+                return {
+                    ...range,
+                    booking: updatedBooking
+                };
+            }
+            return range;
+        });
+        
+        setTimeRanges(updatedTimeRanges);
     };
 
     // Parse time string to consistent format

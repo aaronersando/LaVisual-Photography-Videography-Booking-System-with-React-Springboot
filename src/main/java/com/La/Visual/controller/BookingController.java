@@ -1,6 +1,7 @@
 package com.La.Visual.controller;
 
 import com.La.Visual.dto.BookingRequest;
+import com.La.Visual.dto.BookingUpdateRequest;
 import com.La.Visual.dto.RequestResponse;
 import com.La.Visual.entity.Booking;
 import com.La.Visual.repository.BookingRepository;
@@ -213,5 +214,27 @@ public class BookingController {
         RequestResponse response = bookingService.deleteBooking(id);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateBooking(@PathVariable Long id, @RequestBody BookingUpdateRequest request) {
+        try {
+            Booking updatedBooking = bookingService.updateBooking(id, request);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Booking updated successfully");
+            response.put("data", updatedBooking);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+
 
 }

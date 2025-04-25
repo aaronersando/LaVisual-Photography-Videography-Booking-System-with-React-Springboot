@@ -1,6 +1,7 @@
 package com.La.Visual.service;
 
 import com.La.Visual.dto.BookingRequest;
+import com.La.Visual.dto.BookingUpdateRequest;
 import com.La.Visual.dto.RequestResponse;
 import com.La.Visual.entity.Booking;
 import com.La.Visual.entity.Payment;
@@ -346,5 +347,24 @@ public class BookingService {
                 false
             );
         }
+    }
+
+    @Transactional
+    public Booking updateBooking(Long id, BookingUpdateRequest request) {
+        // Find the booking by ID
+        Booking existingBooking = bookingRepository.findById(id.intValue())
+            .orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
+        
+        // Update the booking fields
+        Booking updatedBooking = existingBooking
+            .withPackageName(request.packageName())
+            .withCategoryName(request.category())
+            .withGuestName(request.guestName())
+            .withGuestPhone(request.phoneNumber())
+            .withLocation(request.location())
+            .withSpecialRequests(request.specialRequest());
+        
+        // Save the updated booking
+        return bookingRepository.update(updatedBooking);
     }
 }

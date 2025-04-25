@@ -5,6 +5,7 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
 
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [bookingToUpdate, setBookingToUpdate] = useState(null);
+    
     // Destructure booking data for easier access
     const { 
         clientEvent: packageName, 
@@ -14,10 +15,10 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
         customerDetails,
         paymentDetails = {},
         totalAmount,
-        bookingReference
+        bookingReference,
+        databaseId, // This is important for the backend to identify the record
+        id
     } = booking || {};
-
-    
 
     // Format date for display
     const formatDate = (dateString) => {
@@ -35,19 +36,84 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
         const hour12 = hourNum % 12 || 12;
         return `${hour12}:00 ${ampm}`;
     };
-    
 
     const handleUpdateBooking = (booking) => {
         setBookingToUpdate(booking);
-        // setShowDetailsModal(false);
         setShowUpdateModal(true);
     };
     
-    const handleSaveUpdatedBooking = (updatedBooking) => {
-        // tO save the updated booking to your backend
-        // After success:
-        setShowUpdateModal(false);
-        // If want to refresh the booking data here
+    const handleSaveUpdatedBooking = async (updatedBooking) => {
+        // Get the booking ID - try all possible ID fields
+        const bookingId = updatedBooking.databaseId || updatedBooking.bookingId || updatedBooking.id;
+        
+        if (!bookingId) {
+            alert('Error: Could not determine booking ID');
+            return;
+        }
+        
+        try {
+            // Get auth token from local storage
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                alert('You need to be logged in as an admin to update bookings');
+                return;
+            }
+            
+            // Prepare data for API
+            const apiData = {
+                bookingId: bookingId,
+                packageName: updatedBooking.package,
+                category: updatedBooking.category,
+                guestName: updatedBooking.customerDetails.name,
+                phoneNumber: updatedBooking.customerDetails.phoneNumber,
+                location: updatedBooking.customerDetails.location,
+                specialRequest: updatedBooking.customerDetails.specialRequest
+            };
+            
+            console.log('Sending update for booking:', apiData);
+            
+            // Send update to backend
+            const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(apiData)
+            });
+            
+            // Parse response
+            const responseText = await response.text();
+            let responseData;
+            
+            try {
+                responseData = responseText ? JSON.parse(responseText) : {};
+            } catch (e) {
+                responseData = { message: responseText };
+            }
+            
+            // Handle response
+            if (response.ok) {
+                alert('Booking updated successfully!');
+                setShowUpdateModal(false);
+                
+                // Call the onUpdate function from parent to refresh data
+                if (onUpdate) {
+                    onUpdate(updatedBooking);
+                }
+                
+                // Refresh the page to see the updated data
+                window.location.reload();
+            } else {
+                const errorMsg = responseData.message || `Error ${response.status}: Failed to update booking`;
+                console.error('Failed to update booking:', errorMsg);
+                alert(`Failed to update booking: ${errorMsg}. Please try again.`);
+            }
+        } catch (error) {
+            console.error('Error updating booking:', error);
+            alert(`Error occurred while updating booking: ${error.message}`);
+        }
     };
 
     return (

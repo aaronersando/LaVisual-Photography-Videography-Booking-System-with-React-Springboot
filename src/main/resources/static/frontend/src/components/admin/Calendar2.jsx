@@ -9,8 +9,22 @@ function Calendar2({onDateClick, bookings}){
 
     const [events, setEvents] = useState([]);
 
+    
+
+    // Then modify your useEffect
+    useEffect(() => {
+        if (bookings && bookings.length > 0) {
+            formatBookingsForCalendar();
+        }
+    }, [bookings]);
+
     // Format bookings data into the events format needed for calendar
     useEffect(() => {
+        if (bookings && bookings.length > 0) {
+            // Process bookings and update the calendar
+            formatBookingsForCalendar();
+        }
+
         if (!bookings || bookings.length === 0) return;
         
         // Group bookings by date
@@ -64,6 +78,62 @@ function Calendar2({onDateClick, bookings}){
         
         setEvents(formattedEvents);
     }, [bookings]);
+
+    // Add this function before the useEffect
+    const formatBookingsForCalendar = () => {
+        if (!bookings || bookings.length === 0) return;
+        
+        // Group bookings by date
+        const groupedBookings = bookings.reduce((acc, booking) => {
+            // Extract date in YYYY-MM-DD format
+            let dateKey;
+            
+            // Handle different date formats
+            if (booking.date) {
+                // If it's already a string in YYYY-MM-DD format
+                if (typeof booking.date === 'string' && booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    dateKey = booking.date;
+                } 
+                // If it's a Date object or other date format string
+                else {
+                    const bookingDate = new Date(booking.date);
+                    if (!isNaN(bookingDate.getTime())) {
+                        dateKey = bookingDate.toISOString().split('T')[0];
+                    }
+                }
+            } 
+            // Fallback if booking.bookingDate is used instead (from backend API)
+            else if (booking.bookingDate) {
+                dateKey = new Date(booking.bookingDate).toISOString().split('T')[0];
+            }
+            
+            if (!dateKey) {
+                console.error("Could not extract date from booking:", booking);
+                return acc;
+            }
+            
+            if (!acc[dateKey]) {
+                acc[dateKey] = [];
+            }
+            
+            // Format booking data for the modal
+            acc[dateKey].push({
+                client: booking.customerDetails?.name || booking.guestName || 'Client',
+                clientEvent: booking.package || booking.packageName || 'Booking',
+                timeRange: formatBookingTimeRange(booking)
+            });
+            
+            return acc;
+        }, {});
+        
+        // Convert the grouped object to array format needed by calendar
+        const formattedEvents = Object.entries(groupedBookings).map(([date, bookings]) => ({
+            date,
+            bookings
+        }));
+        
+        setEvents(formattedEvents);
+    };
     
     // Add this helper function for better time format handling
     const formatBookingTimeRange = (booking) => {
