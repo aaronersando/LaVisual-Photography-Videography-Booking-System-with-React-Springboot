@@ -116,9 +116,18 @@ function Calendar2({onDateClick, bookings}){
         return events.find(event => event.date === dateStr)
     }
 
-    const handleDateClick= (day) => {
-        if (day > 0 && day <= daysInMonth){
-            const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const handleDateClick = (day) => {
+        if (day > 0 && day <= daysInMonth) {
+            // Create a date with time set to noon to avoid timezone issues
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day, 12, 0, 0);
+            
+            // Debug logs to verify correct date
+            console.log("Calendar day clicked:", day);
+            console.log("Calendar clicked date object:", date);
+            console.log("Calendar clicked formatted ISO date:", date.toISOString());
+            console.log("Calendar clicked YYYY-MM-DD:", date.toISOString().split('T')[0]);
+            
+            // Pass the date to parent component
             onDateClick?.(date);
         }
     }
@@ -157,9 +166,14 @@ function Calendar2({onDateClick, bookings}){
                                 <div
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setSelectedBookings(event.bookings); // Set bookings to show in modal
+                                        // Make sure each booking in the event has the correct date
+                                        const formattedBookings = event.bookings.map(booking => ({
+                                            ...booking,
+                                            date: event.date // Ensure the date is correct
+                                        }));
+                                        setSelectedBookings(formattedBookings); // Set bookings to show in modal
                                     }}
-                                    className="mt-1 p-1 rounded text-sm bg-purple-600 text-white hover:opacity-80"
+                                    className="mt-1 p-1 rounded text-sm bg-purple-600 text-white hover:opacity-80 cursor-pointer"
                                 >
                                     Bookings: {event.bookings.length}
                                 </div>
@@ -178,63 +192,57 @@ function Calendar2({onDateClick, bookings}){
       ];
 
 
-    return(
+      return(
         <>
-        <div className="bg-gray-900 rounded-lg">
-            <div className="mb-4 pt-6">
-                {/* Calendar Header */}
-                <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-xl text-white">Schedule Dashboard</h2>
-                    <div className="flex items-center space-x-2">
-                        <button 
-                        onClick={handlePrevMonth}
-                        className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+            <div className="bg-gray-900 rounded-lg">
+                {/* Your existing calendar code */}
+                <div className="mb-4 pt-6">
+                    {/* Calendar Header */}
+                    <div className="flex justify-between items-center px-6 pb-4">
+                        <button
+                            onClick={handlePrevMonth}
+                            className="p-2 rounded hover:bg-gray-700 text-gray-400"
                         >
-                        Back
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
                         </button>
-                        <span className="text-white">
-                        {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-                        </span>
-                        <button 
-                        onClick={handleNextMonth}
-                        className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                        <h2 className="text-xl font-semibold text-white">
+                            {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+                        </h2>
+                        <button
+                            onClick={handleNextMonth}
+                            className="p-2 rounded hover:bg-gray-700 text-gray-400"
                         >
-                        Next
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
                         </button>
                     </div>
-                </div>
-
-                {/* Bookings
-                <div className="flex space-x-4 mb-4">
-                    <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-purple-600"></div>
-                        <span className="text-sm text-gray-300">Booking</span>
-                    </div>
-                </div> */}
-
-                {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-1">
-                    {/* Weekday Headers */}
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                        <div key={day} className="text-center text-gray-400 pb-2">
-                        {day}
-                        </div>
-                    ))}
                     
-                    {/* Calendar Days */}
-                    {renderCalendarDays()}
+                    {/* Calendar Grid */}
+                    <div className="grid grid-cols-7 gap-1">
+                        {/* Weekday Headers */}
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                            <div key={day} className="text-center text-gray-400 pb-2">
+                            {day}
+                            </div>
+                        ))}
+                        
+                        {/* Calendar Days */}
+                        {renderCalendarDays()}
+                    </div>
                 </div>
             </div>
-        </div>
-        {/* Render the modal when bookings are selected */}
-        {selectedBookings && (
+            {/* Render the modal when bookings are selected */}
+            {selectedBookings && (
                 <QuickInfoModal 
                     bookings={selectedBookings} 
                     onClose={() => setSelectedBookings(null)} 
                 />
             )}
         </>
-    )
+    );
 }
 
 export default Calendar2;

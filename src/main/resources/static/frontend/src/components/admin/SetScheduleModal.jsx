@@ -9,60 +9,230 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const [selectedTimeRange, setSelectedTimeRange] = useState(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
-    
+    const [timeRanges, setTimeRanges] = useState([]);
 
-    
     const handleSetManual = (timeRange) => {
         setSelectedTimeRange(timeRange);
         setShowManualSchedule(true);
     };
 
-
     const handleShowDetails = (booking) => {
-        setSelectedBooking(booking);
+        console.log("Showing details for booking:", booking);
+        
+        // Make sure the booking date matches the selected date
+        const bookingToShow = {
+            ...booking,
+            date: currentDateStr // Ensure the date is correct
+        };
+        
+        setSelectedBooking(bookingToShow);
         setShowDetailsModal(true);
-      };
+    };
       
-      const handleCloseDetails = () => {
+    const handleCloseDetails = () => {
         setShowDetailsModal(false);
         setSelectedBooking(null);
-      };
+    };
       
-      const handleUpdateBooking = (booking) => {
+    const handleUpdateBooking = (booking) => {
         // Handle the update logic here
         console.log('Update booking:', booking);
-        // You might want to navigate to an edit form or open another modal
         setShowDetailsModal(false);
-      };
-    
-    
+    };
 
-    // Initialize time ranges for the selected date only
-    const [timeRanges, setTimeRanges] = useState([
-      {
-          id: 1,
-          start: '07:00 PM',
-          end: '11:00 PM',
-          status: 'booking',
-          date: currentDateStr,
-          booking: {
-              client: 'John Doe',
-              clientEvent: 'Birthday Party',
-              timeRange: {
-                  startTime: '07:00 PM',
-                  endTime: '11:00 PM'
-              }
-          }
-      },
-      {
-          id: 2,
-          start: '06:00 AM',
-          end: '10:00 PM',
-          status: 'available',
-          date: currentDateStr,
-          booking: null
-      }
-  ]);
+    // Parse time string to consistent format
+    const parseTimeFormat = (timeStr) => {
+        if (!timeStr) return '12:00 AM';
+        
+        // If already in 12-hour format with AM/PM, return as is
+        if (timeStr.includes('AM') || timeStr.includes('PM')) {
+            return timeStr;
+        }
+        
+        // Convert 24-hour format to 12-hour format with AM/PM
+        try {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const hour12 = hours % 12 || 12;
+            return `${hour12.toString().padStart(2, '0')}:${minutes ? minutes.toString().padStart(2, '0') : '00'} ${period}`;
+        } catch (e) {
+            console.error("Error parsing time:", timeStr);
+            return '12:00 AM';
+        }
+    };
+
+    // Convert time string to 24-hour format for sorting
+    const convertTimeStringTo24Hr = (timeStr) => {
+        if (!timeStr) return '00:00';
+        
+        // If already in 24-hour format, return as is
+        if (!timeStr.includes('AM') && !timeStr.includes('PM')) {
+            return timeStr;
+        }
+        
+        // Convert 12-hour to 24-hour for sorting
+        try {
+            const [time, period] = timeStr.split(' ');
+            let [hours, minutes] = time.split(':').map(Number);
+            
+            if (period === 'PM' && hours !== 12) {
+                hours += 12;
+            } else if (period === 'AM' && hours === 12) {
+                hours = 0;
+            }
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes ? minutes.toString().padStart(2, '0') : '00'}`;
+        } catch (e) {
+            return '00:00';
+        }
+    };
+
+    // Check if a full day is already booked
+    const isFullDayBooked = () => {
+        return timeRanges.some(range => 
+            range.status === 'booking' && 
+            ((range.start === '12:00 AM' && range.end === '12:00 AM') ||
+             (range.start === '12:00 AM' && range.end === '11:59 PM'))
+        );
+    };
+
+    // Load time ranges when date changes
+    useEffect(() => {
+        // Format date as YYYY-MM-DD for comparison with a fixed time (noon)
+        const selectedDate = new Date(date);
+        selectedDate.setHours(12, 0, 0, 0);
+        const formattedDateStr = selectedDate.toISOString().split('T')[0];
+        
+        console.log("SetScheduleModal - Selected date:", formattedDateStr);
+        
+        // Filter bookings for the selected date with strict date comparison
+        const dateBookings = bookings?.filter(booking => {
+            let bookingDateStr;
+            
+            try {
+                // Handle booking.date field
+                if (booking.date) {
+                    if (typeof booking.date === 'string') {
+                        // If already in YYYY-MM-DD format, use directly
+                        if (booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            bookingDateStr = booking.date;
+                        } else {
+                            // Otherwise parse and format consistently
+                            const bookingDate = new Date(booking.date);
+                            bookingDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+                            bookingDateStr = bookingDate.toISOString().split('T')[0];
+                        }
+                    } else {
+                        // Handle Date object
+                        const bookingDate = new Date(booking.date);
+                        bookingDate.setHours(12, 0, 0, 0);
+                        bookingDateStr = bookingDate.toISOString().split('T')[0];
+                    }
+                } 
+                // Handle booking.bookingDate field
+                else if (booking.bookingDate) {
+                    if (typeof booking.bookingDate === 'string') {
+                        if (booking.bookingDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            bookingDateStr = booking.bookingDate;
+                        } else {
+                            const bookingDate = new Date(booking.bookingDate);
+                            bookingDate.setHours(12, 0, 0, 0);
+                            bookingDateStr = bookingDate.toISOString().split('T')[0];
+                        }
+                    } else {
+                        const bookingDate = new Date(booking.bookingDate);
+                        bookingDate.setHours(12, 0, 0, 0);
+                        bookingDateStr = bookingDate.toISOString().split('T')[0];
+                    }
+                }
+                
+                console.log(`Comparing booking date: ${bookingDateStr} with selected date: ${formattedDateStr} - Match: ${bookingDateStr === formattedDateStr}`);
+                
+                return bookingDateStr === formattedDateStr;
+            } catch (e) {
+                console.error("Error processing booking date:", e, booking);
+                return false;
+            }
+        }) || [];
+        
+        console.log("Filtered bookings for this date:", dateBookings);
+        
+        // Create initial time ranges including any bookings
+        let initialRanges = [];
+        if (dateBookings.length > 0) {
+            // Sort bookings by start time before mapping
+            initialRanges = dateBookings
+                .sort((a, b) => {
+                    // Parse times for comparison
+                    const aTimeStr = a.timeRange?.startTime || a.bookingTimeStart || '00:00';
+                    const bTimeStr = b.timeRange?.startTime || b.bookingTimeStart || '00:00';
+                    
+                    // Convert to comparable format
+                    const aTime = convertTimeStringTo24Hr(aTimeStr);
+                    const bTime = convertTimeStringTo24Hr(bTimeStr);
+                    
+                    return aTime.localeCompare(bTime);
+                })
+                .map((booking, index) => {
+                    // Extract proper time format from booking
+                    const startTime = parseTimeFormat(booking.timeRange?.startTime || booking.bookingTimeStart || '12:00');
+                    const endTime = parseTimeFormat(booking.timeRange?.endTime || booking.bookingTimeEnd || '15:00');
+                    
+                    console.log(`Booking ${index+1} time range: ${startTime} - ${endTime}`);
+                    
+                    // Create a properly formatted booking object with the correct date
+                    const bookingData = {
+                        id: booking.id || index + 1,
+                        bookingReference: booking.bookingReference || booking.reference || `BKLQ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+                        client: booking.customerDetails?.name || booking.guestName || 'Client',
+                        clientEvent: booking.package || booking.packageName || 'Booking',
+                        category: booking.category || 'Photography',
+                        date: formattedDateStr, // Use the selected date to ensure consistency
+                        timeRange: {
+                            startTime: startTime,
+                            endTime: endTime
+                        },
+                        customerDetails: {
+                            name: booking.customerDetails?.name || booking.guestName || 'Client',
+                            email: booking.customerDetails?.email || booking.guestEmail || '',
+                            phone: booking.customerDetails?.phone || booking.guestPhone || '',
+                            location: booking.customerDetails?.location || booking.location || 'ewan',
+                            notes: booking.customerDetails?.notes || booking.specialRequests || ''
+                        },
+                        paymentDetails: {
+                            type: booking.paymentDetails?.type || booking.paymentType || 'Full Payment',
+                            method: booking.paymentDetails?.method || booking.paymentMethod || 'GCash',
+                            amount: booking.paymentDetails?.amount || booking.amount || 3000,
+                            accountNumber: booking.paymentDetails?.accountNumber || booking.gcashNumber || '09665469008'
+                        },
+                        totalAmount: booking.totalAmount || booking.packagePrice || booking.price || 3000
+                    };
+                    
+                    return {
+                        id: index + 1,
+                        start: startTime,
+                        end: endTime,
+                        status: 'booking',
+                        date: formattedDateStr,
+                        booking: bookingData
+                    };
+                });
+        }
+    
+        // Add a default available time range if no bookings
+        if (initialRanges.length === 0) {
+            initialRanges.push({
+                id: 1,
+                start: '06:00 AM',
+                end: '10:00 PM',
+                status: 'available',
+                date: formattedDateStr,
+                booking: null
+            });
+        }
+    
+        setTimeRanges(initialRanges);
+    }, [date, bookings]);
 
     // Generate time options in AM/PM format
     const generateTimeOptions = () => {
@@ -79,36 +249,6 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
 
     const timeOptions = generateTimeOptions();
 
-    // Load time ranges when date changes
-    // useEffect(() => {
-    //     // Get bookings for this specific date from props
-    //     const dateBookings = bookings?.filter(booking => booking.date === currentDateStr) || [];
-        
-    //     // Create initial time ranges including any bookings
-    //     const initialRanges = dateBookings.map(booking => ({
-    //         id: booking.id,
-    //         start: booking.timeRange.startTime,
-    //         end: booking.timeRange.endTime,
-    //         status: 'booking',
-    //         date: currentDateStr,
-    //         booking: booking
-    //     }));
-
-    //     // Add a default available time range if no bookings
-    //     if (initialRanges.length === 0) {
-    //         initialRanges.push({
-    //             id: 1,
-    //             start: '06:00 AM',
-    //             end: '10:00 PM',
-    //             status: 'available',
-    //             date: currentDateStr,
-    //             booking: null
-    //         });
-    //     }
-
-    //     setTimeRanges(initialRanges);
-    // }, [currentDateStr, bookings]);
-
     const handleSaveChanges = () => {
         // Here you would save the changes to your backend
         // Including the date information with each time range
@@ -121,6 +261,12 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     };
 
     const handleAddTimeRange = () => {
+        // Don't allow adding if full day is booked
+        if (isFullDayBooked()) {
+            alert('Cannot add more time ranges when a full day booking exists');
+            return;
+        }
+        
         const newId = timeRanges.length > 0 ? Math.max(...timeRanges.map(r => r.id)) + 1 : 1;
         setTimeRanges([...timeRanges, {
             id: newId,
@@ -167,16 +313,18 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
               return 'bg-green-600 hover:bg-green-700';
           case 'unavailable':
               return 'bg-red-600 hover:bg-red-700';
+          case 'booking':
+              return 'bg-purple-600';
           default:
               return '';
       }
-  };
+    };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-700 w-2xl">
+                <div className="px-6 py-4 border-b border-gray-700 flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-semibold text-white">
                             Set Schedule - {date.toLocaleDateString()}
@@ -189,13 +337,13 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="px-6 py-4 w-2xl">
+                {/* Content - make it scrollable */}
+                <div className="px-6 py-4 overflow-y-auto flex-grow">
                     {/* Time Ranges */}
                     <div className="space-y-4 mb-6">
                         {timeRanges.map(range => (
-                            <div key={range.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/50 w-full">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+                            <div key={range.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/50">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div className="flex items-center space-x-2">
                                         <select
                                             value={range.start}
@@ -229,40 +377,31 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                                     </div>
 
                                     <div className="flex items-center space-x-2">
-                                      {/* Status button - shows for available/unavailable */}
-                                      {range.status !== 'booking' && (
-                                          <button
-                                              onClick={() => handleToggleStatus(range.id)}
-                                              className={`px-3 py-2 rounded text-white ${getStatusColor(range.status)}`}
-                                          >
-                                              {range.status === 'available' ? 'Available' : 'Unavailable'}
-                                          </button>
-                                      )}
+                                      {/* Status button */}
+                                      <button
+                                          disabled={range.status === 'booking'}
+                                          onClick={() => range.status !== 'booking' ? handleToggleStatus(range.id) : null}
+                                          className={`px-3 py-2 rounded text-white ${getStatusColor(range.status)} ${
+                                            range.status === 'booking' ? 'opacity-100 cursor-default' : ''
+                                          }`}
+                                      >
+                                          {range.status === 'booking' ? 'Booked' : 
+                                           range.status === 'available' ? 'Available' : 'Unavailable'}
+                                      </button>
 
-                                      {/* Booked status button - shows when status is booking */}
-                                      {range.status === 'booking' && (
-                                          <button
-                                              disabled
-                                              className="px-3 py-2 rounded text-white bg-purple-600 opacity-50 cursor-not-allowed"
-                                          >
-                                              Booked
-                                          </button>
-                                      )}
-
-                                      {/* Set Manual Schedule button - shows for available slots */}
+                                      {/* Action buttons */}
                                       {range.status === 'available' && (
                                         <button
                                             onClick={() => handleSetManual({
                                                 start: range.start,
                                                 end: range.end
                                             })}
-                                            className="px-3 py-2 w-45 bg-gray-600 text-white rounded hover:bg-gray-700"
+                                            className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
                                         >
                                             Set Manual Schedule
                                         </button>
-                                    )}
+                                      )}
 
-                                      {/* Show Details button - shows when there's a booking */}
                                       {range.booking && (
                                           <button
                                               onClick={() => handleShowDetails(range.booking)}
@@ -272,7 +411,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                                           </button>
                                       )}
 
-                                      {/* Delete button - hidden for booked slots */}
+                                      {/* Delete button - trash icon */}
                                       {range.status !== 'booking' && (
                                           <button
                                               onClick={() => handleDeleteTimeRange(range.id)}
@@ -283,23 +422,29 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                                               </svg>
                                           </button>
                                       )}
-                                  </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* Add Time Range Button */}
+                    {/* Add Time Range Button - disable if full day is booked */}
                     <button
                         onClick={handleAddTimeRange}
-                        className="w-full mb-6 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        disabled={isFullDayBooked()}
+                        className={`w-full mb-6 px-4 py-3 rounded-lg text-white transition-colors
+                            ${isFullDayBooked() 
+                            ? 'bg-purple-400 cursor-not-allowed' 
+                            : 'bg-purple-600 hover:bg-purple-700'}`}
                     >
-                        Add Schedule (Time Range)
+                        {isFullDayBooked() 
+                        ? 'Cannot Add More - Full Day Booked' 
+                        : 'Add Schedule (Time Range)'}
                     </button>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-700 flex justify-end space-x-4">
+                <div className="px-6 py-4 border-t border-gray-700 flex justify-end space-x-4 flex-shrink-0">
                     <button
                         onClick={onClose}
                         className="px-4 py-2 border border-gray-600 text-white rounded-lg hover:bg-gray-700"
@@ -314,19 +459,23 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                     </button>
                 </div>
             </div>
+            
+            {/* Set Manual Schedule modal */}
             {showManualSchedule && (
-            <SetManualSchedule
-                onClose={() => setShowManualSchedule(false)}
-                selectedTimeRange={selectedTimeRange}
-                selectedDate={date}
-            />
+                <SetManualSchedule
+                    onClose={() => setShowManualSchedule(false)}
+                    selectedTimeRange={selectedTimeRange}
+                    selectedDate={date}
+                />
             )}
+            
+            {/* Show Booking Details modal */}
             {showDetailsModal && selectedBooking && (
-            <ShowScheduleDetails
-                booking={selectedBooking}
-                onClose={handleCloseDetails}
-                onUpdate={handleUpdateBooking}
-            />
+                <ShowScheduleDetails
+                    booking={selectedBooking}
+                    onClose={handleCloseDetails}
+                    onUpdate={handleUpdateBooking}
+                />
             )}
         </div>
     );

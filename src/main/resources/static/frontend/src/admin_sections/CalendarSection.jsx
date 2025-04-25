@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar2 from '../components/admin/Calendar2';
 import SetScheduleModal from '../components/admin/SetScheduleModal';
 
@@ -6,44 +6,64 @@ function CalendarSection() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [bookings, setBookings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch bookings from the backend
   useEffect(() => {
     const fetchBookings = async () => {
-        try {
-            const response = await fetch('http://localhost:8080/api/bookings');
-            if (!response.ok) {
-                throw new Error('Failed to fetch bookings');
-            }
-            const data = await response.json();
-            setBookings(data.success ? data.data.bookings : []);
-        } catch (error) {
-            console.error('Error fetching bookings:', error);
+      setIsLoading(true);
+      try {
+        const response = await fetch('http://localhost:8080/api/bookings');
+        if (!response.ok) {
+          throw new Error('Failed to fetch bookings');
         }
+        const data = await response.json();
+        setBookings(data.success ? data.data.bookings : []);
+        console.log("Fetched bookings:", data.success ? data.data.bookings : []);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+        
+        // Fallback for testing - remove in production
+        setBookings([
+          {
+            id: 11,
+            bookingReference: 'BKLQ3BC9PQ7',
+            packageName: 'Intimate Session',
+            date: '2025-04-26',
+            bookingTimeStart: '12:00',
+            bookingTimeEnd: '15:00',
+            guestName: 'Test Client',
+            guestEmail: 'test@example.com',
+            location: 'ewan',
+            paymentType: 'Full Payment',
+            paymentMethod: 'GCash',
+            gcashNumber: '09665469008',
+            amount: 3000
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     fetchBookings();
-}, []);
+  }, []);
 
+  
   const handleDateClick = (date) => {
-    setSelectedDate(date);
-    setShowScheduleModal(true);
-  };
+  
+  const selectedDate = new Date(date);
+  selectedDate.setHours(12, 0, 0, 0);
+  
+  console.log("CalendarSection received date:", selectedDate);
+  setSelectedDate(selectedDate);
+  setShowScheduleModal(true);
+};
 
   const handleCloseModal = () => {
     setShowScheduleModal(false);
     setSelectedDate(null);
   };
-
-  // This would fetch bookings from  backend
-  useEffect(() => {
-    // Example 
-    // const fetchBookings = async () => {
-    //   const response = await fetch('/api/bookings');
-    //   const data = await response.json();
-    //   setBookings(data);
-    // };
-    // fetchBookings();
-  }, []);
 
   const handleSetManual = () => {
     // Will implement later
@@ -59,18 +79,22 @@ function CalendarSection() {
     <div className="space-y-6">
       <h2 className="text-2xl text-white font-bold">Calendar Dashboard</h2>
       
-      <Calendar2 
-        onDateClick={handleDateClick}
-        bookings={bookings} // Pass bookings to Calendar component
-      />
-
+      {isLoading ? (
+        <div className="text-center py-8 text-white">Loading calendar data...</div>
+      ) : (
+        <Calendar2 
+          onDateClick={handleDateClick}
+          bookings={bookings} // Pass bookings to Calendar component
+        />
+      )}
+      
       {showScheduleModal && selectedDate && (
         <SetScheduleModal
           date={selectedDate}
           onClose={handleCloseModal}
           onSetManual={handleSetManual}
           onShowDetails={handleShowDetails}
-          bookings={bookings} // Pass bookings to modal
+          bookings={bookings} // Pass all bookings to the modal
         />
       )}
     </div>

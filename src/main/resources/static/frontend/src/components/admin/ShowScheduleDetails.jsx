@@ -7,14 +7,17 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
     const [bookingToUpdate, setBookingToUpdate] = useState(null);
     // Destructure booking data for easier access
     const { 
-        package: packageName, 
+        clientEvent: packageName, 
         category, 
         date, 
         timeRange, 
         customerDetails,
         paymentDetails = {},
-        totalAmount
+        totalAmount,
+        bookingReference
     } = booking || {};
+
+    
 
     // Format date for display
     const formatDate = (dateString) => {
