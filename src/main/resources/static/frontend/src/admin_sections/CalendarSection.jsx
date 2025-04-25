@@ -5,30 +5,24 @@ import SetScheduleModal from '../components/admin/SetScheduleModal';
 function CalendarSection() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [bookings, setBookings] = useState([
-    //  come from  backend
-    {
-      id: 1,
-      date: '2025-04-18', // Example booking
-      timeRange: {
-        startTime: '09:00',
-        endTime: '13:00'
-      },
-      customerDetails: {
-        name: 'John Lei',
-        email: 'john@example.com',
-        phone: '09665469008',
-        location: 'Paombong, Bulacan'
-      },
-      package: 'Event Coverage',
-      category: 'Photography',
-      paymentDetails: {
-        type: 'full',
-        method: 'gcash',
-        amount: 15000
-      }
-    }
-  ]);
+  const [bookings, setBookings] = useState([]);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/bookings');
+            if (!response.ok) {
+                throw new Error('Failed to fetch bookings');
+            }
+            const data = await response.json();
+            setBookings(data.success ? data.data.bookings : []);
+        } catch (error) {
+            console.error('Error fetching bookings:', error);
+        }
+    };
+    
+    fetchBookings();
+}, []);
 
   const handleDateClick = (date) => {
     setSelectedDate(date);

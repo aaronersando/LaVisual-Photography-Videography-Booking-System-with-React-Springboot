@@ -1,28 +1,90 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import QuickInfoModal from "./QuickInfoModal"
 
-function Calendar2({onDateClick}){
+function Calendar2({onDateClick, bookings}){
 
     // Date today for basis
     const [currentDate, setCurrentDate] = useState(new Date())
     const [selectedBookings, setSelectedBookings] = useState(null);
 
-    const [events] = useState(
-        [
-            {date: '2025-04-19', 
-                bookings: [
-                    {client: 'Adrian', clientEvent: 'Wedding', timeRange: '6AM-2PM'},
-                    {client: 'Kiel', clientEvent: 'Birthday', timeRange: '3PM-5PM'},
-            ]},
-            {date: '2025-04-20', 
-                bookings: [
-                    {client: 'Lei', clientEvent: 'Wedding', timeRange: '6AM-2PM'},
-                    {client: 'Kiel', clientEvent: 'Birthday', timeRange: '8PM-12PM'},
-            ]}
+    const [events, setEvents] = useState([]);
 
-        ]
+    // Format bookings data into the events format needed for calendar
+    useEffect(() => {
+        if (!bookings || bookings.length === 0) return;
+        
+        // Group bookings by date
+        const groupedBookings = bookings.reduce((acc, booking) => {
+            // Extract date in YYYY-MM-DD format
+            let dateKey;
+            
+            // Handle different date formats
+            if (booking.date) {
+                // If it's already a string in YYYY-MM-DD format
+                if (typeof booking.date === 'string' && booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    dateKey = booking.date;
+                } 
+                // If it's a Date object or other date format string
+                else {
+                    const bookingDate = new Date(booking.date);
+                    if (!isNaN(bookingDate.getTime())) {
+                        dateKey = bookingDate.toISOString().split('T')[0];
+                    }
+                }
+            } 
+            // Fallback if booking.bookingDate is used instead (from backend API)
+            else if (booking.bookingDate) {
+                dateKey = new Date(booking.bookingDate).toISOString().split('T')[0];
+            }
+            
+            if (!dateKey) {
+                console.error("Could not extract date from booking:", booking);
+                return acc;
+            }
+            
+            if (!acc[dateKey]) {
+                acc[dateKey] = [];
+            }
+            
+            // Format booking data for the modal
+            acc[dateKey].push({
+                client: booking.customerDetails?.name || booking.guestName || 'Client',
+                clientEvent: booking.package || booking.packageName || 'Booking',
+                timeRange: formatBookingTimeRange(booking)
+            });
+            
+            return acc;
+        }, {});
+        
+        // Convert the grouped object to array format needed by calendar
+        const formattedEvents = Object.entries(groupedBookings).map(([date, bookings]) => ({
+            date,
+            bookings
+        }));
+        
+        setEvents(formattedEvents);
+    }, [bookings]);
+    
+    // Add this helper function for better time format handling
+    const formatBookingTimeRange = (booking) => {
+        // Handle different time formats
+        if (booking.timeRange) {
+            return `${formatTime(booking.timeRange.startTime)}-${formatTime(booking.timeRange.endTime)}`;
+        } else if (booking.bookingTimeStart && booking.bookingTimeEnd) {
+            return `${formatTime(booking.bookingTimeStart)}-${formatTime(booking.bookingTimeEnd)}`;
+        }
+        return 'Time not specified';
+    };
 
-    )
+    // Helper function to format time from 24h to 12h format
+    const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        const [hour] = timeStr.split(':');
+        const hourNum = parseInt(hour);
+        const ampm = hourNum >= 12 ? 'PM' : 'AM';
+        const hour12 = hourNum % 12 || 12;
+        return `${hour12}${ampm}`;
+    };
     
     const daysInMonth = new Date(
         currentDate.getFullYear(),
@@ -62,14 +124,22 @@ function Calendar2({onDateClick}){
     }
 
     const renderCalendarDays = () => {
+        // Define the getEventForDate function inside renderCalendarDays
+        const getEventForDate = (year, month, day) => {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            return events.find(event => event.date === dateStr);
+        };
+    
         const days = [];
         const totalDays = firstDayOfMonth + daysInMonth;
         const weeks = Math.ceil(totalDays / 7);
-
+    
         for(let i = 0; i < weeks * 7; i++) {
             const dayNumber = i - firstDayOfMonth + 1;
-            const event = dayNumber > 0 && dayNumber <= daysInMonth ? getEventsForDate(dayNumber) : null;
-
+            const event = dayNumber > 0 && dayNumber <= daysInMonth ? 
+                getEventForDate(currentDate.getFullYear(), currentDate.getMonth(), dayNumber) : 
+                null;
+    
             days.push(
                 <div
                     key={i}
