@@ -1224,6 +1224,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                     onClose={() => setShowManualSchedule(false)}
                     selectedTimeRange={selectedTimeRange}
                     selectedDate={date}
+                    existingBookings={timeRanges} // Pass all time ranges to check for conflicts
                 />
             )}
             

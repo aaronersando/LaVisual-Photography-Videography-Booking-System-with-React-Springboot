@@ -20,6 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import java.util.Random;
+import java.util.HashMap;
+import com.La.Visual.entity.Payment;
+
 @Service
 public class BookingService {
 
@@ -444,4 +448,87 @@ public class BookingService {
             );
         }
     }
+
+    @Transactional
+    public RequestResponse createManualBooking(BookingRequest request) {
+        try {
+            // Generate a unique booking reference
+            String bookingReference = generateBookingReference();
+            
+            // Step 1: Create initial payment (without booking_id)
+            Payment initialPayment = paymentRepository.saveInitial(
+                null, // Will be set after booking creation
+                request.amount(),
+                request.paymentType(),
+                request.paymentMethod(), 
+                request.gcashNumber()
+            );
+            
+            // Step 2: Create booking with payment_id using builder pattern
+            Booking booking = Booking.builder()
+                .guestName(request.guestName())
+                .guestEmail(request.guestEmail() != null ? request.guestEmail() : "manual-booking@admin.com")
+                .guestPhone(request.guestPhone())
+                .bookingDate(request.bookingDate())
+                .bookingTimeStart(request.bookingTimeStart())
+                .bookingTimeEnd(request.bookingTimeEnd())
+                .bookingHours(request.bookingHours() != null ? request.bookingHours() : 
+                            calculateHours(request.bookingTimeStart(), request.bookingTimeEnd()))
+                .location(request.location())
+                .categoryName(request.categoryName())
+                .packageName(request.packageName())
+                .packagePrice(request.packagePrice())
+                .specialRequests(request.specialRequests())
+                .bookingStatus("CONFIRMED") // Admin-created bookings are automatically confirmed
+                .bookingReference(bookingReference)
+                .paymentId(initialPayment.paymentId())
+                .build();
+            
+            // Save the booking
+            Booking savedBooking = bookingRepository.save(booking);
+            
+            // Step 3: Update payment with booking_id and set to completed
+            Payment updatedPayment = initialPayment
+                .withPaymentStatus("COMPLETED")
+                .withBookingId(savedBooking.bookingId());
+            
+            paymentRepository.update(updatedPayment);
+            
+            // Prepare response data
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("booking", savedBooking);
+            responseData.put("payment", updatedPayment);
+            responseData.put("bookingReference", savedBooking.bookingReference());
+            
+            return new RequestResponse(
+                "Booking created successfully",
+                responseData,
+                201,
+                true
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new RequestResponse(
+                "Failed to create booking: " + e.getMessage(),
+                null,
+                500,
+                false
+            );
+        }
+    }
+
+    // Helper method to calculate booking hours
+    private int calculateHours(LocalTime startTime, LocalTime endTime) {
+        int startHour = startTime.getHour();
+        int endHour = endTime.getHour();
+        int bookingHours = endHour - startHour;
+        
+        // If end hour is earlier than start hour (overnight booking), add 24 hours
+        if (bookingHours < 0) {
+            bookingHours += 24;
+        }
+        
+        return bookingHours;
+    }
+
 }

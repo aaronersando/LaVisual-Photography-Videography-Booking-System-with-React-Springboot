@@ -15,6 +15,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +28,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.La.Visual.entity.Booking;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import java.util.Random;
+import com.La.Visual.entity.Payment;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -267,6 +273,41 @@ public class BookingController {
         }
     }
 
+    @PostMapping("/manual")
+    public ResponseEntity<?> createManualBooking(@RequestBody BookingRequest request, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            // Verify admin permissions
+            if (!hasAdminRole(userDetails)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new RequestResponse(
+                        "Only admins can create manual bookings",
+                        null,
+                        403,
+                        false
+                    ));
+            }
+            
+            // Create the booking
+            RequestResponse response = bookingService.createManualBooking(request);
+            
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(new RequestResponse(
+                    "Failed to create booking: " + e.getMessage(),
+                    null,
+                    400,
+                    false
+                ));
+        }
+    }
 
+    private boolean hasAdminRole(UserDetails userDetails) {
+        if (userDetails == null) {
+            return false;
+        }
+        return userDetails.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ADMIN"));
+    }
 
 }
