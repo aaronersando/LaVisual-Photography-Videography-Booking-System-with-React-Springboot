@@ -3,13 +3,8 @@ import emailjs from '@emailjs/browser';
 import BookingService from '../service/BookingService';
 
 function BookingSummary({ onBack, data, onComplete }) {
-  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('gcash');
   const [paymentType, setPaymentType] = useState('');
-  const [cardDetails, setCardDetails] = useState({
-    number: '',
-    expiry: '',
-    cvc: ''
-  });
   const [gcashNumber, setGcashNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -39,14 +34,7 @@ function BookingSummary({ onBack, data, onComplete }) {
   // Step 1: Initial payment details submission
   const handleInitialSubmit = (e) => {
     e.preventDefault();
-    
-    // If GCash payment, show the file upload step
-    if (paymentMethod === 'gcash') {
-      setShowUploadStep(true);
-    } else {
-      // For bank transfers, proceed directly to submission
-      handleFinalSubmit();
-    }
+    setShowUploadStep(true);
   };
 
   // Step 2: Final submission after upload (or direct for bank transfers)
@@ -70,8 +58,8 @@ function BookingSummary({ onBack, data, onComplete }) {
         endTime: formatTime(data.timeRange?.endTime || ''),
         paymentAmount: paymentAmount,
         paymentType: paymentType === 'full' ? 'Full Payment' : 'Down Payment',
-        paymentMethod: paymentMethod === 'gcash' ? 'GCash' : 'Bank Transfer',
-        accountNumber: paymentMethod === 'gcash' ? gcashNumber : cardDetails.number, 
+        paymentMethod: 'GCash', 
+        accountNumber: gcashNumber,
       };
 
       // Calculate booking hours from time range
@@ -97,15 +85,14 @@ function BookingSummary({ onBack, data, onComplete }) {
         
         // Payment details
         paymentType: paymentType === 'full' ? 'FULL' : 'DOWNPAYMENT',
-        paymentMethod: paymentMethod.toUpperCase(),
+        paymentMethod: 'GCASH',
         amount: paymentAmount,
-        accountNumber: cardDetails.number,
-        gcashNumber: paymentMethod === 'gcash' ? gcashNumber : null
+        gcashNumber: gcashNumber
       };
 
       let response;
       // If GCash payment with proof file, use the combined method
-      if (paymentMethod === 'gcash' && paymentProofFile) {
+      if (paymentProofFile) {
         response = await BookingService.createBookingWithProof(bookingRequest, paymentProofFile);
       } else {
         // For bank transfer or other methods, use regular endpoint
@@ -116,14 +103,15 @@ function BookingSummary({ onBack, data, onComplete }) {
         // Add booking ID and payment info to the data
         const completedBookingData = {
           ...data,
-          paymentMethod,
+          paymentMethod: 'gcash',
           paymentType,
           paymentAmount,
           bookingId: response.data.bookingId,
           paymentId: response.data.paymentId,
           gcashNumber: gcashNumber,
           reference: response.data.bookingReference,
-          paymentProofUploaded: paymentMethod === 'gcash' && paymentProofFile !== null
+          paymentProofUploaded: paymentProofFile !== null,
+          paymentProof: response.data.paymentProof 
         };
 
         // Send confirmation email
@@ -342,82 +330,20 @@ function BookingSummary({ onBack, data, onComplete }) {
           {/* Payment Method Selection */}
           {paymentType && (
             <div className="mb-4">
-              <h4 className="text-sm text-gray-400 mb-2">Select Payment Method</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('gcash')}
-                  className={`p-3 rounded-lg border ${
-                    paymentMethod === 'gcash'
-                      ? 'border-purple-500 bg-purple-500/20'
-                      : 'border-gray-600 hover:border-purple-500'
-                  }`}
-                >
-                  GCash
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('bank')}
-                  className={`p-3 rounded-lg border ${
-                    paymentMethod === 'bank'
-                      ? 'border-purple-500 bg-purple-500/20'
-                      : 'border-gray-600 hover:border-purple-500'
-                  }`}
-                >
-                  Bank Transfer
-                </button>
+              <h4 className="text-sm text-gray-400 mb-2">GCash Payment</h4>
+              <div>
+                <input
+                  type="text"
+                  placeholder="GCash Number (e.g., 09XX-XXX-XXXX)"
+                  className="w-full p-2 bg-gray-600 rounded border border-gray-500"
+                  value={gcashNumber}
+                  onChange={(e) => setGcashNumber(e.target.value)}
+                  required
+                />
               </div>
             </div>
           )}
-
-          {/* Payment Details Form */}
-          {paymentMethod && (
-            <form onSubmit={handleInitialSubmit} className="space-y-4">
-              {paymentMethod === 'gcash' ? (
-                <div>
-                  <input
-                    type="text"
-                    placeholder="GCash Number (e.g., 09XX-XXX-XXXX)"
-                    className="w-full p-2 bg-gray-600 rounded border border-gray-500"
-                    value={gcashNumber}
-                    onChange={(e) => setGcashNumber(e.target.value)}
-                    required
-                  />
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Card Number"
-                      className="w-full p-2 bg-gray-600 rounded border border-gray-500"
-                      value={cardDetails.number}
-                      onChange={(e) => setCardDetails(prev => ({ ...prev, number: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      placeholder="MM/YY"
-                      className="p-2 bg-gray-600 rounded border border-gray-500"
-                      value={cardDetails.expiry}
-                      onChange={(e) => setCardDetails(prev => ({ ...prev, expiry: e.target.value }))}
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="CVC"
-                      className="p-2 bg-gray-600 rounded border border-gray-500"
-                      value={cardDetails.cvc}
-                      onChange={(e) => setCardDetails(prev => ({ ...prev, cvc: e.target.value }))}
-                      required
-                    />
-                  </div>
-                </>
-              )}
-            </form>
-          )}
+          
         </div>
       </div>
 
@@ -442,7 +368,7 @@ function BookingSummary({ onBack, data, onComplete }) {
         </button>
         <button
           onClick={handleInitialSubmit}
-          disabled={!paymentMethod || !paymentType || isSubmitting || (paymentMethod === 'gcash' && !gcashNumber)}
+          disabled={!paymentType || isSubmitting || !gcashNumber}
           className={`px-4 py-2 ${isSubmitting ? 'bg-purple-700 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded disabled:opacity-50`}
         >
           {isSubmitting ? 'Processing...' : 'Proceed to Payment'}

@@ -32,9 +32,7 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
                 paymentType: booking.paymentDetails?.type === 'full' || booking.paymentDetails?.paymentType === 'Full Payment' 
                     ? 'Full Payment' 
                     : 'Down Payment',
-                paymentMode: booking.paymentDetails?.method === 'bank' || booking.paymentDetails?.paymentMode === 'Bank Transfer'
-                    ? 'Bank Transfer'
-                    : 'Gcash',
+                paymentMode: 'Gcash',
                 accountNumber: booking.paymentDetails?.accountNumber || '',
                 amount: booking.paymentDetails?.amount || booking.totalAmount || ''
             });

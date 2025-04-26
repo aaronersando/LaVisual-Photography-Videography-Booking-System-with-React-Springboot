@@ -191,9 +191,7 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
                             <p className="text-sm text-gray-400 mb-2">Selected Payment Method</p>
                             <div className="p-3 rounded-lg border border-gray-600 bg-gray-700/50">
                                 <div className="text-lg font-semibold text-white">
-                                    {paymentDetails?.method === 'bank' || paymentDetails?.paymentMode === 'Bank Transfer'
-                                        ? 'Bank Transfer'
-                                        : 'GCash'}
+                                    GCash
                                 </div>
                             </div>
                         </div>

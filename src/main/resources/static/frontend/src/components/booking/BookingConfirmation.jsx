@@ -39,13 +39,31 @@ function BookingConfirmation({ bookingData }) {
           </span></p>
           <p>Location: <span className="text-white">{bookingData.customerDetails.location}</span></p>
           <p>Amount Paid: <span className="text-purple-400">₱{bookingData.paymentAmount.toLocaleString()}</span></p>
-          <p>Payment Method: <span className="text-white">{bookingData.paymentMethod === 'gcash' ? 'GCash' : 'Bank Transfer'}</span></p>
+          <p>Payment Method: <span className="text-white">GCash</span></p>
           <p>Payment Type: <span className="text-white">{bookingData.paymentType === 'full' ? 'Full Payment' : 'Down Payment'}</span></p>
           
           {/* Add GCash number if paid with GCash */}
           {bookingData.paymentMethod === 'gcash' && bookingData.gcashNumber && (
             <p>GCash Number: <span className="text-white">{bookingData.gcashNumber}</span></p>
           )}
+          {/* {bookingData.paymentProofUploaded && (
+            <div className="mt-4 pt-4 border-t border-gray-600">
+              <h4 className="font-medium text-white mb-2">Payment Proof</h4>
+              <div className="bg-gray-600/50 p-4 rounded">
+                <img 
+                  src={`/api/files/download/${bookingData.paymentProof}`}
+                  alt="Payment Proof" 
+                  className="w-full md:max-w-lg mx-auto rounded shadow-md"
+                  style={{ maxHeight: '50vh', objectFit: 'contain' }}
+                  onError={(e) => {
+                    console.log("Image failed to load");
+                    e.target.onerror = null; // Prevent infinite loop
+                    e.target.src = "/images/payment-placeholder.png"; // Use a local placeholder image
+                  }}
+                />
+              </div>
+            </div>
+          )} */}
         </div>
       </div>
 
