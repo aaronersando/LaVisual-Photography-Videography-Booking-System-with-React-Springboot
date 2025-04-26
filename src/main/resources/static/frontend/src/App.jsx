@@ -3,6 +3,7 @@ import Login from "./pages/auth/Login";
 import Contact from "./pages/public/Contact";
 import Home from "./pages/public/Home";
 import Error from "./pages/public/Error";
+import About from "./pages/public/About";
 import React from 'react';
 // import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Package from "./pages/public/Package"
@@ -45,7 +46,7 @@ function App() {
         <Route path={"/contact"} element={<Contact/>}/>
         <Route path={"/portfolio"} element={<Portfolio/>}/>
         <Route path={"/packages"} element={<Package/>}/>
-        {/* <Route path={"/about"} element={<About/>}/> */}
+        <Route path={"/about"} element={<About/>}/>
         <Route path={"/booking"} element={<Booking/>}/>
 {/* //  <Route path={"/auth/login"} element={<Login/>}/> */}
         <Route path={"*"} element={<Error/>} />
