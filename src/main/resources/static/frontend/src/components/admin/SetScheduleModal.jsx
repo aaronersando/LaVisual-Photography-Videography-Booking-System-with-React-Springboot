@@ -14,8 +14,9 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const [bookingToDelete, setBookingToDelete] = useState(null);
     const [pendingDeletions, setPendingDeletions] = useState([]);
     const [editedBookings, setEditedBookings] = useState([]);
+    const [isEdited, setIsEdited] = useState(false);
 
-    // Load time ranges when date changes
+    // Load time ranges and unavailable slots
     useEffect(() => {
         // Format date as YYYY-MM-DD for comparison with a fixed time (noon)
         const selectedDate = new Date(date);
@@ -140,7 +141,7 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                     };
                 });
         }
-    
+
         // Add a default available time range if no bookings
         if (initialRanges.length === 0) {
             initialRanges.push({
@@ -152,8 +153,56 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
                 booking: null
             });
         }
-    
+
         setTimeRanges(initialRanges);
+        
+        // Load unavailable time ranges - NEW FUNCTIONALITY
+        const fetchUnavailableRanges = async () => {
+            const unavailableRanges = await loadUnavailableTimeRanges(formattedDateStr);
+            
+            if (unavailableRanges.length > 0) {
+                // Use the current state to get the highest ID
+                setTimeRanges(prevRanges => {
+                    // Calculate highest existing ID from current state
+                    const highestId = prevRanges.length > 0 
+                        ? Math.max(...prevRanges.map(r => r.id)) 
+                        : 0;
+                    
+                    // Convert to UI format and add to time ranges with truly unique IDs
+                    const formattedUnavailableRanges = unavailableRanges
+                        // First deduplicate based on start and end times
+                        .filter((range, index, self) => 
+                            index === self.findIndex(r => 
+                                r.startTime === range.startTime && r.endTime === range.endTime
+                            )
+                        )
+                        .map((range, index) => ({
+                            id: highestId + index + 1, // Using current highest ID as base
+                            start: parseTimeFormat(range.startTime),
+                            end: parseTimeFormat(range.endTime),
+                            status: 'unavailable',
+                            booking: null,
+                            date: formattedDateStr,
+                            serverId: range.id // Store the server ID for deletion
+                        }));
+                    
+                    // Filter out duplicates based on time range
+                    const existingTimeRanges = prevRanges.map(r => `${r.start}-${r.end}-${r.status}`);
+                    const uniqueNewRanges = formattedUnavailableRanges.filter(
+                        range => !existingTimeRanges.includes(`${range.start}-${range.end}-${range.status}`)
+                    );
+                    
+                    if (uniqueNewRanges.length > 0) {
+                        console.log('Added unique unavailable ranges:', uniqueNewRanges);
+                        return [...prevRanges, ...uniqueNewRanges];
+                    }
+                    
+                    return prevRanges;
+                });
+            }
+        };
+        
+        fetchUnavailableRanges();
     }, [date, bookings]);
 
 
@@ -396,98 +445,101 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const timeOptions = generateTimeOptions();
 
     const handleSaveChanges = async () => {
-        // Process any edited bookings first
-        if (editedBookings.length > 0) {
-            try {
-                let allSuccess = true;
-                
-                for (const booking of editedBookings) {
-                    const updateSuccess = await updateBookingTimeRange(booking);
-                    if (!updateSuccess) {
-                        allSuccess = false;
-                    }
-                }
-                
-                if (!allSuccess) {
-                    const proceed = window.confirm('Some booking time range updates failed. Do you want to continue with other changes?');
-                    if (!proceed) return;
-                }
-                
-                // Clear the edited bookings after processing
-                setEditedBookings([]);
-            } catch (error) {
-                console.error('Error updating booking time ranges:', error);
-                alert(`Error occurred while updating booking time ranges: ${error.message}`);
+        try {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                alert('You need to be logged in as an admin to make changes');
                 return;
             }
-        }
-
-        console.log('Pending deletions:', pendingDeletions);
-
-        for (const bookingId of pendingDeletions) {
-            console.log(`Attempting to delete booking with database ID: ${bookingId}`);
-        }
-        // Process any pending deletions
-        if (pendingDeletions.length > 0) {
-            try {
-                const token = localStorage.getItem('token');
-                
-                if (!token) {
-                    alert('You need to be logged in as an admin to delete bookings');
+            
+            // Format date as YYYY-MM-DD for API calls
+            const currentDateStr = date.toISOString().split('T')[0];
+            
+            // 1. Process any edited bookings first
+            if (editedBookings.length > 0) {
+                try {
+                    let allSuccess = true;
+                    
+                    for (const booking of editedBookings) {
+                        const updateSuccess = await updateBookingTimeRange(booking);
+                        if (!updateSuccess) {
+                            allSuccess = false;
+                        }
+                    }
+                    
+                    if (!allSuccess) {
+                        const proceed = window.confirm('Some booking time range updates failed. Do you want to continue with other changes?');
+                        if (!proceed) return;
+                    }
+                    
+                    // Clear the edited bookings after processing
+                    setEditedBookings([]);
+                } catch (error) {
+                    console.error('Error updating booking time ranges:', error);
+                    alert(`Error occurred while updating booking time ranges: ${error.message}`);
                     return;
                 }
-                
-                // Process each deletion sequentially
-                for (const bookingId of pendingDeletions) {
-                    console.log(`Deleting booking ID: ${bookingId}`);
-                    
-                    const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        console.error(`Failed to delete booking ${bookingId}:`, errorData);
-                        alert(`Error deleting booking ${bookingId}: ${errorData.message || 'Unknown error'}`);
-                        // Continue with other deletions even if one fails
-                    }
-                }
-                
-                // Clear the pending deletions
-                setPendingDeletions([]);
-                
-                // Here you would also save other changes to your backend
-                const updatedSchedule = {
-                    date: currentDateStr,
-                    timeRanges: timeRanges
-                };
-                console.log('Saving schedule:', updatedSchedule);
-                
-                alert("Changes saved successfully!");
-                onClose();
-                
-                // Refresh the page to see the updated data
-                window.location.reload();
-                
-            } catch (error) {
-                console.error('Error saving changes:', error);
-                alert(`Error occurred while saving changes: ${error.message}`);
             }
-        } else {
-            // No deletions to process, just save other changes
+    
+            // 2. Process any pending deletions
+            if (pendingDeletions.length > 0) {
+                try {
+                    // Process each deletion sequentially
+                    for (const bookingId of pendingDeletions) {
+                        console.log(`Deleting booking ID: ${bookingId}`);
+                        
+                        const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error(`Failed to delete booking ${bookingId}:`, errorData);
+                            alert(`Error deleting booking ${bookingId}: ${errorData.message || 'Unknown error'}`);
+                            // Continue with other deletions even if one fails
+                        }
+                    }
+                    
+                    // Clear the pending deletions
+                    setPendingDeletions([]);
+                } catch (error) {
+                    console.error('Error processing deletions:', error);
+                    alert(`Error occurred while processing deletions: ${error.message}`);
+                    return;
+                }
+            }
+            
+            // 3. Save unavailable time ranges
+            const unavailableRanges = timeRanges.filter(range => range.status === 'unavailable');
+            // Always call saveUnavailableTimeRanges, even when the array is empty
+            const saveResult = await saveUnavailableTimeRanges(unavailableRanges, currentDateStr);
+            if (!saveResult) {
+                const proceed = window.confirm('Some unavailable time ranges failed to save. Continue anyway?');
+                if (!proceed) return;
+            }
+            
             console.log('Saving schedule:', {
                 date: currentDateStr,
                 timeRanges: timeRanges
             });
+            
             alert("Changes saved successfully!");
             onClose();
-            window.location.reload();
-        }
 
+            setIsEdited(false);
+            
+            // Refresh the page to see the updated data
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('Error saving changes:', error);
+            alert(`Error occurred while saving changes: ${error.message}`);
+        }
     };
 
     const handleAddTimeRange = () => {
@@ -577,14 +629,21 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
         }]);
     };
 
-    const handleDeleteTimeRange = (id) => {
+    const handleDeleteTimeRange = async (id) => {
         // Don't allow deletion of booked slots
         const range = timeRanges.find(r => r.id === id);
+        if (!range) return;
+        
         if (range.status === 'booking') {
             alert('Cannot delete a booked schedule');
             return;
         }
-        setTimeRanges(timeRanges.filter(range => range.id !== id));
+        
+        // Just remove from UI - we'll handle server changes on "Save Changes"
+        setTimeRanges(timeRanges.filter(r => r.id !== id));
+        console.log('Range removed from UI, will be saved on "Save Changes"');
+        
+        // No need to make immediate DELETE API calls - we'll use the replace approach on save
     };
 
     const handleTimeChange = (id, field, value) => {
@@ -639,29 +698,42 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
             }
             return r;
         }));
+
+        setIsEdited(true);
     };
 
-    const handleToggleStatus = (id) => {
-        setTimeRanges(timeRanges.map(range => {
-            if (range.id === id && range.status !== 'booking') { // Prevent toggling booked slots
-                const newStatus = range.status === 'available' ? 'unavailable' : 'available';
-                return { ...range, status: newStatus };
-            }
-            return range;
-        }));
+    const handleToggleStatus = (rangeId) => {
+        setTimeRanges(prevRanges => 
+            prevRanges.map(range => {
+                if (range.id === rangeId) {
+                    // Toggle between 'available' and 'unavailable'
+                    const newStatus = range.status === 'available' ? 'unavailable' : 'available';
+                    
+                    return {
+                        ...range,
+                        status: newStatus
+                    };
+                }
+                return range;
+            })
+        );
+        
+        // Set edited flag when status changes
+        setIsEdited(true);
     };
-
+    
+    // function to determine the appropriate color for status buttons
     const getStatusColor = (status) => {
-      switch (status) {
-          case 'available':
-              return 'bg-green-600 hover:bg-green-700';
-          case 'unavailable':
-              return 'bg-red-600 hover:bg-red-700';
-          case 'booking':
-              return 'bg-purple-600';
-          default:
-              return '';
-      }
+        switch (status) {
+            case 'available':
+                return 'bg-green-600 hover:bg-green-700';
+            case 'unavailable':
+                return 'bg-red-600 hover:bg-red-700';
+            case 'booking':
+                return 'bg-purple-600';
+            default:
+                return 'bg-gray-600 hover:bg-gray-700';
+        }
     };
 
     const timeToMinutes = (timeStr) => {
@@ -811,17 +883,151 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
         }
         
         // Convert from "hh:mm AM/PM" to "HH:mm" format
-        const [time, period] = timeStr.split(' ');
-        let [hours, minutes] = time.split(':').map(Number);
+        const [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':');
         
-        if (period === 'PM' && hours !== 12) {
-            hours += 12;
-        } else if (period === 'AM' && hours === 12) {
+        // Convert hours to number for arithmetic operations
+        hours = parseInt(hours, 10);
+        
+        // Handle midnight (12 AM) case
+        if (hours === 12 && modifier === 'AM') {
             hours = 0;
         }
+        // Handle afternoon (PM) cases but not noon (12 PM)
+        else if (modifier === 'PM' && hours !== 12) {
+            hours = hours + 12;
+        }
         
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        // Pad both hours and minutes with leading zeros
+        return `${hours.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`;
     };
+
+    // Function to load unavailable time ranges
+    const loadUnavailableTimeRanges = async (dateStr) => {
+        try {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                console.warn('Admin token not found, skipping unavailable ranges loading');
+                return [];
+            }
+            
+            const response = await fetch(`http://localhost:8080/api/schedules/unavailable/${dateStr}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.unavailableRanges) {
+                    return data.data.unavailableRanges;
+                }
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('Error loading unavailable time ranges:', error);
+            return [];
+        }
+    };
+
+    // Function to save unavailable time ranges
+    const saveUnavailableTimeRanges = async (unavailableRanges, currentDateStr) => {
+        try {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                alert('You need to be logged in as an admin to save unavailable time ranges');
+                return false;
+            }
+            
+            // Format the unavailable ranges for the API
+            const formattedRanges = unavailableRanges.map(range => ({
+                startTime: convertToTime24Format(range.start),
+                endTime: convertToTime24Format(range.end),
+                status: 'unavailable'
+            }));
+            
+            console.log('Saving unavailable time ranges:', formattedRanges);
+            
+            // This endpoint should be designed to replace all unavailable ranges for the date
+            const response = await fetch('http://localhost:8080/api/schedules/unavailable', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    date: currentDateStr,
+                    unavailableRanges: formattedRanges
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                console.error('Failed to save unavailable time ranges:', data);
+                alert(`Failed to save unavailable time ranges: ${data.message || 'Unknown error'}`);
+                return false;
+            }
+            
+            // If successful and response contains IDs, update the ranges with server IDs
+            if (data.success && data.data && data.data.savedRanges) {
+                // Update timeRanges with server IDs for future reference
+                setTimeRanges(prevRanges => {
+                    const updatedRanges = prevRanges.map(range => {
+                        // Only process unavailable ranges
+                        if (range.status !== 'unavailable') return range;
+                        
+                        // Find matching server range
+                        const matchingServerRange = data.data.savedRanges.find(sr => 
+                            convertToTime24Format(range.start) === sr.startTime && 
+                            convertToTime24Format(range.end) === sr.endTime
+                        );
+                        
+                        if (matchingServerRange) {
+                            console.log(`Updated range with serverId: ${matchingServerRange.id}`);
+                            return {
+                                ...range,
+                                serverId: matchingServerRange.id
+                            };
+                        }
+                        
+                        return range;
+                    });
+                    
+                    return updatedRanges;
+                });
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Error saving unavailable time ranges:', error);
+            alert(`Error occurred while saving unavailable time ranges: ${error.message}`);
+            return false;
+        }
+    };
+
+    // Helper function to convert 24-hour format to 12-hour format with AM/PM
+    const convertTo12HourFormat = (time24h) => {
+        if (!time24h) return '';
+        
+        // If time is already in 12-hour format, return it
+        if (time24h.includes('AM') || time24h.includes('PM')) {
+            return time24h;
+        }
+        
+        let [hours, minutes] = time24h.split(':');
+        hours = parseInt(hours);
+        
+        const suffix = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+        
+        return `${hours}:${minutes} ${suffix}`;
+    };
+
 
 
     return (

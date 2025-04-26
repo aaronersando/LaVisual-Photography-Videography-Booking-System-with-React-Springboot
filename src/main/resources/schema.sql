@@ -45,3 +45,14 @@ CREATE TABLE IF NOT EXISTS payments (
 
 ALTER TABLE bookings
 ADD FOREIGN KEY (payment_id) REFERENCES payments(payment_id);
+
+
+CREATE TABLE IF NOT EXISTS unavailable_time_ranges (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date VARCHAR(10) NOT NULL,
+    start_time VARCHAR(8) NOT NULL,
+    end_time VARCHAR(8) NOT NULL,
+    status VARCHAR(20) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_unavailable_time_ranges_date ON unavailable_time_ranges(date);
