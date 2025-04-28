@@ -26,6 +26,7 @@ public record Booking(
     String bookingStatus,
     String bookingReference,
     Integer paymentId,
+    String paymentProof,
     LocalDateTime createdAt
 ) {
     public boolean isUpcoming() {

@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class BookingRepository {
         .bookingStatus(rs.getString("booking_status"))
         .bookingReference(rs.getString("booking_reference"))
         .paymentId(rs.getInt("payment_id"))
+        .paymentProof(rs.getString("payment_proof"))
         .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
         .build();
 
@@ -53,8 +55,8 @@ public class BookingRepository {
                 "INSERT INTO bookings (guest_name, guest_email, guest_phone, " +
                 "booking_date, booking_time_start, booking_time_end, booking_hours, " +
                 "location, category_name, package_name, package_price, " +
-                "special_requests, booking_status, booking_reference, payment_id) " + // Add booking_reference
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "special_requests, booking_status, booking_reference, payment_id, payment_proof, created_at) " + // Add booking_reference
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, booking.guestName());
@@ -72,6 +74,9 @@ public class BookingRepository {
             ps.setString(13, booking.bookingStatus());
             ps.setString(14, booking.bookingReference()); // Add this line
             ps.setInt(15, booking.paymentId());
+            ps.setString(16, booking.paymentProof()); // Add this line
+            ps.setTimestamp(17, Timestamp.valueOf(booking.createdAt() != null ? 
+                      booking.createdAt() : LocalDateTime.now()));
             return ps;
         }, keyHolder);
         
@@ -122,8 +127,8 @@ public class BookingRepository {
             "UPDATE bookings SET guest_name = ?, guest_email = ?, guest_phone = ?, " +
             "booking_date = ?, booking_time_start = ?, booking_time_end = ?, booking_hours = ?, " +
             "location = ?, category_name = ?, package_name = ?, package_price = ?, " +
-            "special_requests = ?, booking_status = ?, booking_reference = ? " + // Add booking_reference
-            "WHERE booking_id = ?",
+            "special_requests = ?, booking_status = ?, booking_reference = ? , payment_id = ?, " + 
+            "payment_proof = ? WHERE booking_id = ?",
             booking.guestName(),
             booking.guestEmail(),
             booking.guestPhone(),
@@ -137,7 +142,9 @@ public class BookingRepository {
             booking.packagePrice(),
             booking.specialRequests(),
             booking.bookingStatus(),
-            booking.bookingReference(), // Add this line
+            booking.bookingReference(),
+            booking.paymentId(),
+            booking.paymentProof(),
             booking.bookingId()
         );
         

@@ -23,14 +23,13 @@ public class FileStorageService {
 
     public FileStorageService(@Value("${file.upload-dir:./uploads}") String uploadDir) {
         this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
-
+        System.out.println("File storage location: " + this.fileStorageLocation.toString());
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
             throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
         }
     }
-
     public String storeFile(MultipartFile file) {
         // Normalize file name
         String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
@@ -61,15 +60,16 @@ public class FileStorageService {
 
     public Resource loadFileAsResource(String fileName) {
         try {
-            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+            Path filePath = fileStorageLocation.resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());
+            
             if (resource.exists()) {
                 return resource;
             } else {
-                throw new RuntimeException("File not found " + fileName);
+                throw new RuntimeException("File not found: " + fileName);
             }
-        } catch (MalformedURLException ex) {
-            throw new RuntimeException("File not found " + fileName, ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("File not found: " + fileName, ex);
         }
     }
 }

@@ -214,6 +214,8 @@ public class BookingService {
         }
     }
 
+    // In the createBookingWithProof method:
+
     @Transactional
     public RequestResponse createBookingWithProof(BookingRequest request, String proofFileName) {
         try {
@@ -235,7 +237,7 @@ public class BookingService {
                 bookingReference = generateBookingReference();
             }
             
-            // Step 3: Create booking with payment_id
+            // Step 3: Create booking with payment_id and payment_proof
             Booking booking = Booking.builder()
                 .guestName(request.guestName())
                 .guestEmail(request.guestEmail())
@@ -252,18 +254,20 @@ public class BookingService {
                 .bookingStatus("PENDING") // Initial status
                 .bookingReference(bookingReference)
                 .paymentId(initialPayment.paymentId())
+                .paymentProof(proofFileName)  // Add payment proof directly to booking
+                .createdAt(LocalDateTime.now())
                 .build();
             
             Booking savedBooking = bookingRepository.save(booking);
             
-            // Step 4: Update payment with booking_id
+            // Update payment with booking_id
             paymentRepository.updateBookingId(
                 initialPayment.paymentId(),
                 savedBooking.bookingId(),
                 savedBooking.packagePrice()
             );
             
-            // Since payment proof is already uploaded, set payment status to COMPLETED
+            // Update payment status to COMPLETED since proof is provided
             Payment updatedPayment = initialPayment
                 .withPaymentStatus("COMPLETED")
                 .withBookingId(savedBooking.bookingId())
@@ -271,7 +275,7 @@ public class BookingService {
                 
             paymentRepository.update(updatedPayment);
             
-            // Prepare response
+            // Prepare response data
             Map<String, Object> data = new HashMap<>();
             data.put("bookingId", savedBooking.bookingId());
             data.put("paymentId", initialPayment.paymentId());
@@ -284,7 +288,6 @@ public class BookingService {
                 200,
                 true
             );
-            
         } catch (Exception e) {
             return new RequestResponse(
                 "Error creating booking: " + e.getMessage(),

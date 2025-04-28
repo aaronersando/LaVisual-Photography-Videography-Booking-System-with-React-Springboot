@@ -115,7 +115,7 @@ function BookingSummary({ onBack, data, onComplete }) {
         };
 
         // Send confirmation email
-        await emailjs.send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4');
+        // await emailjs.send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4');
         
         // Complete booking process
         onComplete(completedBookingData);
@@ -191,15 +191,20 @@ function BookingSummary({ onBack, data, onComplete }) {
               />
               
               {paymentProofFile && (
-                <div className="mt-2">
-                  <p className="text-sm text-gray-400">
-                    Selected: <span className="text-white">{paymentProofFile.name}</span>
-                  </p>
+                <div className="mt-4">
+                  <h5 className="text-sm text-gray-300 mb-2">Preview:</h5>
+                  <div className="border border-gray-600 rounded-lg p-2 bg-gray-700">
+                    <img 
+                      src={URL.createObjectURL(paymentProofFile)} 
+                      alt="Payment Proof Preview" 
+                      className="w-full max-h-48 object-contain rounded"
+                    />
+                  </div>
                 </div>
               )}
               
               {uploadError && (
-                <div className="p-2 bg-red-500/20 border border-red-500 text-red-100 rounded text-sm">
+                <div className="text-red-500 text-sm mt-2">
                   {uploadError}
                 </div>
               )}

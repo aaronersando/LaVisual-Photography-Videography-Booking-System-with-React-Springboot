@@ -18,7 +18,7 @@ function FooterComp() {
             </p>
             <div className="flex space-x-4">
               <Link to="https://www.facebook.com/share/1Fj1cgEdN6/?mibextid=wwXIfr" className="text-white hover:text-purple-500 transition-colors duration-200">
-                <i class="fa-brands fa-facebook"></i>
+                <i className="fa-brands fa-facebook"></i>
               </Link>
               
             </div>
