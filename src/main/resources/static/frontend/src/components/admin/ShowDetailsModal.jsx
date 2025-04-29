@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faX } from "@fortawesome/free-solid-svg-icons";
 
 function ShowDetailsModal({ admin, onClose }) {
   return (
@@ -8,9 +10,7 @@ function ShowDetailsModal({ admin, onClose }) {
         <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-white">Admin Details</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <FontAwesomeIcon icon={faX}/>
           </button>
         </div>
 

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faX } from '@fortawesome/free-solid-svg-icons';
 
 function EditAdminModal({ admin, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -60,9 +62,7 @@ function EditAdminModal({ admin, onClose, onSave }) {
             <h2 className="text-xl font-semibold text-white">Edit Admin</h2>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <FontAwesomeIcon icon={faX} className='h-6 w-6 text-lg'/>
           </button>
         </div>
 

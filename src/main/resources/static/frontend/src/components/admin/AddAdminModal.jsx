@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faX } from '@fortawesome/free-solid-svg-icons';
 
 function AddAdminModal({ onClose, onAdd }) {
   const [formData, setFormData] = useState({
@@ -29,14 +31,12 @@ function AddAdminModal({ onClose, onAdd }) {
         <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xl">+</span>
+              <span className="text-white text-3xl pb-2">+</span>
             </div>
             <h2 className="text-xl font-semibold text-white">Add New Admin</h2>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <FontAwesomeIcon icon={faX} className='h-6 w-6 text-lg'/>
           </button>
         </div>
 

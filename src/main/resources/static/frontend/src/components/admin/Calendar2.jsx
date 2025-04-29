@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import QuickInfoModal from "./QuickInfoModal"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAngleLeft, faAngleRight, faArrowLeft, faLeftLong, faLessThan } from "@fortawesome/free-solid-svg-icons";
 
 function Calendar2({onDateClick, bookings}){
 
@@ -273,9 +275,7 @@ function Calendar2({onDateClick, bookings}){
                             onClick={handlePrevMonth}
                             className="p-2 rounded hover:bg-gray-700 text-gray-400"
                         >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
+                            <FontAwesomeIcon icon={faAngleLeft} className="text-xl"/>
                         </button>
                         <h2 className="text-xl font-semibold text-white">
                             {months[currentDate.getMonth()]} {currentDate.getFullYear()}
@@ -284,9 +284,7 @@ function Calendar2({onDateClick, bookings}){
                             onClick={handleNextMonth}
                             className="p-2 rounded hover:bg-gray-700 text-gray-400"
                         >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
+                            <FontAwesomeIcon icon={faAngleRight} className="text-xl"/>
                         </button>
                     </div>
                     
