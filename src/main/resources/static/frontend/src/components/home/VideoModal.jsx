@@ -1,3 +1,5 @@
+import { faX } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 function VideoModal({ isOpen, onClose, videoUrl, title }) {
     if (!isOpen) return null;
   
@@ -9,16 +11,14 @@ function VideoModal({ isOpen, onClose, videoUrl, title }) {
             onClick={onClose}
             className="absolute -top-12 right-0 text-white/80 hover:text-white"
           >
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <FontAwesomeIcon icon={faX} className="text-xl pt-2 pr-2"/>
           </button>
   
           {/* Video Player */}
           <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
             <video
               className="absolute inset-0 w-full h-full"
-              controls
+              control
               autoPlay
             >
               <source src={videoUrl} type="video/mp4" />

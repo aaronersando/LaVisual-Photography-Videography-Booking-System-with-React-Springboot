@@ -1,3 +1,6 @@
+import { faX } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 function ImageModal({ isOpen, onClose, image, title, category }) {
     if (!isOpen) return null;
   
@@ -15,9 +18,7 @@ function ImageModal({ isOpen, onClose, image, title, category }) {
             onClick={onClose}
             className="absolute -top-12 right-0 text-white/80 hover:text-white"
           >
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <FontAwesomeIcon icon={faX} className="text-lg pr-4 pt-4 hover:cursor-pointer"/>
           </button>
   
           {/* Image Container */}

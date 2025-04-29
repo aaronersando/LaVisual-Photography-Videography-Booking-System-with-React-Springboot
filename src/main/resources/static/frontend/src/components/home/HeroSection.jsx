@@ -1,4 +1,6 @@
 import {Link} from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAngleDown, faArrowDown, faArrowDown19, faArrowDownAZ, faDownload, faDownLong, faUpDown } from '@fortawesome/free-solid-svg-icons';
 
 function HeroSection() {
   return (
@@ -59,17 +61,7 @@ function HeroSection() {
 
       {/* Responsive Scroll Indicator */}
       <div className="absolute bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce hidden sm:block">
-        <svg 
-          className="w-5 h-5 sm:w-6 sm:h-6 text-white/80"
-          fill="none" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth="2" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
-        >
-          <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-        </svg>
+        <FontAwesomeIcon icon={faArrowDown} className='text-xl'/>
       </div>
     </div>
   );
