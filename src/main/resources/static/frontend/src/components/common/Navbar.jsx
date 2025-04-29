@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import {Link} from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation(); // Get the current location
+
+  const isActive = (path) => location.pathname === path; // Check if the path matches the current location
 
   return (
     <header className="bg-black w-full py-4 sticky top-0 z-50">
@@ -17,24 +20,68 @@ function Navbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-white hover:text-purple-500 transition-colors duration-200">Home</Link>
-            <Link to="/portfolio" className="text-white hover:text-purple-500 transition-colors duration-200">Portfolio</Link>
-            <Link to="/packages" className="text-white hover:text-purple-500 transition-colors duration-200">Packages</Link>
-            <Link to="/booking" className="text-white hover:text-purple-500 transition-colors duration-200">Booking</Link>
-            <Link to="/about" className="text-white hover:text-purple-500 transition-colors duration-200">About</Link>
-            <Link to="/contact" className="text-white hover:text-purple-500 transition-colors duration-200">Contact</Link>
+            <Link
+              to="/"
+              className={`text-sm transition-colors duration-200 ${
+                isActive("/") ? "text-purple-500" : "text-white hover:text-purple-500"
+              }`}
+            >
+              Home
+            </Link>
+            <Link
+              to="/portfolio"
+              className={`text-sm transition-colors duration-200 ${
+                isActive("/portfolio") ? "text-purple-500" : "text-white hover:text-purple-500"
+              }`}
+            >
+              Portfolio
+            </Link>
+            <Link
+              to="/packages"
+              className={`text-sm transition-colors duration-200 ${
+                isActive("/packages") ? "text-purple-500" : "text-white hover:text-purple-500"
+              }`}
+            >
+              Packages
+            </Link>
+            <Link
+              to="/booking"
+              className={`text-sm transition-colors duration-200 ${
+                isActive("/booking") ? "text-purple-500" : "text-white hover:text-purple-500"
+              }`}
+            >
+              Booking
+            </Link>
+            <Link
+              to="/about"
+              className={`text-sm transition-colors duration-200 ${
+                isActive("/about") ? "text-purple-500" : "text-white hover:text-purple-500"
+              }`}
+            >
+              About
+            </Link>
+            <Link
+              to="/contact"
+              className={`text-sm transition-colors duration-200 ${
+                isActive("/contact") ? "text-purple-500" : "text-white hover:text-purple-500"
+              }`}
+            >
+              Contact
+            </Link>
           </nav>
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/login" 
-              className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700 transition-colors duration-200">
+            <Link
+              to="/login"
+              className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700 transition-colors duration-200"
+            >
               Log in
             </Link>
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden text-white p-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
             aria-expanded={isMobileMenuOpen}
@@ -54,36 +101,56 @@ function Navbar() {
         </div>
 
         {/* Mobile Navigation */}
-        <div 
-          className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`}
-          id="mobile-menu"
-        >
+        <div className={`${isMobileMenuOpen ? "block" : "hidden"} md:hidden`} id="mobile-menu">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <a href="/" className="block px-3 py-2 rounded-md text-white hover:bg-gray-800 hover:text-purple-500 transition-colors duration-200">
+            <Link
+              to="/"
+              className={`block px-3 py-2 rounded-md text-sm ${
+                isActive("/") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
+              }`}
+            >
               Home
-            </a>
-            <a href="/portfolio" className="block px-3 py-2 rounded-md text-white hover:bg-gray-800 hover:text-purple-500 transition-colors duration-200">
+            </Link>
+            <Link
+              to="/portfolio"
+              className={`block px-3 py-2 rounded-md text-sm ${
+                isActive("/portfolio") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
+              }`}
+            >
               Portfolio
-            </a>
-            <a href="/packages" className="block px-3 py-2 rounded-md text-white hover:bg-gray-800 hover:text-purple-500 transition-colors duration-200">
+            </Link>
+            <Link
+              to="/packages"
+              className={`block px-3 py-2 rounded-md text-sm ${
+                isActive("/packages") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
+              }`}
+            >
               Packages
-            </a>
-            <a href="/booking" className="block px-3 py-2 rounded-md text-white hover:bg-gray-800 hover:text-purple-500 transition-colors duration-200">
+            </Link>
+            <Link
+              to="/booking"
+              className={`block px-3 py-2 rounded-md text-sm ${
+                isActive("/booking") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
+              }`}
+            >
               Booking
-            </a>
-            <a href="/about" className="block px-3 py-2 rounded-md text-white hover:bg-gray-800 hover:text-purple-500 transition-colors duration-200">
+            </Link>
+            <Link
+              to="/about"
+              className={`block px-3 py-2 rounded-md text-sm ${
+                isActive("/about") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
+              }`}
+            >
               About
-            </a>
-            <a href="/contact" className="block px-3 py-2 rounded-md text-white hover:bg-gray-800 hover:text-purple-500 transition-colors duration-200">
+            </Link>
+            <Link
+              to="/contact"
+              className={`block px-3 py-2 rounded-md text-sm ${
+                isActive("/contact") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
+              }`}
+            >
               Contact
-            </a>
-          </div>
-          <div className="pt-4 pb-3 border-t border-gray-800">
-            <div className="px-2 space-y-1">
-              <a href="/login" className="block px-3 py-2 rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors duration-200">
-                Log in
-              </a>
-            </div>
+            </Link>
           </div>
         </div>
       </div>
