@@ -17,6 +17,7 @@ import { BrowserRouter, createBrowserRouter, RouterProvider, Routes, Route, Navi
 import { Router } from "lucide-react";
 import Admin from "./pages/admin/Admin";
 import AdminService from "./components/service/AdminService";
+import ScrollToTop from './components/common/ScrollToTop';
 
 // const router = createBrowserRouter([
 //   {path:"/", element: <Home/>},
@@ -40,6 +41,7 @@ function App() {
     {/* <RouterProvider router={router}/> */}
 
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path={"/"} element={<Home/>} />
         <Route path={"/home"} element={<Home/>}/>
