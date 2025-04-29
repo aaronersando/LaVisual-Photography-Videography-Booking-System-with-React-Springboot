@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import Navbar from "../../components/common/Navbar";
 import FooterComp from "../../components/common/FooterComp";
 import PackageCard from "../../components/home/PackageCard";
+import {Link} from "react-router-dom"
 
 function Package() {
     const [category, setCategory] = useState("Photography");
@@ -241,12 +242,14 @@ function Package() {
             <p className="text-gray-400 mb-6 max-w-xl mx-auto">
                 Don't see what you're looking for? We offer custom packages tailored to your specific needs and budget.
             </p>
-            <a
-                href="/custom-quote"
-                className="inline-block rounded-md bg-[#9333EA] px-6 py-3 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
-            >
-                Contact Us for Custom Quote
-            </a>
+            <Link to={'/contact'}>
+              <a
+                  href="/custom-quote"
+                  className="inline-block rounded-md bg-[#9333EA] px-6 py-3 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+              >
+                  Contact Us for Custom Quote
+              </a>
+            </Link>
         </div>
 
         <FooterComp />
