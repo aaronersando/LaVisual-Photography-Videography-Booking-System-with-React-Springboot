@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
 
 function BookingConfirmation({ bookingData }) {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -31,9 +33,7 @@ function BookingConfirmation({ bookingData }) {
     <div className="bg-gray-800 rounded-lg p-6 text-center">
       <div className="mb-6">
         <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+          <FontAwesomeIcon icon={faCheck} className='text-3xl'/>
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">Thank You For Booking!</h2>
         <p className="text-gray-400">Your booking has been confirmed</p>
