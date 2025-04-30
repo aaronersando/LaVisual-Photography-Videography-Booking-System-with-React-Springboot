@@ -534,4 +534,150 @@ public class BookingService {
         return bookingHours;
     }
 
+    @Transactional
+    public RequestResponse approveBooking(Integer id, String adminNotes) {
+        try {
+            return bookingRepository.findById(id)
+                .map(booking -> {
+                    // Update booking status
+                    Booking updatedBooking = booking
+                        .withBookingStatus("APPROVED")
+                        .withAdminNotes(adminNotes);
+                    
+                    bookingRepository.update(updatedBooking);
+                    
+                    // Email notification would go here
+                    // emailService.sendBookingApprovalEmail(...);
+                    
+                    return new RequestResponse(
+                        "Booking approved successfully",
+                        Map.of("booking", updatedBooking),
+                        200,
+                        true
+                    );
+                })
+                .orElse(new RequestResponse(
+                    "Booking not found",
+                    null,
+                    404,
+                    false
+                ));
+        } catch (Exception e) {
+            return new RequestResponse(
+                "Error approving booking: " + e.getMessage(),
+                null,
+                500,
+                false
+            );
+        }
+    }
+
+    @Transactional
+    public RequestResponse rejectBooking(Integer id, String rejectionReason) {
+        try {
+            return bookingRepository.findById(id)
+                .map(booking -> {
+                    // Update booking status
+                    Booking updatedBooking = booking
+                        .withBookingStatus("REJECTED")
+                        .withAdminNotes(rejectionReason);
+                    
+                    bookingRepository.update(updatedBooking);
+                    
+                    // Email notification would go here
+                    // emailService.sendBookingRejectionEmail(...);
+                    
+                    return new RequestResponse(
+                        "Booking rejected successfully",
+                        Map.of("booking", updatedBooking),
+                        200,
+                        true
+                    );
+                })
+                .orElse(new RequestResponse(
+                    "Booking not found",
+                    null,
+                    404,
+                    false
+                ));
+        } catch (Exception e) {
+            return new RequestResponse(
+                "Error rejecting booking: " + e.getMessage(),
+                null,
+                500,
+                false
+            );
+        }
+    }
+
+    public RequestResponse getPendingBookings() {
+        try {
+            List<Booking> pendingBookings = bookingRepository.findByStatus("PENDING");
+            
+            // Debug logging
+            System.out.println("Found " + pendingBookings.size() + " pending bookings");
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("bookings", pendingBookings);
+            
+            return new RequestResponse(
+                "Pending bookings retrieved successfully",
+                data,
+                200,
+                true
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new RequestResponse(
+                "Error retrieving pending bookings: " + e.getMessage(),
+                null,
+                500,
+                false
+            );
+        }
+    }
+
+    public RequestResponse getBookingDetailsWithPaymentProof(Integer id) {
+        try {
+            return bookingRepository.findById(id)
+                .map(booking -> {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("booking", booking);
+                    
+                    // Get payment info if exists
+                    if (booking.paymentId() != null) {
+                        Payment payment = paymentRepository.findById(booking.paymentId()).orElse(null);
+                        data.put("payment", payment);
+                    }
+                    
+                    // Add payment proof URL if exists
+                    String paymentProofUrl = null;
+                    if (booking.paymentProof() != null && !booking.paymentProof().isEmpty()) {
+                        paymentProofUrl = "/api/files/download/" + booking.paymentProof();
+                        data.put("paymentProofUrl", paymentProofUrl);
+                    }
+                    
+                    return new RequestResponse(
+                        "Booking details retrieved successfully",
+                        data,
+                        200,
+                        true
+                    );
+                })
+                .orElse(new RequestResponse(
+                    "Booking not found",
+                    null,
+                    404,
+                    false
+                ));
+        } catch (Exception e) {
+            return new RequestResponse(
+                "Error retrieving booking details: " + e.getMessage(),
+                null,
+                500,
+                false
+            );
+        }
+    }
+
 }

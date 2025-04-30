@@ -3,7 +3,8 @@ import { Link, Routes, Route } from 'react-router-dom';
 import CalendarSection from '../../admin_sections/CalendarSection';
 import AdminAccountsSection from '../../admin_sections/AdminAccountsSection';
 import YourProfileSection from '../../admin_sections/YourProfileSection';
-import AdminService from '../../components/service/AdminService'
+import AdminService from '../../components/service/AdminService';
+import PendingBookings from '../../admin_sections/PendingBookings'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faCalendar, faCircleUser, faSignOut, faUser, faUserAlt, faUserCheck, faUserClock, faUserEdit, faUserFriends, faUserGear } from '@fortawesome/free-solid-svg-icons';
 
@@ -103,6 +104,14 @@ function Admin() {
               <span>Your Profile</span>
             </button>
 
+            <button
+              onClick={() => setCurrentSection('pendingBookings')}
+              className={`flex items-center space-x-2 p-3 rounded-lg hover:cursor-pointer ${currentSection === 'pendingBookings' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+            >
+                <FontAwesomeIcon icon={faUserClock} className='text-xl w-6 h-6'/>
+              <span>Pending Bookings</span>
+            </button>
+
             <Link to={"/"} onClick={handleLogout}>
               <button
                 className={`flex items-center space-x-2 p-3 rounded-lg hover:cursor-pointer ${currentSection === 'logout' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700 w-full  active:bg-purple-600'}`}
@@ -119,6 +128,7 @@ function Admin() {
           {currentSection === 'calendar' && <CalendarSection />}
           {currentSection === 'accounts' && <AdminAccountsSection />}
           {currentSection === 'profile' && <YourProfileSection />}
+          {currentSection === 'pendingBookings' && <PendingBookings />}
         </main>
       </div>
     </div>

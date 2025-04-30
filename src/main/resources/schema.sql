@@ -58,3 +58,4 @@ CREATE TABLE IF NOT EXISTS unavailable_time_ranges (
 CREATE INDEX IF NOT EXISTS idx_unavailable_time_ranges_date ON unavailable_time_ranges(date);
 
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_proof VARCHAR(255);
+-- ALTER TABLE bookings ADD COLUMN admin_notes TEXT;

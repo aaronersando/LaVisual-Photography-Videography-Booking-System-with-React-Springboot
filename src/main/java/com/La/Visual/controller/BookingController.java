@@ -36,6 +36,7 @@ import com.La.Visual.entity.Payment;
 
 @RestController
 @RequestMapping("/api/bookings")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
 public class BookingController {
 
     private final BookingService bookingService;
@@ -308,6 +309,49 @@ public class BookingController {
         }
         return userDetails.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ADMIN"));
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<RequestResponse> getPendingBookings() {
+        System.out.println("GET /api/bookings/pending endpoint called");
+        
+        try {
+            RequestResponse response = bookingService.getPendingBookings();
+            System.out.println("Response prepared: success=" + response.isSuccess() + ", statusCode=" + response.getStatusCode());
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            System.err.println("Error in getPendingBookings endpoint: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(
+                new RequestResponse("Server error: " + e.getMessage(), null, 500, false)
+            );
+        }
+    }
+
+    @PutMapping("/{id}/approve")
+    public ResponseEntity<RequestResponse> approveBooking(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> approvalDetails) {
+        
+        String adminNotes = approvalDetails.getOrDefault("adminNotes", "");
+        RequestResponse response = bookingService.approveBooking(id, adminNotes);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<RequestResponse> rejectBooking(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> rejectionDetails) {
+        
+        String rejectionReason = rejectionDetails.getOrDefault("reason", "");
+        RequestResponse response = bookingService.rejectBooking(id, rejectionReason);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("/{id}/details")
+    public ResponseEntity<RequestResponse> getBookingDetailsWithPaymentProof(@PathVariable Integer id) {
+        RequestResponse response = bookingService.getBookingDetailsWithPaymentProof(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
 }

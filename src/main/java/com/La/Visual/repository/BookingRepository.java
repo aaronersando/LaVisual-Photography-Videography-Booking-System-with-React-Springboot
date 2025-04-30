@@ -123,32 +123,38 @@ public class BookingRepository {
     }
     
     public Booking update(Booking booking) {
-        jdbcTemplate.update(
-            "UPDATE bookings SET guest_name = ?, guest_email = ?, guest_phone = ?, " +
-            "booking_date = ?, booking_time_start = ?, booking_time_end = ?, booking_hours = ?, " +
-            "location = ?, category_name = ?, package_name = ?, package_price = ?, " +
-            "special_requests = ?, booking_status = ?, booking_reference = ? , payment_id = ?, " + 
-            "payment_proof = ? WHERE booking_id = ?",
-            booking.guestName(),
-            booking.guestEmail(),
-            booking.guestPhone(),
-            booking.bookingDate(),
-            booking.bookingTimeStart(),
-            booking.bookingTimeEnd(),
-            booking.bookingHours(),
-            booking.location(),
-            booking.categoryName(),
-            booking.packageName(),
-            booking.packagePrice(),
-            booking.specialRequests(),
-            booking.bookingStatus(),
-            booking.bookingReference(),
-            booking.paymentId(),
-            booking.paymentProof(),
-            booking.bookingId()
-        );
-        
-        return booking;
+        try {
+            jdbcTemplate.update(
+                "UPDATE bookings SET guest_name = ?, guest_email = ?, guest_phone = ?, " +
+                "booking_date = ?, booking_time_start = ?, booking_time_end = ?, booking_hours = ?, " +
+                "location = ?, category_name = ?, package_name = ?, package_price = ?, " +
+                "special_requests = ?, booking_status = ?, booking_reference = ?, payment_id = ?, " +
+                "payment_proof = ?, admin_notes = ? WHERE booking_id = ?",
+                booking.guestName(),
+                booking.guestEmail(),
+                booking.guestPhone(),
+                java.sql.Date.valueOf(booking.bookingDate()),
+                java.sql.Time.valueOf(booking.bookingTimeStart()),
+                java.sql.Time.valueOf(booking.bookingTimeEnd()),
+                booking.bookingHours(),
+                booking.location(),
+                booking.categoryName(),
+                booking.packageName(),
+                booking.packagePrice(),
+                booking.specialRequests(),
+                booking.bookingStatus(),
+                booking.bookingReference(),
+                booking.paymentId(),
+                booking.paymentProof(),
+                booking.adminNotes(),          // Add the adminNotes field
+                booking.bookingId()
+            );
+            return booking;
+        } catch (Exception e) {
+            System.err.println("Error in update: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error updating booking: " + e.getMessage());
+        }
     }
 
     public List<Booking> findUpcomingBookings() {
@@ -192,6 +198,28 @@ public class BookingRepository {
             );
         } catch (Exception e) {
             System.err.println("Error in findOverlappingBookings: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public List<Booking> findByStatus(String status) {
+        try {
+            // Add debugging
+            System.out.println("Finding bookings with status: " + status);
+            
+            List<Booking> bookings = jdbcTemplate.query(
+                "SELECT * FROM bookings WHERE booking_status = ? ORDER BY booking_date DESC",
+                bookingRowMapper,
+                status
+            );
+            
+            // More debugging
+            System.out.println("Found " + bookings.size() + " bookings with status " + status);
+            
+            return bookings;
+        } catch (Exception e) {
+            System.err.println("Error in findByStatus: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();
         }

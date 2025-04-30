@@ -18,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.La.Visual.service.OurUserDetailsService;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -49,9 +50,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/bookings").permitAll()
                         .requestMatchers("/api/bookings/with-proof").permitAll()
                         .requestMatchers("/api/bookings/*/payment-proof").permitAll()
-                        .requestMatchers("/api/bookings/test-endpoint").permitAll() // ADD THIS LINE
+                        .requestMatchers("/api/bookings/test-endpoint").permitAll()
                         .requestMatchers("/api/files/upload").permitAll()
                         .requestMatchers("/api/files/download/**").permitAll()
+                        // OPTIONS requests for CORS preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Specific admin-only booking endpoints
+                        .requestMatchers("/api/bookings/pending").hasAuthority("ADMIN")
+                        .requestMatchers("/api/bookings/{id}/approve").hasAuthority("ADMIN") 
+                        .requestMatchers("/api/bookings/{id}/reject").hasAuthority("ADMIN")
+                        .requestMatchers("/api/bookings/{id}/details").hasAuthority("ADMIN")
                         // This catch-all should come LAST
                         .requestMatchers("/api/bookings/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated())

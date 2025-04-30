@@ -25,5 +25,12 @@ export default defineConfig({
       '.ngrok-free.app', // This will allow all ngrok-free.app subdomains
     ],
     cors: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
 })
