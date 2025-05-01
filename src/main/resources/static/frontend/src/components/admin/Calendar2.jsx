@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import QuickInfoModal from "./QuickInfoModal"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleLeft, faAngleRight, faArrowLeft, faLeftLong, faLessThan } from "@fortawesome/free-solid-svg-icons";
+import axios from "axios";
 
 function Calendar2({onDateClick, bookings}){
 
@@ -10,83 +11,109 @@ function Calendar2({onDateClick, bookings}){
     const [selectedBookings, setSelectedBookings] = useState(null);
 
     const [events, setEvents] = useState([]);
+    const [localBookings, setLocalBookings] = useState(bookings || []);
 
-    
-
-    // Then modify your useEffect
-    useEffect(() => {
-        if (bookings && bookings.length > 0) {
-            formatBookingsForCalendar();
+    // Filter fetchBookings function to make double sure only confirmed bookings show
+    const fetchBookings = async (date = currentDate) => {
+        try {
+            // Format year and month for API request
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            
+            console.log(`Fetching bookings for ${year}-${month}`);
+            
+            // Use the month calendar endpoint to get all approved bookings for the month
+            const response = await axios.get(
+                `http://localhost:8080/api/bookings/calendar/month/${year}/${month}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+            
+            if (response.data.success) {
+                // Filter to ensure we only get CONFIRMED or COMPLETED bookings
+                const confirmedBookings = response.data.data.bookings.filter(
+                    booking => booking.bookingStatus === "CONFIRMED" || booking.bookingStatus === "COMPLETED"
+                );
+                
+                console.log(`Found ${confirmedBookings.length} confirmed bookings out of ${response.data.data.bookings.length} total`);
+                
+                // Clear any props-based bookings to avoid duplication
+                setLocalBookings(confirmedBookings);
+                
+                // Immediately format these bookings for the calendar
+                formatBookingsForCalendar(confirmedBookings);
+            } else {
+                console.error("Failed to fetch confirmed bookings:", response.data.message);
+            }
+        } catch (error) {
+            console.error("Error fetching confirmed bookings:", error);
         }
-    }, [bookings]);
+    };
+
+    // Fetch bookings when the month changes
+    useEffect(() => {
+        // Only fetch bookings if we don't have any from props
+        if (!bookings || bookings.length === 0) {
+            fetchBookings();
+        }
+    }, [currentDate]);
 
     // Format bookings data into the events format needed for calendar
     useEffect(() => {
+        // When the component receives new props or fetches new bookings from API
         if (bookings && bookings.length > 0) {
-            // Process bookings and update the calendar
-            formatBookingsForCalendar();
+            // If bookings are passed as props (from parent component)
+            const confirmedBookings = bookings.filter(booking => 
+                booking.bookingStatus === "CONFIRMED" || 
+                booking.bookingStatus === "COMPLETED"
+            );
+            
+            console.log(`Processing ${confirmedBookings.length} confirmed bookings from props`);
+            
+            // Store the filtered bookings locally
+            setLocalBookings(confirmedBookings);
+            
+            // Format them for display
+            formatBookingsForCalendar(confirmedBookings);
         }
-
-        if (!bookings || bookings.length === 0) return;
-        
-        // Group bookings by date
-        const groupedBookings = bookings.reduce((acc, booking) => {
-            // Extract date in YYYY-MM-DD format
-            let dateKey;
-            
-            // Handle different date formats
-            if (booking.date) {
-                // If it's already a string in YYYY-MM-DD format
-                if (typeof booking.date === 'string' && booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                    dateKey = booking.date;
-                } 
-                // If it's a Date object or other date format string
-                else {
-                    const bookingDate = new Date(booking.date);
-                    if (!isNaN(bookingDate.getTime())) {
-                        dateKey = bookingDate.toISOString().split('T')[0];
-                    }
-                }
-            } 
-            // Fallback if booking.bookingDate is used instead (from backend API)
-            else if (booking.bookingDate) {
-                dateKey = new Date(booking.bookingDate).toISOString().split('T')[0];
-            }
-            
-            if (!dateKey) {
-                console.error("Could not extract date from booking:", booking);
-                return acc;
-            }
-            
-            if (!acc[dateKey]) {
-                acc[dateKey] = [];
-            }
-            
-            // Format booking data for the modal
-            acc[dateKey].push({
-                client: booking.customerDetails?.name || booking.guestName || 'Client',
-                clientEvent: booking.package || booking.packageName || 'Booking',
-                timeRange: formatBookingTimeRange(booking)
-            });
-            
-            return acc;
-        }, {});
-        
-        // Convert the grouped object to array format needed by calendar
-        const formattedEvents = Object.entries(groupedBookings).map(([date, bookings]) => ({
-            date,
-            bookings
-        }));
-        
-        setEvents(formattedEvents);
-    }, [bookings]);
+        // We'll rely on the fetchBookings function to handle API-sourced bookings
+        // This way we avoid double-processing the same bookings
+    }, [bookings]); // Only depend on props bookings
 
     // Add this function before the useEffect
-    const formatBookingsForCalendar = () => {
-        if (!bookings || bookings.length === 0) return;
+    const formatBookingsForCalendar = (bookingsToFormat) => {
+        if (!bookingsToFormat || bookingsToFormat.length === 0) {
+            console.log("No bookings to format");
+            return;
+        }
+        
+        console.log(`Formatting ${bookingsToFormat.length} bookings for calendar`);
+        
+        // Check if all bookings are confirmed/completed
+        const allConfirmed = bookingsToFormat.every(booking => 
+            booking.bookingStatus === "CONFIRMED" || booking.bookingStatus === "COMPLETED"
+        );
+        
+        if (!allConfirmed) {
+            console.warn("Warning: Some bookings are not confirmed/completed!");
+            // Print the problematic bookings
+            bookingsToFormat.forEach(booking => {
+                if (booking.bookingStatus !== "CONFIRMED" && booking.bookingStatus !== "COMPLETED") {
+                    console.warn(`Booking with status ${booking.bookingStatus}:`, booking);
+                }
+            });
+            
+            // Force filter again
+            bookingsToFormat = bookingsToFormat.filter(booking => 
+                booking.bookingStatus === "CONFIRMED" || booking.bookingStatus === "COMPLETED"
+            );
+        }
         
         // Group bookings by date
-        const groupedBookings = bookings.reduce((acc, booking) => {
+        const groupedBookings = bookingsToFormat.reduce((acc, booking) => {
             // Extract date in YYYY-MM-DD format
             let dateKey;
             
@@ -171,10 +198,14 @@ function Calendar2({onDateClick, bookings}){
     ).getDay();
 
     const handlePrevMonth = () => {
+        // Clear events before changing month
+        setEvents([]);
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() -1, 1));
     }
-
+    
     const handleNextMonth = () => {
+        // Clear events before changing month
+        setEvents([]);
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() +1, 1));
     }
 

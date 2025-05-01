@@ -90,23 +90,42 @@ function PendingBookings() {
         try {
             setActionInProgress(true);
             const token = localStorage.getItem('token');
+            
+            // Debug log
+            console.log(`Sending approval request for booking ID: ${selectedBooking.booking.bookingId}`);
+            console.log(`Admin notes: ${adminNotes}`);
+            
             const response = await axios.put(
-                `/api/bookings/${selectedBooking.booking.bookingId}/approve`,
+                `http://localhost:8080/api/bookings/${selectedBooking.booking.bookingId}/approve`,
                 { adminNotes },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { 
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    } 
+                }
             );
+            
+            console.log("Approval response:", response.data);
             
             if (response.data.success) {
                 alert('Booking approved successfully');
                 setShowDetailsModal(false);
+                // Reset the state
+                setAdminNotes('');
                 fetchPendingBookings(); // Refresh the list
-                // Here you would add email notification logic in the future
             } else {
                 alert('Failed to approve booking: ' + response.data.message);
             }
         } catch (err) {
-            alert('Error approving booking: ' + (err.response?.data?.message || err.message));
-            console.error('Error approving booking:', err);
+            console.error('Error details:', err);
+            if (err.response) {
+                console.error('Server response:', err.response.data);
+                alert(`Error approving booking: ${err.response.status} - ${err.response.data.message || 'Unknown error'}`);
+            } else {
+                alert('Error approving booking: ' + err.message);
+                console.error('Error approving booking:', err);
+            }
         } finally {
             setActionInProgress(false);
         }
@@ -122,16 +141,22 @@ function PendingBookings() {
             setActionInProgress(true);
             const token = localStorage.getItem('token');
             const response = await axios.put(
-                `/api/bookings/${selectedBooking.booking.bookingId}/reject`,
+                // Use the full URL instead of a relative path
+                `http://localhost:8080/api/bookings/${selectedBooking.booking.bookingId}/reject`,
                 { reason: rejectionReason },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { 
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    } 
+                }
             );
             
             if (response.data.success) {
                 alert('Booking rejected successfully');
                 setShowDetailsModal(false);
+                setRejectionReason(''); // Reset the rejection reason
                 fetchPendingBookings(); // Refresh the list
-                // Here you would add email notification logic in the future
             } else {
                 alert('Failed to reject booking: ' + response.data.message);
             }

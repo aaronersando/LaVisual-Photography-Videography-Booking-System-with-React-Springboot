@@ -13,12 +13,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -351,6 +353,20 @@ public class BookingController {
     @GetMapping("/{id}/details")
     public ResponseEntity<RequestResponse> getBookingDetailsWithPaymentProof(@PathVariable Integer id) {
         RequestResponse response = bookingService.getBookingDetailsWithPaymentProof(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("/calendar/date/{date}")
+    public ResponseEntity<RequestResponse> getBookingsForCalendar(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        RequestResponse response = bookingService.getBookingsForCalendar(date);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("/calendar/month/{year}/{month}")
+    public ResponseEntity<RequestResponse> getBookingsForMonthCalendar(
+            @PathVariable int year,
+            @PathVariable int month) {
+        RequestResponse response = bookingService.getBookingsForMonthCalendar(year, month);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 

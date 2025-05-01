@@ -19,221 +19,230 @@ function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings 
     const [isEdited, setIsEdited] = useState(false);
 
     // Load time ranges and unavailable slots
-    useEffect(() => {
-        // Format date as YYYY-MM-DD for comparison with a fixed time (noon)
-        const selectedDate = new Date(date);
-        selectedDate.setHours(12, 0, 0, 0);
-        const formattedDateStr = selectedDate.toISOString().split('T')[0];
+    // Load time ranges and unavailable slots
+useEffect(() => {
+    // Format date as YYYY-MM-DD for comparison with a fixed time (noon)
+    const selectedDate = new Date(date);
+    selectedDate.setHours(12, 0, 0, 0);
+    const formattedDateStr = selectedDate.toISOString().split('T')[0];
+    
+    console.log("SetScheduleModal - Selected date:", formattedDateStr);
+    
+    // Filter bookings for confirmed/completed status first
+    const confirmedBookings = bookings?.filter(booking => 
+        booking.bookingStatus === "CONFIRMED" || 
+        booking.bookingStatus === "COMPLETED"
+    ) || [];
+    
+    console.log(`SetScheduleModal: Filtered ${confirmedBookings.length} confirmed bookings out of ${bookings?.length || 0}`);
+    
+    // Filter confirmed bookings for the selected date with strict date comparison
+    const dateBookings = confirmedBookings.filter(booking => {
+        let bookingDateStr;
         
-        console.log("SetScheduleModal - Selected date:", formattedDateStr);
-        
-        // Filter bookings for the selected date with strict date comparison
-        const dateBookings = bookings?.filter(booking => {
-            let bookingDateStr;
-            
-            try {
-                // Handle booking.date field
-                if (booking.date) {
-                    if (typeof booking.date === 'string') {
-                        // If already in YYYY-MM-DD format, use directly
-                        if (booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                            bookingDateStr = booking.date;
-                        } else {
-                            // Otherwise parse and format consistently
-                            const bookingDate = new Date(booking.date);
-                            bookingDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
-                            bookingDateStr = bookingDate.toISOString().split('T')[0];
-                        }
+        try {
+            // Handle booking.date field
+            if (booking.date) {
+                if (typeof booking.date === 'string') {
+                    // If already in YYYY-MM-DD format, use directly
+                    if (booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        bookingDateStr = booking.date;
                     } else {
-                        // Handle Date object
+                        // Otherwise parse and format consistently
                         const bookingDate = new Date(booking.date);
-                        bookingDate.setHours(12, 0, 0, 0);
+                        bookingDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
                         bookingDateStr = bookingDate.toISOString().split('T')[0];
                     }
-                } 
-                // Handle booking.bookingDate field
-                else if (booking.bookingDate) {
-                    if (typeof booking.bookingDate === 'string') {
-                        if (booking.bookingDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                            bookingDateStr = booking.bookingDate;
-                        } else {
-                            const bookingDate = new Date(booking.bookingDate);
-                            bookingDate.setHours(12, 0, 0, 0);
-                            bookingDateStr = bookingDate.toISOString().split('T')[0];
-                        }
+                } else {
+                    // Handle Date object
+                    const bookingDate = new Date(booking.date);
+                    bookingDate.setHours(12, 0, 0, 0);
+                    bookingDateStr = bookingDate.toISOString().split('T')[0];
+                }
+            } 
+            // Handle booking.bookingDate field
+            else if (booking.bookingDate) {
+                if (typeof booking.bookingDate === 'string') {
+                    if (booking.bookingDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        bookingDateStr = booking.bookingDate;
                     } else {
                         const bookingDate = new Date(booking.bookingDate);
                         bookingDate.setHours(12, 0, 0, 0);
                         bookingDateStr = bookingDate.toISOString().split('T')[0];
                     }
+                } else {
+                    const bookingDate = new Date(booking.bookingDate);
+                    bookingDate.setHours(12, 0, 0, 0);
+                    bookingDateStr = bookingDate.toISOString().split('T')[0];
+                }
+            }
+            
+            console.log(`Comparing booking date: ${bookingDateStr} with selected date: ${formattedDateStr} - Match: ${bookingDateStr === formattedDateStr}`);
+            
+            return bookingDateStr === formattedDateStr;
+        } catch (e) {
+            console.error("Error processing booking date:", e, booking);
+            return false;
+        }
+    }) || [];
+    
+    console.log("Filtered bookings for this date:", dateBookings);
+    
+    // Create initial time ranges including any bookings
+    let initialRanges = [];
+    if (dateBookings.length > 0) {
+        // Sort bookings by start time before mapping
+        initialRanges = dateBookings
+            .sort((a, b) => {
+                // Parse times for comparison
+                const aTimeStr = a.timeRange?.startTime || a.bookingTimeStart || '00:00';
+                const bTimeStr = b.timeRange?.startTime || b.bookingTimeStart || '00:00';
+                
+                // Convert to comparable format
+                const aTime = convertTimeStringTo24Hr(aTimeStr);
+                const bTime = convertTimeStringTo24Hr(bTimeStr);
+                
+                return aTime.localeCompare(bTime);
+            })
+            .map((booking, index) => {
+                // Extract proper time format from booking
+                const startTime = parseTimeFormat(booking.timeRange?.startTime || booking.bookingTimeStart || '12:00');
+                const endTime = parseTimeFormat(booking.timeRange?.endTime || booking.bookingTimeEnd || '15:00');
+                
+                console.log(`Booking ${index+1} time range: ${startTime} - ${endTime}`);
+                
+                // Create a properly formatted booking object with the correct date
+                const bookingData = {
+                    // Use the actual database booking ID, which could be bookingId or id
+                    id: booking.bookingId || booking.id || index + 1,
+                    // Keep track of the actual booking ID separately to ensure we have the right one
+                    databaseId: booking.bookingId || booking.id,
+                    bookingReference: booking.bookingReference || booking.reference || `BKLQ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+                    client: booking.customerDetails?.name || booking.guestName || 'Client',
+                    clientEvent: booking.package || booking.packageName || 'Booking',
+                    category: booking.category || 'Photography',
+                    date: formattedDateStr, // Use the selected date to ensure consistency
+                    timeRange: {
+                        startTime: startTime,
+                        endTime: endTime
+                    },
+                    customerDetails: {
+                        name: booking.customerDetails?.name || booking.guestName || 'Client',
+                        email: booking.customerDetails?.email || booking.guestEmail || '',
+                        phone: booking.customerDetails?.phone || booking.guestPhone || '',
+                        location: booking.customerDetails?.location || booking.location || 'ewan',
+                        notes: booking.customerDetails?.notes || booking.specialRequests || ''
+                    },
+                    paymentDetails: {
+                        type: booking.paymentDetails?.type || booking.paymentType || 'Full Payment',
+                        method: booking.paymentDetails?.method || booking.paymentMethod || 'GCash',
+                        amount: booking.paymentDetails?.amount || booking.amount || 3000,
+                        accountNumber: booking.paymentDetails?.accountNumber || booking.gcashNumber || '09665469008'
+                    },
+                    totalAmount: booking.totalAmount || booking.packagePrice || booking.price || 3000
+                };
+                
+                return {
+                    id: index + 1,
+                    start: startTime,
+                    end: endTime,
+                    status: 'booking',
+                    date: formattedDateStr,
+                    booking: bookingData
+                };
+            });
+    }
+
+    // Add a default available time range if no bookings
+    if (initialRanges.length === 0) {
+        initialRanges.push({
+            id: 1,
+            start: '06:00 AM',
+            end: '10:00 PM',
+            status: 'available',
+            date: formattedDateStr,
+            booking: null
+        });
+    }
+
+    setTimeRanges(initialRanges);
+
+    const loadUnavailableTimeRanges = async (dateStr) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.warn('Admin token not found, skipping unavailable ranges loading');
+                return [];
+            }
+    
+            const response = await fetch(`http://localhost:8080/api/schedules/unavailable/${dateStr}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+    
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data && data.data.unavailableRanges) {
+                    return data.data.unavailableRanges;
+                }
+            }
+    
+            return [];
+        } catch (error) {
+            console.error('Error loading unavailable time ranges:', error);
+            return [];
+        }
+    };
+    
+    // Load unavailable time ranges - NEW FUNCTIONALITY
+    const fetchUnavailableRanges = async () => {
+        const unavailableRanges = await loadUnavailableTimeRanges(formattedDateStr);
+        
+        if (unavailableRanges.length > 0) {
+            // Use the current state to get the highest ID
+            setTimeRanges(prevRanges => {
+                // Calculate highest existing ID from current state
+                const highestId = prevRanges.length > 0 
+                    ? Math.max(...prevRanges.map(r => r.id)) 
+                    : 0;
+                
+                // Convert to UI format and add to time ranges with truly unique IDs
+                const formattedUnavailableRanges = unavailableRanges
+                    // First deduplicate based on start and end times
+                    .filter((range, index, self) => 
+                        index === self.findIndex(r => 
+                            r.startTime === range.startTime && r.endTime === range.endTime
+                        )
+                    )
+                    .map((range, index) => ({
+                        id: highestId + index + 1, // Using current highest ID as base
+                        start: parseTimeFormat(range.startTime),
+                        end: parseTimeFormat(range.endTime),
+                        status: 'unavailable',
+                        booking: null,
+                        date: formattedDateStr,
+                        serverId: range.id // Store the server ID for deletion
+                    }));
+                
+                // Filter out duplicates based on time range
+                const existingTimeRanges = prevRanges.map(r => `${r.start}-${r.end}-${r.status}`);
+                const uniqueNewRanges = formattedUnavailableRanges.filter(
+                    range => !existingTimeRanges.includes(`${range.start}-${range.end}-${range.status}`)
+                );
+                
+                if (uniqueNewRanges.length > 0) {
+                    console.log('Added unique unavailable ranges:', uniqueNewRanges);
+                    return [...prevRanges, ...uniqueNewRanges];
                 }
                 
-                console.log(`Comparing booking date: ${bookingDateStr} with selected date: ${formattedDateStr} - Match: ${bookingDateStr === formattedDateStr}`);
-                
-                return bookingDateStr === formattedDateStr;
-            } catch (e) {
-                console.error("Error processing booking date:", e, booking);
-                return false;
-            }
-        }) || [];
-        
-        console.log("Filtered bookings for this date:", dateBookings);
-        
-        // Create initial time ranges including any bookings
-        let initialRanges = [];
-        if (dateBookings.length > 0) {
-            // Sort bookings by start time before mapping
-            initialRanges = dateBookings
-                .sort((a, b) => {
-                    // Parse times for comparison
-                    const aTimeStr = a.timeRange?.startTime || a.bookingTimeStart || '00:00';
-                    const bTimeStr = b.timeRange?.startTime || b.bookingTimeStart || '00:00';
-                    
-                    // Convert to comparable format
-                    const aTime = convertTimeStringTo24Hr(aTimeStr);
-                    const bTime = convertTimeStringTo24Hr(bTimeStr);
-                    
-                    return aTime.localeCompare(bTime);
-                })
-                .map((booking, index) => {
-                    // Extract proper time format from booking
-                    const startTime = parseTimeFormat(booking.timeRange?.startTime || booking.bookingTimeStart || '12:00');
-                    const endTime = parseTimeFormat(booking.timeRange?.endTime || booking.bookingTimeEnd || '15:00');
-                    
-                    console.log(`Booking ${index+1} time range: ${startTime} - ${endTime}`);
-                    
-                    // Create a properly formatted booking object with the correct date
-                    const bookingData = {
-                        // Use the actual database booking ID, which could be bookingId or id
-                        id: booking.bookingId || booking.id || index + 1,
-                        // Keep track of the actual booking ID separately to ensure we have the right one
-                        databaseId: booking.bookingId || booking.id,
-                        bookingReference: booking.bookingReference || booking.reference || `BKLQ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-                        client: booking.customerDetails?.name || booking.guestName || 'Client',
-                        clientEvent: booking.package || booking.packageName || 'Booking',
-                        category: booking.category || 'Photography',
-                        date: formattedDateStr, // Use the selected date to ensure consistency
-                        timeRange: {
-                            startTime: startTime,
-                            endTime: endTime
-                        },
-                        customerDetails: {
-                            name: booking.customerDetails?.name || booking.guestName || 'Client',
-                            email: booking.customerDetails?.email || booking.guestEmail || '',
-                            phone: booking.customerDetails?.phone || booking.guestPhone || '',
-                            location: booking.customerDetails?.location || booking.location || 'ewan',
-                            notes: booking.customerDetails?.notes || booking.specialRequests || ''
-                        },
-                        paymentDetails: {
-                            type: booking.paymentDetails?.type || booking.paymentType || 'Full Payment',
-                            method: booking.paymentDetails?.method || booking.paymentMethod || 'GCash',
-                            amount: booking.paymentDetails?.amount || booking.amount || 3000,
-                            accountNumber: booking.paymentDetails?.accountNumber || booking.gcashNumber || '09665469008'
-                        },
-                        totalAmount: booking.totalAmount || booking.packagePrice || booking.price || 3000
-                    };
-                    
-                    return {
-                        id: index + 1,
-                        start: startTime,
-                        end: endTime,
-                        status: 'booking',
-                        date: formattedDateStr,
-                        booking: bookingData
-                    };
-                });
-        }
-
-        // Add a default available time range if no bookings
-        if (initialRanges.length === 0) {
-            initialRanges.push({
-                id: 1,
-                start: '06:00 AM',
-                end: '10:00 PM',
-                status: 'available',
-                date: formattedDateStr,
-                booking: null
+                return prevRanges;
             });
         }
-
-        setTimeRanges(initialRanges);
-
-        const loadUnavailableTimeRanges = async (dateStr) => {
-            try {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    console.warn('Admin token not found, skipping unavailable ranges loading');
-                    return [];
-                }
-        
-                const response = await fetch(`http://localhost:8080/api/schedules/unavailable/${dateStr}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-        
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.data && data.data.unavailableRanges) {
-                        return data.data.unavailableRanges;
-                    }
-                }
-        
-                return [];
-            } catch (error) {
-                console.error('Error loading unavailable time ranges:', error);
-                return [];
-            }
-        };
-        
-        // Load unavailable time ranges - NEW FUNCTIONALITY
-        const fetchUnavailableRanges = async () => {
-            const unavailableRanges = await loadUnavailableTimeRanges(formattedDateStr);
-            
-            if (unavailableRanges.length > 0) {
-                // Use the current state to get the highest ID
-                setTimeRanges(prevRanges => {
-                    // Calculate highest existing ID from current state
-                    const highestId = prevRanges.length > 0 
-                        ? Math.max(...prevRanges.map(r => r.id)) 
-                        : 0;
-                    
-                    // Convert to UI format and add to time ranges with truly unique IDs
-                    const formattedUnavailableRanges = unavailableRanges
-                        // First deduplicate based on start and end times
-                        .filter((range, index, self) => 
-                            index === self.findIndex(r => 
-                                r.startTime === range.startTime && r.endTime === range.endTime
-                            )
-                        )
-                        .map((range, index) => ({
-                            id: highestId + index + 1, // Using current highest ID as base
-                            start: parseTimeFormat(range.startTime),
-                            end: parseTimeFormat(range.endTime),
-                            status: 'unavailable',
-                            booking: null,
-                            date: formattedDateStr,
-                            serverId: range.id // Store the server ID for deletion
-                        }));
-                    
-                    // Filter out duplicates based on time range
-                    const existingTimeRanges = prevRanges.map(r => `${r.start}-${r.end}-${r.status}`);
-                    const uniqueNewRanges = formattedUnavailableRanges.filter(
-                        range => !existingTimeRanges.includes(`${range.start}-${range.end}-${range.status}`)
-                    );
-                    
-                    if (uniqueNewRanges.length > 0) {
-                        console.log('Added unique unavailable ranges:', uniqueNewRanges);
-                        return [...prevRanges, ...uniqueNewRanges];
-                    }
-                    
-                    return prevRanges;
-                });
-            }
-        };
-        
-        fetchUnavailableRanges();
-    }, [date, bookings]);
+    };
+    
+    fetchUnavailableRanges();
+}, [date, bookings]);
 
     
 

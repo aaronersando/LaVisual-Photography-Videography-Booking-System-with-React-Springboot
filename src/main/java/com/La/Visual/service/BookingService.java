@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
@@ -537,24 +537,55 @@ public class BookingService {
     @Transactional
     public RequestResponse approveBooking(Integer id, String adminNotes) {
         try {
+            System.out.println("Approving booking with ID: " + id + ", adminNotes: " + adminNotes);
+            
             return bookingRepository.findById(id)
                 .map(booking -> {
-                    // Update booking status
-                    Booking updatedBooking = booking
-                        .withBookingStatus("APPROVED")
-                        .withAdminNotes(adminNotes);
-                    
-                    bookingRepository.update(updatedBooking);
-                    
-                    // Email notification would go here
-                    // emailService.sendBookingApprovalEmail(...);
-                    
-                    return new RequestResponse(
-                        "Booking approved successfully",
-                        Map.of("booking", updatedBooking),
-                        200,
-                        true
-                    );
+                    try {
+                        // Update booking status
+                        System.out.println("Found booking: " + booking.bookingId() + ", current status: " + booking.bookingStatus());
+                        
+                        // Create updated booking with new status and admin notes
+                        Booking updatedBooking = new Booking(
+                            booking.bookingId(),
+                            booking.guestName(),
+                            booking.guestEmail(),
+                            booking.guestPhone(),
+                            booking.bookingDate(),
+                            booking.bookingTimeStart(),
+                            booking.bookingTimeEnd(),
+                            booking.bookingHours(),
+                            booking.location(),
+                            booking.categoryName(),
+                            booking.packageName(),
+                            booking.packagePrice(),
+                            booking.specialRequests(),
+                            "CONFIRMED", // Change from "APPROVED" to "CONFIRMED" to match the ENUM
+                            booking.bookingReference(),
+                            booking.paymentId(),
+                            booking.paymentProof(),
+                            adminNotes,
+                            booking.createdAt()
+                        );
+                        
+                        // Save the updated booking
+                        bookingRepository.update(updatedBooking);
+                        System.out.println("Successfully updated booking status to CONFIRMED");
+                        
+                        // Email notification would go here
+                        // emailService.sendBookingApprovalEmail(...);
+                        
+                        return new RequestResponse(
+                            "Booking approved successfully",
+                            Map.of("booking", updatedBooking),
+                            200,
+                            true
+                        );
+                    } catch (Exception e) {
+                        System.err.println("Error updating booking: " + e.getMessage());
+                        e.printStackTrace();
+                        throw new RuntimeException("Error updating booking: " + e.getMessage(), e);
+                    }
                 })
                 .orElse(new RequestResponse(
                     "Booking not found",
@@ -563,6 +594,7 @@ public class BookingService {
                     false
                 ));
         } catch (Exception e) {
+            // Handle exceptions
             return new RequestResponse(
                 "Error approving booking: " + e.getMessage(),
                 null,
@@ -579,7 +611,7 @@ public class BookingService {
                 .map(booking -> {
                     // Update booking status
                     Booking updatedBooking = booking
-                        .withBookingStatus("REJECTED")
+                        .withBookingStatus("CANCELLED") // Change from "REJECTED" to "CANCELLED"
                         .withAdminNotes(rejectionReason);
                     
                     bookingRepository.update(updatedBooking);
@@ -673,6 +705,46 @@ public class BookingService {
         } catch (Exception e) {
             return new RequestResponse(
                 "Error retrieving booking details: " + e.getMessage(),
+                null,
+                500,
+                false
+            );
+        }
+    }
+
+    public RequestResponse getBookingsForCalendar(LocalDate date) {
+        try {
+            List<Booking> bookings = bookingRepository.findApprovedBookingsByDate(date);
+            
+            return new RequestResponse(
+                "Bookings retrieved successfully",
+                Map.of("bookings", bookings),
+                200,
+                true
+            );
+        } catch (Exception e) {
+            return new RequestResponse(
+                "Error retrieving bookings: " + e.getMessage(),
+                null,
+                500,
+                false
+            );
+        }
+    }
+
+    public RequestResponse getBookingsForMonthCalendar(int year, int month) {
+        try {
+            List<Booking> bookings = bookingRepository.findApprovedBookingsInMonth(year, month);
+            
+            return new RequestResponse(
+                "Bookings for month retrieved successfully",
+                Map.of("bookings", bookings),
+                200,
+                true
+            );
+        } catch (Exception e) {
+            return new RequestResponse(
+                "Error retrieving bookings for month: " + e.getMessage(),
                 null,
                 500,
                 false

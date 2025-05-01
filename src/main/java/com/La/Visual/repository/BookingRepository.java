@@ -224,4 +224,25 @@ public class BookingRepository {
             return new ArrayList<>();
         }
     }
+
+    public List<Booking> findApprovedBookingsByDate(LocalDate date) {
+        return jdbcTemplate.query(
+            "SELECT * FROM bookings WHERE booking_date = ? AND booking_status IN ('CONFIRMED', 'COMPLETED') ORDER BY booking_time_start",
+            bookingRowMapper,
+            java.sql.Date.valueOf(date)
+        );
+    }
+    
+    // For calendar view that shows bookings for a specific month
+    public List<Booking> findApprovedBookingsInMonth(int year, int month) {
+        LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        LocalDate endOfMonth = startOfMonth.plusMonths(1).minusDays(1);
+        
+        return jdbcTemplate.query(
+            "SELECT * FROM bookings WHERE booking_date BETWEEN ? AND ? AND booking_status IN ('CONFIRMED', 'COMPLETED') ORDER BY booking_date, booking_time_start",
+            bookingRowMapper,
+            java.sql.Date.valueOf(startOfMonth),
+            java.sql.Date.valueOf(endOfMonth)
+        );
+    }
 }
