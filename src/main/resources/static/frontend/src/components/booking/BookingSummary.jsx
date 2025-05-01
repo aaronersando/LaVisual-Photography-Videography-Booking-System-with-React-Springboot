@@ -37,100 +37,162 @@ function BookingSummary({ onBack, data, onComplete }) {
     setShowUploadStep(true);
   };
 
+  
+  const compressImage = (file, maxWidth, quality = 0.7) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          // Create canvas
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Calculate new dimensions
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth) {
+            const ratio = maxWidth / width;
+            width = maxWidth;
+            height = height * ratio;
+          }
+          
+          // Resize image
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Get compressed image as a data URL
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+      };
+    });
+  };
+
   // Step 2: Final submission after upload (or direct for bank transfers)
-  const handleFinalSubmit = async () => {
-    setIsSubmitting(true);
-    setError(null);
+const handleFinalSubmit = async () => {
+  setIsSubmitting(true);
+  setError(null);
+  
+  const paymentAmount = paymentType === 'full' ? data.price : calculateDownPayment();
+  
+  try {
+    // Calculate booking hours from time range
+    const startHour = parseInt(data.timeRange?.startTime?.split(':')[0] || 0);
+    const endHour = parseInt(data.timeRange?.endTime?.split(':')[0] || 0);
+    const bookingHours = endHour - startHour;
+
+    // Prepare data for backend API
+    const bookingRequest = {
+      guestName: data.customerDetails.name,
+      guestEmail: data.customerDetails.email,
+      guestPhone: data.customerDetails.phone,
+      bookingDate: data.date,
+      bookingTimeStart: data.timeRange?.startTime,
+      bookingTimeEnd: data.timeRange?.endTime,
+      bookingHours: bookingHours > 0 ? bookingHours : data.packageDetails.hours,
+      location: data.customerDetails.location,
+      categoryName: data.category,
+      packageName: data.package,
+      packagePrice: data.price,
+      specialRequests: data.customerDetails.notes || '',
+      bookingReference: data.reference,
+      
+      // Payment details
+      paymentType: paymentType === 'full' ? 'FULL' : 'DOWNPAYMENT',
+      paymentMethod: 'GCASH',
+      amount: paymentAmount,
+      gcashNumber: gcashNumber
+    };
     
-    const paymentAmount = paymentType === 'full' ? data.price : calculateDownPayment();
-    
+    // Make API call to create booking
+    const response = await BookingService.createBooking(bookingRequest, paymentProofFile);
+
+    // Now that we have the response, prepare email parameters
+    const emailParams = {
+      // Basic information
+      name: data.customerDetails.name,
+      email: data.customerDetails.email,
+      phone: data.customerDetails.phone,
+      location: data.customerDetails.location,
+      package: data.package,
+      category: data.category,
+      
+      // Booking details
+      date: new Date(data.date).toLocaleDateString(),
+      startTime: formatTime(data.timeRange?.startTime || ''),
+      endTime: formatTime(data.timeRange?.endTime || ''),
+      reference: response.data?.bookingReference || data.reference,
+      specialRequests: data.customerDetails.notes || 'None',
+      
+      // Payment details
+      paymentType: paymentType === 'full' ? 'Full Payment' : 'Down Payment',
+      paymentMethod: 'GCash',
+      accountNumber: gcashNumber,
+      paymentAmount: paymentAmount.toLocaleString(),
+      
+      // Remove problematic fields if any
+      hasPaymentProof: paymentProofFile ? "true" : "false"
+    };
+
+    // Send email without attachment first to test if the template works
     try {
-      // Prepare email parameters
-      const emailParams = {
-        name: data.customerDetails.name,
-        email: data.customerDetails.email,
-        phone: data.customerDetails.phone,
-        location: data.customerDetails.location,
-        package: data.package,
-        category: data.category,
-        date: new Date(data.date).toLocaleDateString(),
-        startTime: formatTime(data.timeRange?.startTime || ''),
-        endTime: formatTime(data.timeRange?.endTime || ''),
-        paymentAmount: paymentAmount,
-        paymentType: paymentType === 'full' ? 'Full Payment' : 'Down Payment',
-        paymentMethod: 'GCash', 
-        accountNumber: gcashNumber,
-      };
-
-      // Calculate booking hours from time range
-      const startHour = parseInt(data.timeRange?.startTime?.split(':')[0] || 0);
-      const endHour = parseInt(data.timeRange?.endTime?.split(':')[0] || 0);
-      const bookingHours = endHour - startHour;
-
-      // Prepare data for backend API
-      const bookingRequest = {
-        guestName: data.customerDetails.name,
-        guestEmail: data.customerDetails.email,
-        guestPhone: data.customerDetails.phone,
-        bookingDate: data.date,
-        bookingTimeStart: data.timeRange?.startTime,
-        bookingTimeEnd: data.timeRange?.endTime,
-        bookingHours: bookingHours > 0 ? bookingHours : data.packageDetails.hours,
-        location: data.customerDetails.location,
-        categoryName: data.category,
-        packageName: data.package,
-        packagePrice: data.price,
-        specialRequests: data.customerDetails.notes || '',
-        bookingReference: data.reference,
-        
-        // Payment details
-        paymentType: paymentType === 'full' ? 'FULL' : 'DOWNPAYMENT',
-        paymentMethod: 'GCASH',
-        amount: paymentAmount,
-        gcashNumber: gcashNumber
-      };
-
-      let response;
-      // If GCash payment with proof file, use the combined method
+      // For small images only - larger ones will cause the 413 error
       if (paymentProofFile) {
-        response = await BookingService.createBookingWithProof(bookingRequest, paymentProofFile);
-      } else {
-        // For bank transfer or other methods, use regular endpoint
-        response = await BookingService.createBooking(bookingRequest);
+        // Try with a much smaller image
+        const tinyImage = await compressImage(paymentProofFile, 300, 0.4); // Smaller width, lower quality
+        // Remove the data:image/jpeg;base64, prefix from the data URL
+        const imageBase64 = tinyImage.split(',')[1];
+        emailParams.paymentProofImage = imageBase64;
       }
       
-      if (response.success) {
-        // Add booking ID and payment info to the data
-        const completedBookingData = {
-          ...data,
-          paymentMethod: 'gcash',
-          paymentType,
-          paymentAmount,
-          bookingId: response.data.bookingId,
-          paymentId: response.data.paymentId,
-          gcashNumber: gcashNumber,
-          reference: response.data.bookingReference,
-          paymentProofUploaded: paymentProofFile !== null,
-          paymentProof: response.data.paymentProof 
-        };
-
-        // Send confirmation email
-        // await emailjs.send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4');
-        
-        // Complete booking process
-        onComplete(completedBookingData);
-      } else {
-        setError(response.message || 'Failed to save booking');
-        setShowUploadStep(false); // Go back to payment selection on error
-      }
+      await emailjs.send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4');
     } catch (error) {
-      console.error('Booking error:', error);
-      setError(error.message || 'Failed to process booking. Please try again.');
-      setShowUploadStep(false); // Go back to payment selection on error
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error sending email:', error);
+      
+      // If it fails, try again without the image
+      delete emailParams.paymentProofImage;
+      try {
+        await emailjs.send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4');
+      } catch (secondError) {
+        console.error('Error sending email without image:', secondError);
+      }
     }
-  };
+    
+    
+    if (response.success) {
+      // Add booking ID and payment info to the data
+      const completedBookingData = {
+        ...data,
+        paymentMethod: 'gcash',
+        paymentType,
+        paymentAmount,
+        bookingId: response.data.bookingId,
+        paymentId: response.data.paymentId,
+        gcashNumber: gcashNumber,
+        reference: response.data.bookingReference,
+        paymentProofUploaded: paymentProofFile !== null,
+        paymentProof: response.data.paymentProof 
+      };
+      
+      // Complete booking process
+      onComplete(completedBookingData);
+    } else {
+      setError(response.message || 'Failed to save booking');
+      setShowUploadStep(false); // Go back to payment selection on error
+    }
+  } catch (error) {
+    console.error('Booking error:', error);
+    setError(error.message || 'Failed to process booking. Please try again.');
+    setShowUploadStep(false); // Go back to payment selection on error
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const formatTime = (timeString) => {
     if (!timeString) return '';
