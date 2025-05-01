@@ -118,8 +118,8 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
   // Generate available time slots based on duration
   const generateTimeRanges = () => {
     const ranges = [];
-    const startHour = 7; // 7 AM
-    const endHour = 22 - packageDuration; // Last slot should end by 10 PM
+    const startHour = 0; // 12 AM (midnight)
+    const endHour = 23 - packageDuration; // Last slot should end by 11 PM
 
     for (let hour = startHour; hour <= endHour; hour++) {
       const startTime = `${hour.toString().padStart(2, '0')}:00`;
@@ -198,7 +198,7 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
           <h3 className="text-white text-center text-lg font-bold mb-3">
             Select Time Range ({packageDuration} hours)
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto pr-2">
             {getTimeRangesWithAvailability().map((range) => {
               const isSelected = selectedTimeRange?.startTime === range.startTime;
               
