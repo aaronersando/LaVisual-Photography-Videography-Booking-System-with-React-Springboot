@@ -3,11 +3,21 @@ import axios from 'axios';
 import 'react-calendar/dist/Calendar.css';
 import CalendarComp from './CalendarComp';
 
+// Format time for display
 const formatTime = (hour) => {
   const hourNum = parseInt(hour);
   const ampm = hourNum >= 12 ? 'PM' : 'AM';
   const hour12 = hourNum % 12 || 12;
   return `${hour12}:00 ${ampm}`;
+};
+
+// Format date to YYYY-MM-DD in local timezone, avoiding timezone issues
+const formatDateToLocalString = (date) => {
+  if (!date) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 function DateTimeSelection({ onNext, onBack, updateData, data }) {
@@ -22,17 +32,18 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
 
   // Fetch booked time slots from the backend when component mounts
   useEffect(() => {
-    fetchAllBookedTimeSlots();
+    fetchConfirmedBookedTimeSlots();
   }, []);
   
-  // Fetch all booked slots initially
-  const fetchAllBookedTimeSlots = async () => {
+  // Fetch only confirmed/approved booked slots
+  const fetchConfirmedBookedTimeSlots = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
       // Use the full URL with http://localhost:8080 prefix
-      const response = await axios.get('http://localhost:8080/api/bookings/booked-slots');
+      // Modified to include a status filter for confirmed bookings
+      const response = await axios.get('http://localhost:8080/api/bookings/booked-slots?status=CONFIRMED');
       console.log("API Response:", response.data);
       
       // Check if the response is HTML instead of JSON
@@ -49,12 +60,17 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
       
       if (response.data && response.data.success) {
         // Format the data to match our expected structure
-        const formattedSlots = response.data.data.bookings.map(booking => ({
-          date: booking.bookingDate, 
-          startTime: booking.bookingTimeStart,
-          endTime: booking.bookingTimeEnd,
-          bookingId: booking.bookingId
-        }));
+        // Only include bookings with CONFIRMED or APPROVED status
+        const formattedSlots = response.data.data.bookings
+          .filter(booking => 
+            booking.bookingStatus === "CONFIRMED" || booking.bookingStatus === "APPROVED"
+          )
+          .map(booking => ({
+            date: booking.bookingDate, 
+            startTime: booking.bookingTimeStart,
+            endTime: booking.bookingTimeEnd,
+            bookingId: booking.bookingId
+          }));
         
         setBookedTimeSlots(formattedSlots);
       } else {
@@ -79,7 +95,8 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
   const isTimeRangeOverlapping = (date, startTime, endTime) => {
     if (!date) return false;
     
-    const dateStr = date.toISOString().split('T')[0];
+    // Use the custom formatter to avoid timezone issues
+    const dateStr = formatDateToLocalString(date);
     const rangeStart = parseInt(startTime.split(':')[0]);
     const rangeEnd = parseInt(endTime.split(':')[0]);
 
@@ -152,8 +169,13 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedDate && selectedTimeRange) {
+      // Create a copy of the date that won't be affected by timezone issues
+      const formattedDate = new Date(selectedDate);
+      // Set time to noon to prevent date shifts in further processing
+      formattedDate.setHours(12, 0, 0, 0);
+      
       updateData({ 
-        date: selectedDate,
+        date: formattedDate,
         timeRange: selectedTimeRange 
       });
       onNext();
