@@ -62,7 +62,7 @@ function BookingConfirmation({ bookingData }) {
       </div>
 
       {/* Payment Proof Section */}
-      {bookingData.paymentProofUploaded && (
+      {/* {bookingData.paymentProofUploaded && (
         <div className="mt-4 pt-4 border-t border-gray-600">
           <h4 className="font-medium text-white mb-2">Payment Proof</h4>
           <div className="bg-gray-600/50 p-4 rounded">
@@ -77,7 +77,7 @@ function BookingConfirmation({ bookingData }) {
             )}
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="text-gray-400 text-sm">
         <p>A confirmation email has been sent to {bookingData.customerDetails.email}</p>
