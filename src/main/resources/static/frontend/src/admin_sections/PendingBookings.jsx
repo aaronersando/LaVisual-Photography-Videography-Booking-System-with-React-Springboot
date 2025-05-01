@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import emailjs from '@emailjs/browser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes, faEye, faSpinner } from '@fortawesome/free-solid-svg-icons';
 
@@ -109,6 +110,41 @@ function PendingBookings() {
             console.log("Approval response:", response.data);
             
             if (response.data.success) {
+                // Prepare email parameters for confirmation email
+                const booking = selectedBooking.booking;
+                const emailParams = {
+                    // Customer information
+                    name: booking.guestName,
+                    email: booking.guestEmail,
+                    phone: booking.guestPhone,
+                    
+                    // Booking details
+                    reference: booking.bookingReference,
+                    package: booking.packageName,
+                    category: booking.categoryName,
+                    date: formatDate(booking.bookingDate),
+                    startTime: formatTime(booking.bookingTimeStart),
+                    endTime: formatTime(booking.bookingTimeEnd),
+                    location: booking.location,
+                    specialRequests: booking.specialRequests || 'None',
+                    
+                    // Payment information
+                    paymentType: booking.paymentType === 'FULL' ? 'Full Payment' : 'Down Payment',
+                    paymentMethod: booking.paymentMethod || 'GCash',
+                    paymentAmount: booking.packagePrice.toLocaleString(),
+                    
+                    // Admin notes
+                    adminNotes: adminNotes || 'No additional notes from the photographer.'
+                };
+                
+                // Send confirmation email
+                try {
+                    await emailjs.send('service_01wb493', 'template_7o0b64m', emailParams, '-3twibzAtFBX4xBB2');
+                    console.log('Booking confirmation email sent successfully');
+                } catch (emailError) {
+                    console.error('Error sending confirmation email:', emailError);
+                }
+                
                 alert('Booking approved successfully');
                 setShowDetailsModal(false);
                 // Reset the state
@@ -153,6 +189,33 @@ function PendingBookings() {
             );
             
             if (response.data.success) {
+                // Prepare email parameters for rejection notification
+                const booking = selectedBooking.booking;
+                const emailParams = {
+                    // Customer information
+                    name: booking.guestName,
+                    email: booking.guestEmail,
+                    phone: booking.guestPhone,
+                    
+                    // Booking details
+                    reference: booking.bookingReference,
+                    package: booking.packageName,
+                    category: booking.categoryName,
+                    date: formatDate(booking.bookingDate),
+                    
+                    // Rejection details
+                    rejectionReason: rejectionReason
+                };
+                
+                // Send rejection email
+                try {
+                    await emailjs.send('service_01wb493', 'template_2eoafic', emailParams, '-3twibzAtFBX4xBB2');
+                    console.log('Booking rejection email sent successfully');
+                } catch (emailError) {
+                    console.error('Error sending rejection email:', emailError);
+                }
+                
+                // Continue with the existing code
                 alert('Booking rejected successfully');
                 setShowDetailsModal(false);
                 setRejectionReason(''); // Reset the rejection reason
