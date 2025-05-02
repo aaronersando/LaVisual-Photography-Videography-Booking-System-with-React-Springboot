@@ -222,10 +222,6 @@ const handleFinalSubmit = async () => {
               src={qrCode} 
               alt="GCash QR Code" 
               className="max-w-[200px]"
-              // onError={(e) => {
-              //   e.target.onerror = null;
-              //   e.target.src = 'https://via.placeholder.com/200x200?text=GCash+QR+Code';
-              // }}
             />
           </div>
           

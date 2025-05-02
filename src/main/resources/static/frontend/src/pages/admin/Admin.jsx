@@ -4,10 +4,14 @@ import CalendarSection from '../../admin_sections/CalendarSection';
 import AdminAccountsSection from '../../admin_sections/AdminAccountsSection';
 import YourProfileSection from '../../admin_sections/YourProfileSection';
 import AdminService from '../../components/service/AdminService';
-import PendingBookings from '../../admin_sections/PendingBookings'
+import PendingBookings from '../../admin_sections/PendingBookings';
+import DataAnalytics from '../../admin_sections/DataAnalytics';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faCalendar, faCircleUser, faSignOut, faUser, faUserAlt, faUserCheck, faUserClock, faUserEdit, faUserFriends, faUserGear } from '@fortawesome/free-solid-svg-icons';
-
+import { 
+  faBars, faCalendar, faCircleUser, faSignOut, faUser, 
+  faUserAlt, faUserCheck, faUserClock, faUserEdit, 
+  faUserFriends, faUserGear, faChartLine 
+} from '@fortawesome/free-solid-svg-icons';
 
 
 function Admin() {
@@ -81,6 +85,13 @@ function Admin() {
         <nav className={`fixed left-0 top-0 h-full w-64 bg-gray-800 transform transition-transform duration-300 ease-in-out ${isNavOpen ? 'translate-x-0' : '-translate-x-full'}`} style={{ marginTop: '72px' }}>
           <div className="flex flex-col p-4">
             <button
+              onClick={() => setCurrentSection('analytics')}
+              className={`flex hover:cursor-pointer items-center space-x-2 p-3 rounded-lg ${currentSection === 'analytics' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+            >
+                <FontAwesomeIcon icon={faChartLine} className='text-xl w-6 h-6'/>
+                <span>Analytics</span>
+            </button>
+            <button
               onClick={() => setCurrentSection('calendar')}
               className={`flex hover:cursor-pointer items-center space-x-2 p-3 rounded-lg ${currentSection === 'calendar' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
             >
@@ -125,6 +136,7 @@ function Admin() {
 
         {/* Main Content Area */}
         <main className={`flex-1 px-6 transition-all duration-300 ${isNavOpen ? 'ml-64' : ''}`}>
+          {currentSection === 'analytics' && <DataAnalytics />}
           {currentSection === 'calendar' && <CalendarSection />}
           {currentSection === 'accounts' && <AdminAccountsSection />}
           {currentSection === 'profile' && <YourProfileSection />}
