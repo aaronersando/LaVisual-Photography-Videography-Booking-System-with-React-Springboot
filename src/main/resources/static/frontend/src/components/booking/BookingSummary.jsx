@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import emailjs from '@emailjs/browser';
 import BookingService from '../service/BookingService';
+import qrCode from '../../assets/booking/OngleoQR.webp'
 
 function BookingSummary({ onBack, data, onComplete }) {
   const [paymentMethod, setPaymentMethod] = useState('gcash');
@@ -218,7 +219,7 @@ const handleFinalSubmit = async () => {
           {/* QR Code Display */}
           <div className="bg-white p-4 rounded-lg flex justify-center mb-4">
             <img 
-              src="/images/gcash-qr.png" 
+              src={qrCode} 
               alt="GCash QR Code" 
               className="max-w-[200px]"
               // onError={(e) => {
