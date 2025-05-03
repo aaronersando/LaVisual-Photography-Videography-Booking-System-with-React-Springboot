@@ -88,12 +88,12 @@ function CalendarSection() {
           <div className="inline-block animate-spin text-purple-500 text-4xl mb-4">
             <FontAwesomeIcon icon={faSpinner} />
           </div>
-          <p className="text-gray-300">Loading Calendar data...</p>
+          <p className="text-gray-300">Loading Calendar Data...</p>
         </div>
       );
     } else if (error) {
       return (
-        <div className="p-4 bg-red-500/20 text-red-100 rounded-md mt-20">
+        <div className="p-4 bg-red-500/20 text-red-100 rounded-md mt-12">
           <p className="font-bold mb-2">Failed to load Calendar data</p>
           <p className="mb-4">{error}</p>
           <button

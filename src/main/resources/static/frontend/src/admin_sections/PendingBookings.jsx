@@ -248,7 +248,7 @@ function PendingBookings() {
 
     if (loading) {
         return (
-            <div className="p-4 text-center pt-20">
+            <div className="p-4 text-center pt-20 mt-15">
                 <div className="inline-block animate-spin text-purple-500 text-4xl mb-4">
                     <FontAwesomeIcon icon={faSpinner} />
                 </div>

@@ -286,11 +286,11 @@ function DataAnalytics() {
 
   if (loading) {
     return (
-      <div className="p-4 text-center pt-20">
+      <div className="p-4 text-center pt-20 mt-14">
         <div className="inline-block animate-spin text-purple-500 text-4xl mb-4">
           <FontAwesomeIcon icon={faSpinner} />
         </div>
-        <p className="text-gray-300">Loading analytics data...</p>
+        <p className="text-gray-300">Loading Analytics Data...</p>
       </div>
     );
   }
