@@ -80,46 +80,58 @@ function CalendarSection() {
     console.log('Show Details');
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-4 text-center pt-20">
-        <div className="inline-block animate-spin text-purple-500 text-4xl mb-4">
-          <FontAwesomeIcon icon={faSpinner} />
+  
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="p-4 text-center pt-20">
+          <div className="inline-block animate-spin text-purple-500 text-4xl mb-4">
+            <FontAwesomeIcon icon={faSpinner} />
+          </div>
+          <p className="text-gray-300">Loading Calendar data...</p>
         </div>
-        <p className="text-gray-300">Loading Calendar data...</p>
-      </div>
-    );
-  }
-
-  if (error) {
+      );
+    } else if (error) {
+      return (
+        <div className="p-4 bg-red-500/20 text-red-100 rounded-md mt-20">
+          <p className="font-bold mb-2">Failed to load Calendar data</p>
+          <p className="mb-4">{error}</p>
+          <button
+            onClick={fetchBookings}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    } else if (!bookings || bookings.length === 0) {
+      return (
+        <div className="p-4 bg-yellow-500/20 text-yellow-100 rounded-md mt-20">
+          <p className="font-bold mb-2">No Bookings Found</p>
+          <p className="mb-4">No booking data is available to display on the calendar.</p>
+          <button
+            onClick={fetchBookings}
+            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-md"
+          >
+            Refresh
+          </button>
+        </div>
+      );
+    }
+    
     return (
-      <div className="p-4 bg-red-500/20 text-red-100 rounded-md mt-20">
-        <p className="font-bold mb-2">Failed to load Calendar data</p>
-        <p className="mb-4">{error}</p>
-        <button
-          onClick={fetchBookings}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md"
-        >
-          Retry
-        </button>
-      </div>
+      <Calendar2 
+        onDateClick={handleDateClick}
+        bookings={bookings}
+      />
     );
-  }
-
+  };
+  
   return (
     <div className="space-y-6">
       <h2 className="text-2xl text-white font-bold">Calendar Dashboard</h2>
       
-      
-
-      {/* {isLoading ? (
-        <div className="text-center py-8 text-white">Loading calendar data...</div>
-      ) : (
-        <Calendar2 
-          onDateClick={handleDateClick}
-          bookings={bookings} // Pass bookings to Calendar component
-        />
-      )} */}
+      {renderContent()}
       
       {showScheduleModal && selectedDate && (
         <SetScheduleModal
@@ -127,7 +139,7 @@ function CalendarSection() {
           onClose={handleCloseModal}
           onSetManual={handleSetManual}
           onShowDetails={handleShowDetails}
-          bookings={bookings} // Pass all bookings to the modal
+          bookings={bookings}
         />
       )}
     </div>
