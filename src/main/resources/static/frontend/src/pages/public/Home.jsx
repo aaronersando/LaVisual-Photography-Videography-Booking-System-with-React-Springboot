@@ -210,13 +210,13 @@ function Home() {
               >
                 Book a Session
               </motion.button> */}
-              <AnimatedButton className={"bg-[#9333EA] hover:bg-purple-800"} >
+              <AnimatedButton className={"bg-purple-500 hover:bg-purple-700"} >
                   Book a Session
                 </AnimatedButton>
             </Link>
             <Link to={"/contact"}>
               <motion.button 
-                className="border border-white text-white px-6 py-3 rounded-md hover:bg-white/10 transition-colors hover:cursor-pointer"
+                className="relative group flex w-full lg:px-16 sm:w-auto border border-white text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-white/10 transition-all duration-300 text-sm sm:text-base hover:cursor-pointer overflow-hidden"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ 
@@ -225,6 +225,7 @@ function Home() {
                   damping: 17 
                 }}
               >
+                <div className="h-[100px] top-[-10px] w-10 bg-gradient-to-r from-white/10 via-white/50 to-white/10 absolute -left-16 -rotate-28 blur-sm group-hover:left-[150%] duration-700 group-hover:delay-200" />
                 Contact Us
               </motion.button>
               </Link>
