@@ -1,5 +1,6 @@
 import {Link} from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { motion } from "framer-motion";
 import { faAngleDown, faArrowDown, faArrowDown19, faArrowDownAZ, faDownload, faDownLong, faUpDown } from '@fortawesome/free-solid-svg-icons';
 
 function HeroSection() {

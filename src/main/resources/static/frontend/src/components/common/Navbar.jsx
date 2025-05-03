@@ -57,11 +57,16 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link to={"/"}>
-            <div className="text-2xl font-bold">
-              <span className="text-purple-500">La</span>Visual
-            </div>
-          </Link>
+          <motion.div
+            whileTap={{ scale: 0.9, rotate: -5 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
+            <Link to={"/"}>
+              <div className="text-2xl font-bold cursor-pointer">
+                <span className="text-purple-500">La</span>Visual
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8 relative">
@@ -75,7 +80,12 @@ function Navbar() {
                 left: activeIndicator.left,
                 height: activeIndicator.height,
               }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                duration: 0.6, // Smooth transition duration
+              }}
               style={{ zIndex: -1 }}
             />
 
@@ -92,8 +102,8 @@ function Navbar() {
                 ref={(el) => (navRefs.current[item.path] = el)}
                 onMouseEnter={() => setHovered(item.path)}
                 onMouseLeave={() => setHovered(null)}
-                className={`relative text-sm transition-colors duration-200 px-3 py-2 rounded-md ${
-                  isActive(item.path) ? "text-white" : "text-white"
+                className={`relative text-sm transition-transform duration-300 ease-in-out px-3 py-2 rounded-md ${
+                  isActive(item.path) ? "text-white" : "text-white hover:scale-110"
                 }`}
                 style={{ zIndex: 1 }} // Ensure text stays above the background
               >
@@ -119,7 +129,17 @@ function Navbar() {
         </div>
 
         {/* Mobile Navigation */}
-        <div className={`${isMobileMenuOpen ? "block" : "hidden"} md:hidden`} id="mobile-menu">
+        <motion.div
+          className={`${
+            isMobileMenuOpen ? "block" : "hidden"
+          } md:hidden transition-all duration-500 ease-in-out transform ${
+            isMobileMenuOpen ? "translate-y-0 opacity-100" : "-translate-y-10 opacity-0"
+          }`}
+          id="mobile-menu"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: isMobileMenuOpen ? 1 : 0, y: isMobileMenuOpen ? 0 : -10 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {[
               { path: "/", label: "Home" },
@@ -131,15 +151,17 @@ function Navbar() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`block px-3 py-2 rounded-md text-sm ${
-                  isActive(item.path) ? "text-purple-700" : "text-white hover:bg-gray-800"
+                className={`block px-3 py-2 rounded-md text-sm transition-transform duration-300 ease-in-out ${
+                  isActive(item.path)
+                    ? "text-purple-700"
+                    : "text-white hover:bg-gray-800 hover:scale-105"
                 }`}
               >
                 {item.label}
               </Link>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </header>
   );
