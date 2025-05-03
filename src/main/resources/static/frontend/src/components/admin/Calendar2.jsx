@@ -55,10 +55,9 @@ function Calendar2({onDateClick, bookings}){
 
     // Fetch bookings when the month changes
     useEffect(() => {
-        // Only fetch bookings if we don't have any from props
-        if (!bookings || bookings.length === 0) {
+        // if (!bookings || bookings.length === 0) {
             fetchBookings();
-        }
+        // }
     }, [currentDate]);
 
     // Format bookings data into the events format needed for calendar
