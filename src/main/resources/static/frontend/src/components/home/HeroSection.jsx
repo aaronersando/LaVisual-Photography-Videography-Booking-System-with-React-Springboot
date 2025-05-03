@@ -78,7 +78,7 @@ function HeroSection() {
         <div className="absolute inset-0 bg-black/40" />
       </div>
       
-      <div className="relative z-10 h-full flex items-center">
+      <div className="relative z-10 h-full flex items-start pt-[20vh]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-40">
           <div className="max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto sm:mx-0">
             {/* Animated Title */}
