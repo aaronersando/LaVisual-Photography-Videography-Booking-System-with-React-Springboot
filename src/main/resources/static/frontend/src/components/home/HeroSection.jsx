@@ -27,6 +27,32 @@ function HeroSection() {
     return () => window.removeEventListener('resize', updateFontSize);
   }, []);
 
+  // Animation variants for title container
+  const titleContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3,
+        delayChildren: 0.2,
+      }
+    }
+  };
+
+  // Animation variants for title parts
+  const titleItem = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100
+      }
+    }
+  };
+
   return (
     <div className="relative min-h-[500px] h-screen w-full">
       <div className="absolute inset-0 overflow-hidden">
@@ -57,10 +83,26 @@ function HeroSection() {
       <div className="relative z-10 h-full flex items-center">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-40">
           <div className="max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto sm:mx-0">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-white mb-3 sm:mb-5">
-              Capturing Your{" "}
-              <span className="block sm:inline text-[#C084FC] whitespace-normal sm:whitespace-nowrap">Perfect Moments</span>
-            </h1>
+            {/* Animated Title */}
+            <motion.div
+              variants={titleContainer}
+              initial="hidden"
+              animate="visible"
+              className="mb-3 sm:mb-5"
+            >
+              <motion.h1 
+                variants={titleItem}
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-white"
+              >
+                Capturing Your{" "}
+              </motion.h1>
+              <motion.span 
+                variants={titleItem}
+                className="block sm:inline text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-[#C084FC] whitespace-normal sm:whitespace-nowrap"
+              >
+                Perfect Moments
+              </motion.span>
+            </motion.div>
             
             <div className='mb-5 sm:mb-6 md:mb-8 max-w-full overflow-hidden'>
               <TypeWriterEffect
@@ -72,7 +114,7 @@ function HeroSection() {
                   maxWidth: '100%',
                   overflowWrap: 'break-word',
                 }}
-                startDelay={100}
+                startDelay={100}  // Delayed to start after title animation
                 cursorColor="#C084FC"
                 multiText={[
                   'Professional photography and videography services for weddings, events, portraits, and pre-photoshoot projects.',
