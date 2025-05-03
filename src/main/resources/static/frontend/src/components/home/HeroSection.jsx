@@ -2,6 +2,7 @@ import {Link} from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { motion } from "framer-motion";
 import { faAngleDown, faArrowDown, faArrowDown19, faArrowDownAZ, faDownload, faDownLong, faUpDown } from '@fortawesome/free-solid-svg-icons';
+import AnimatedButton from '../common/AnimatedButton';
 
 function HeroSection() {
   return (
@@ -46,14 +47,38 @@ function HeroSection() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Link to="/portfolio">
-                <button className="w-full lg:px-12 sm:w-auto bg-[#9333EA] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-purple-800 transition-all duration-300 text-sm sm:text-base hover:cursor-pointer">
+                {/* <motion.button 
+                  className="w-full lg:px-12 sm:w-auto bg-[#9333EA] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-purple-800 transition-all duration-300 text-sm sm:text-base hover:cursor-pointer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 400, 
+                    damping: 17 
+                  }}
+                >
                   View Portfolio
-                </button>
+                </motion.button> */}
+                <AnimatedButton className={"bg-[#9333EA] hover:bg-purple-800"}>
+                  View Portfolio
+                </AnimatedButton>
               </Link>
               <Link to="/booking">
-                <button className="w-full lg:px-16 sm:w-auto border border-white text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-white/10 transition-all duration-300 text-sm sm:text-base hover:cursor-pointer">
+                <motion.button 
+                  className="w-full lg:px-16 sm:w-auto border border-white text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-white/10 transition-all duration-300 text-sm sm:text-base hover:cursor-pointer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 400, 
+                    damping: 17 
+                  }}
+                >
                   Book a Session
-                </button>
+                </motion.button>
+                {/* <AnimatedButton className="border border-white">
+                  Book a Session
+                </AnimatedButton> */}
               </Link>
             </div>
           </div>

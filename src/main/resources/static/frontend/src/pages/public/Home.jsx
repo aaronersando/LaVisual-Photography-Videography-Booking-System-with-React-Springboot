@@ -5,6 +5,8 @@ import ServiceCard from "../../components/home/ServiceCard";
 import PortfolioCard from "../../components/home/PortfolioCard";
 import PackageCard from "../../components/home/PackageCard";
 import {Link} from 'react-router-dom';
+import { motion } from "framer-motion";
+import AnimatedButton from "../../components/common/AnimatedButton";
 
 function Home() {
   return (
@@ -196,14 +198,35 @@ function Home() {
           </p>
           <div className="flex justify-center space-x-4">
             <Link to={"/booking"}>
-              <button className="flex items-center bg-white text-[#581C87] px-8 py-3 rounded-md hover:bg-gray-100 transition-colors hover:cursor-pointer">
+              {/* <motion.button 
+                className="flex items-center bg-white text-[#581C87] px-8 py-3 rounded-md hover:bg-gray-100 transition-colors hover:cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 400, 
+                  damping: 17 
+                }}
+              >
                 Book a Session
-              </button>
+              </motion.button> */}
+              <AnimatedButton className={"bg-[#9333EA] hover:bg-purple-800"} >
+                  Book a Session
+                </AnimatedButton>
             </Link>
             <Link to={"/contact"}>
-              <button className="border border-white text-white px-6 py-3 rounded-md hover:bg-white/10 transition-colors hover:cursor-pointer">
+              <motion.button 
+                className="border border-white text-white px-6 py-3 rounded-md hover:bg-white/10 transition-colors hover:cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 400, 
+                  damping: 17 
+                }}
+              >
                 Contact Us
-              </button>
+              </motion.button>
               </Link>
           </div>
         </div>
