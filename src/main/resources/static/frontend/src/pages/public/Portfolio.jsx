@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import FooterComp from "../../components/common/FooterComp";
 import Navbar from "../../components/common/Navbar";
 import PortfolioCard from "../../components/home/PortfolioCard";
 import VideoCard from "../../components/home/VideoCard";
+import { motion, AnimatePresence } from "framer-motion";
+import TypeWriterEffect from 'react-typewriter-effect';
 
 const portfolioItems = [
 // Wedding
@@ -410,7 +412,6 @@ const portfolioItems = [
     category: "Sports",
   },
 
-
   // Video Items
   {
     type: "video",
@@ -433,19 +434,18 @@ const portfolioItems = [
     title: "Keight and Shaira's Photo Highlights",
     category: "Video"
   },
-
-
-
 ];
 
 function Portfolio() {
   const [category, setCategory] = useState("Wedding");
+  const categoryRefs = useRef({});
+  const [indicator, setIndicator] = useState({ width: 0, left: 0 });
 
   const filteredItems = portfolioItems.filter((item) => item.category === category);
 
   const categories = [
     "Wedding",
-    "Portrait",
+    "Portrait", 
     "Pre-Birthday",
     "Pre-Nup",
     "Video",
@@ -453,6 +453,37 @@ function Portfolio() {
     "Occasion",
     "Sports",
   ];
+
+  useEffect(() => {
+    const currentRef = categoryRefs.current[category];
+    if (currentRef) {
+      const rect = currentRef.getBoundingClientRect();
+      const parentRect = currentRef.parentElement.getBoundingClientRect();
+      
+      setIndicator({
+        width: rect.width,
+        left: rect.left - parentRect.left,
+      });
+    }
+  }, [category]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const currentRef = categoryRefs.current[category];
+      if (currentRef) {
+        const rect = currentRef.getBoundingClientRect();
+        const parentRect = currentRef.parentElement.getBoundingClientRect();
+        
+        setIndicator({
+          width: rect.width,
+          left: rect.left - parentRect.left,
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [category]);
 
   const renderPortfolioItem = (item, index) => {
     if (item.type === "video") {
@@ -470,44 +501,138 @@ function Portfolio() {
     return <PortfolioCard key={index} {...item} />;
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 24
+      }
+    }
+  };
+
+  const titleVariants = {
+    hidden: { y: -30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 20
+      }
+    }
+  };
+
   return (
     <>
       <Navbar />
-      <section className="py-20 bg-[#111827] min-h-screen">
+      <motion.section 
+        className="py-20 bg-[#111827] min-h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-20">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Our Portfolio</h2>
-            <p className="text-gray-400 max-w-xl mx-auto">
-              Browse our collection of photography and videography projects. Filter by category to find specific work.
-            </p>
-          </div>
+          <motion.div 
+            className="text-center mb-12"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            <motion.h2 
+              className="text-3xl font-bold text-white mb-4"
+              variants={titleVariants}
+            >
+              Our Portfolio
+            </motion.h2>
+            <motion.div 
+              className="max-w-xl mx-auto"
+              variants={itemVariants}
+            >
+              <TypeWriterEffect
+                textStyle={{
+                  fontFamily: 'inherit',
+                  color: '#9CA3AF',
+                  fontWeight: 'normal',
+                  fontSize: '1rem',
+                  maxWidth: '100%',
+                  textAlign: 'center',
+                }}
+                startDelay={100}
+                cursorColor="#C084FC"
+                text="Browse our collection of photography and videography projects. Filter by category to find specific work."
+                typeSpeed={40}
+              />
+            </motion.div>
+          </motion.div>
 
-          {/* Category Buttons */}
           <div className="flex justify-center mb-10">
-            <div className="flex flex-wrap justify-center gap-3">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition ${
-                    category === cat
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            <div className="relative inline-flex bg-gray-800 rounded-lg shadow-lg p-1">
+              <motion.div 
+                className="absolute bg-purple-600 rounded-md z-0"
+                initial={false}
+                animate={{
+                  width: indicator.width,
+                  left: indicator.left,
+                  height: "calc(100% - 8px)",
+                  top: 4
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                  duration: 0.4,
+                }}
+              />
+              
+              <div className="flex flex-wrap justify-center gap-1 relative z-10">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    ref={el => categoryRefs.current[cat] = el}
+                    onClick={() => setCategory(cat)}
+                    className={`relative px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md
+                      ${category === cat ? "text-white" : "text-gray-300 hover:text-white"}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Portfolio Grid */}
-          <div className="grid grid-cols-1 mx-16 md:mx-4 lg:mx-20 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {filteredItems.map((item, index) => renderPortfolioItem(item, index))}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={category}
+              className="grid grid-cols-1 mx-16 md:mx-4 lg:mx-20 sm:grid-cols-2 md:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0 }}
+            >
+              {filteredItems.map((item, index) => (
+                <motion.div key={index} variants={itemVariants}>
+                  {renderPortfolioItem(item, index)}
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </section>
+      </motion.section>
       <FooterComp />
     </>
   );

@@ -245,7 +245,7 @@ function Package() {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:max-w-7xl">
           <motion.div 
-            className="text-center mb-12 sm:mb-16"
+            className="text-center mb-2 sm:mb-6"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
