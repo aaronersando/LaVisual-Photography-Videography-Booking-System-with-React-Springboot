@@ -6,14 +6,12 @@ import { motion } from 'framer-motion';
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation(); // Get the current location
-  const [hovered, setHovered] = useState(null); // Track hovered tab
-  const navRefs = useRef({}); // Store refs for each nav item
+  const location = useLocation(); 
+  const [hovered, setHovered] = useState(null); 
+  const navRefs = useRef({}); 
   const [activeIndicator, setActiveIndicator] = useState({ width: 0, left: 0, height: 0 });
 
-  const isActive = (path) => location.pathname === path; // Check if the path matches the current location
-
-  // Update the active indicator position and size
+  const isActive = (path) => location.pathname === path; 
   useEffect(() => {
     const activePath = hovered || location.pathname;
     const currentRef = navRefs.current[activePath];
@@ -30,7 +28,6 @@ function Navbar() {
     }
   }, [hovered, location.pathname]);
 
-  // Update measurements on resize
   useEffect(() => {
     const handleResize = () => {
       const activePath = hovered || location.pathname;
@@ -70,7 +67,6 @@ function Navbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8 relative">
-            {/* Background indicator that slides */}
             <motion.div
               className="absolute bg-purple-700 rounded-md"
               layoutId="nav-indicator"
@@ -84,17 +80,18 @@ function Navbar() {
                 type: "spring",
                 stiffness: 300,
                 damping: 30,
-                duration: 0.6, // Smooth transition duration
+                duration: 0.6, 
               }}
               style={{ zIndex: -1 }}
             />
 
             {[
               { path: "/", label: "Home" },
+              { path: "/booking", label: "Booking" },
               { path: "/portfolio", label: "Portfolio" },
               { path: "/packages", label: "Packages" },
-              { path: "/booking", label: "Booking" },
               { path: "/contact", label: "Contact" },
+              { path: "/about", label: "About Us" },
             ].map((item) => (
               <Link
                 key={item.path}
@@ -143,6 +140,7 @@ function Navbar() {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {[
               { path: "/", label: "Home" },
+              { path: "/about", label: "About Us" },
               { path: "/portfolio", label: "Portfolio" },
               { path: "/packages", label: "Packages" },
               { path: "/booking", label: "Booking" },

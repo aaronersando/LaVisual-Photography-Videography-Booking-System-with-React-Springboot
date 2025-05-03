@@ -27,7 +27,6 @@ function HeroSection() {
     return () => window.removeEventListener('resize', updateFontSize);
   }, []);
 
-  // Animation variants for title container
   const titleContainer = {
     hidden: { opacity: 0 },
     visible: {
@@ -39,7 +38,6 @@ function HeroSection() {
     }
   };
 
-  // Animation variants for title parts
   const titleItem = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -82,7 +80,7 @@ function HeroSection() {
       
       <div className="relative z-10 h-full flex items-center">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-40">
-          <div className="max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto sm:mx-0">
+          <div className="max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto sm:mx-0">
             {/* Animated Title */}
             <motion.div
               variants={titleContainer}
@@ -92,13 +90,13 @@ function HeroSection() {
             >
               <motion.h1 
                 variants={titleItem}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-white"
+                className="text-5xl sm:text-7xl md:text-7xl lg:text-8xl font-bold text-white"
               >
                 Capturing Your{" "}
               </motion.h1>
               <motion.span 
                 variants={titleItem}
-                className="block sm:inline text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-[#C084FC] whitespace-normal sm:whitespace-nowrap"
+                className="block sm:inline text-5xl sm:text-7xl md:text-6xl lg:text-8xl font-bold text-[#C084FC] whitespace-normal sm:whitespace-nowrap"
               >
                 Perfect Moments
               </motion.span>
@@ -114,7 +112,7 @@ function HeroSection() {
                   maxWidth: '100%',
                   overflowWrap: 'break-word',
                 }}
-                startDelay={100}  // Delayed to start after title animation
+                startDelay={100}  
                 cursorColor="#C084FC"
                 multiText={[
                   'Professional photography and videography services for weddings, events, portraits, and pre-photoshoot projects.',
