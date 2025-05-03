@@ -1,13 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { motion } from 'framer-motion';
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation(); // Get the current location
+  const [hovered, setHovered] = useState(null); // Track hovered tab
+  const navRefs = useRef({}); // Store refs for each nav item
+  const [activeIndicator, setActiveIndicator] = useState({ width: 0, left: 0, height: 0 });
 
   const isActive = (path) => location.pathname === path; // Check if the path matches the current location
+
+  // Update the active indicator position and size
+  useEffect(() => {
+    const activePath = hovered || location.pathname;
+    const currentRef = navRefs.current[activePath];
+
+    if (currentRef) {
+      const rect = currentRef.getBoundingClientRect();
+      const parentRect = currentRef.parentElement.getBoundingClientRect();
+
+      setActiveIndicator({
+        width: rect.width,
+        left: rect.left - parentRect.left,
+        height: rect.height,
+      });
+    }
+  }, [hovered, location.pathname]);
+
+  // Update measurements on resize
+  useEffect(() => {
+    const handleResize = () => {
+      const activePath = hovered || location.pathname;
+      const currentRef = navRefs.current[activePath];
+
+      if (currentRef) {
+        const rect = currentRef.getBoundingClientRect();
+        const parentRect = currentRef.parentElement.getBoundingClientRect();
+
+        setActiveIndicator({
+          width: rect.width,
+          left: rect.left - parentRect.left,
+          height: rect.height,
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [hovered, location.pathname]);
 
   return (
     <header className="bg-black w-full py-4 sticky top-0 z-50">
@@ -21,134 +64,80 @@ function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className={`text-sm transition-colors duration-200 ${
-                isActive("/") ? "text-purple-500" : "text-white hover:text-purple-500"
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/portfolio"
-              className={`text-sm transition-colors duration-200 ${
-                isActive("/portfolio") ? "text-purple-500" : "text-white hover:text-purple-500"
-              }`}
-            >
-              Portfolio
-            </Link>
-            <Link
-              to="/packages"
-              className={`text-sm transition-colors duration-200 ${
-                isActive("/packages") ? "text-purple-500" : "text-white hover:text-purple-500"
-              }`}
-            >
-              Packages
-            </Link>
-            <Link
-              to="/booking"
-              className={`text-sm transition-colors duration-200 ${
-                isActive("/booking") ? "text-purple-500" : "text-white hover:text-purple-500"
-              }`}
-            >
-              Booking
-            </Link>
-            <Link
-              to="/about"
-              className={`text-sm transition-colors duration-200 ${
-                isActive("/about") ? "text-purple-500" : "text-white hover:text-purple-500"
-              }`}
-            >
-              About
-            </Link>
-            <Link
-              to="/contact"
-              className={`text-sm transition-colors duration-200 ${
-                isActive("/contact") ? "text-purple-500" : "text-white hover:text-purple-500"
-              }`}
-            >
-              Contact
-            </Link>
+          <nav className="hidden md:flex items-center space-x-8 relative">
+            {/* Background indicator that slides */}
+            <motion.div
+              className="absolute bg-purple-700 rounded-md"
+              layoutId="nav-indicator"
+              initial={false}
+              animate={{
+                width: activeIndicator.width,
+                left: activeIndicator.left,
+                height: activeIndicator.height,
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{ zIndex: -1 }}
+            />
+
+            {[
+              { path: "/", label: "Home" },
+              { path: "/portfolio", label: "Portfolio" },
+              { path: "/packages", label: "Packages" },
+              { path: "/booking", label: "Booking" },
+              { path: "/contact", label: "Contact" },
+            ].map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                ref={(el) => (navRefs.current[item.path] = el)}
+                onMouseEnter={() => setHovered(item.path)}
+                onMouseLeave={() => setHovered(null)}
+                className={`relative text-sm transition-colors duration-200 px-3 py-2 rounded-md ${
+                  isActive(item.path) ? "text-white" : "text-white"
+                }`}
+                style={{ zIndex: 1 }} // Ensure text stays above the background
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
-          {/* Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* <Link
-              to="/login"
-              className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700 transition-colors duration-200"
-            >
-              Log in
-            </Link> */}
-          </div>
-
           {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-white p-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-menu"
-            >
-              <span className="sr-only">Open main menu</span>
-              {!isMobileMenuOpen ? (
-                <FontAwesomeIcon icon={faBars} className="h-6 w-6" />
-              ) : (
-                <FontAwesomeIcon icon={faTimes} className="h-6 w-6" />
-              )}
-            </button>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden text-white p-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
+          >
+            <span className="sr-only">Open main menu</span>
+            {!isMobileMenuOpen ? (
+              <FontAwesomeIcon icon={faBars} className="h-6 w-6" />
+            ) : (
+              <FontAwesomeIcon icon={faTimes} className="h-6 w-6" />
+            )}
+          </button>
         </div>
 
         {/* Mobile Navigation */}
         <div className={`${isMobileMenuOpen ? "block" : "hidden"} md:hidden`} id="mobile-menu">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link
-              to="/"
-              className={`block px-3 py-2 rounded-md text-sm ${
-                isActive("/") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/portfolio"
-              className={`block px-3 py-2 rounded-md text-sm ${
-                isActive("/portfolio") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
-              }`}
-            >
-              Portfolio
-            </Link>
-            <Link
-              to="/packages"
-              className={`block px-3 py-2 rounded-md text-sm ${
-                isActive("/packages") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
-              }`}
-            >
-              Packages
-            </Link>
-            <Link
-              to="/booking"
-              className={`block px-3 py-2 rounded-md text-sm ${
-                isActive("/booking") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
-              }`}
-            >
-              Booking
-            </Link>
-            <Link
-              to="/about"
-              className={`block px-3 py-2 rounded-md text-sm ${
-                isActive("/about") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
-              }`}
-            >
-              About
-            </Link>
-            <Link
-              to="/contact"
-              className={`block px-3 py-2 rounded-md text-sm ${
-                isActive("/contact") ? "text-purple-500" : "text-white hover:bg-gray-800 hover:text-purple-500"
-              }`}
-            >
-              Contact
-            </Link>
+            {[
+              { path: "/", label: "Home" },
+              { path: "/portfolio", label: "Portfolio" },
+              { path: "/packages", label: "Packages" },
+              { path: "/booking", label: "Booking" },
+              { path: "/contact", label: "Contact" },
+            ].map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`block px-3 py-2 rounded-md text-sm ${
+                  isActive(item.path) ? "text-purple-700" : "text-white hover:bg-gray-800"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
