@@ -65,7 +65,7 @@ function Package() {
       category: "Photography",
       title: "Pre-Photoshoot",
       price: "3,500",
-      description: "Coverage For Your Special Day With All The Essentials.",
+      description: "Exclusive Photo Coverage For Your Special Day With All The Essentials.",
       features: [
         "4-Hours Photography Session",
         "1 Photographer",
@@ -135,7 +135,7 @@ function Package() {
       category: "Videography",
       title: "Same Day Edit",
       price: "12,000",
-      description: "Professional Video For Your Business & Product",
+      description: "Professional Video Coverage For Your Business & Product",
       features: [
         "6-Hours of Coverage",
         "Edited Video (1-3 Minutes)",
@@ -149,7 +149,7 @@ function Package() {
       category: "Videography",
       title: "Wedding Film",
       price: "15,000",
-      description: "Cinematic Coverage Of Your Wedding Day.",
+      description: "Fully Exclusive Cinematic Coverage Of Your Wedding Day.",
       features: [
         "8-Hours of Coverage",
         "Highlight Film (5-7 Minutes)",
@@ -165,7 +165,7 @@ function Package() {
       category: "Photo + Video",
       title: "Pre-Shoot Combo",
       price: "10,000",
-      description: "Full Photo & Video Coverage For Your Special Event",
+      description: "Full Pre-Shot Photo & Video Coverage Combo For Your Special Event.",
       features: [
         "6-Hours of Coverage",
         "1 Photographer & 1 Videographer",
@@ -179,7 +179,7 @@ function Package() {
       category: "Photo + Video",
       title: "Event Complete",
       price: "13,000",
-      description: "Full Photo & Video Coverage For Your Special Event.",
+      description: "Full Exclusive Photo & Video Coverage For Your Special Event.",
       features: [
         "8-Hours of Coverage",
         "2 Photographers & 1 Videographer",
@@ -193,7 +193,7 @@ function Package() {
       category: "Photo + Video",
       title: "Wedding Complete",
       price: "35,000",
-      description: "The Ultimate Wedding Package With Photo & Video Coverage.",
+      description: "The Ultimate & Complete Wedding Package With Photo & Video Coverage.",
       features: [
         "10-Hours of Coverage",
         "2 Photographers & 2 Videographers",
