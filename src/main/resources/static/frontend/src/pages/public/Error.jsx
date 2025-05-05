@@ -3,6 +3,7 @@ import Navbar from "../../components/common/Navbar";
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+
 function Error(){
 
     return(

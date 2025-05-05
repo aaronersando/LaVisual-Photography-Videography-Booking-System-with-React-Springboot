@@ -18,6 +18,7 @@ import { Router } from "lucide-react";
 import Admin from "./pages/admin/Admin";
 import AdminService from "./components/service/AdminService";
 import ScrollToTop from './components/common/ScrollToTop';
+import ProtectedAdminRoute from "./components/common/ProtectedRoute";
 
 // const router = createBrowserRouter([
 //   {path:"/", element: <Home/>},
@@ -33,13 +34,57 @@ import ScrollToTop from './components/common/ScrollToTop';
 
 // ])
 
-function App() {
+// function App() {
   
 
+//   return (
+//     <>
+//     {/* <RouterProvider router={router}/> */}
+
+//     <BrowserRouter>
+//       <ScrollToTop />
+//       <Routes>
+//         <Route path={"/"} element={<Home/>} />
+//         <Route path={"/home"} element={<Home/>}/>
+//         <Route path={"/contact"} element={<Contact/>}/>
+//         <Route path={"/portfolio"} element={<Portfolio/>}/>
+//         <Route path={"/packages"} element={<Package/>}/>
+//         <Route path={"/about"} element={<About/>}/>
+//         <Route path={"/booking"} element={<Booking/>}/>
+// {/* //  <Route path={"/auth/login"} element={<Login/>}/> */}
+//         <Route path={"*"} element={<Error/>} />
+//         <Route path={"/login"} element={<Login/>} />
+
+//         {AdminService.adminOnly() && (
+//               <>
+//                 <Route path={"/admin"} element={<Admin/>} />
+//                 {/* <Route path="/register" element={<RegistrationPage />} />
+//                 <Route path="/admin/user-management" element={<UserManagementPage />} />
+//                 <Route path="/update-user/:userId" element={<UpdateUser />} /> */}
+//               </>
+//             )}
+
+
+//       {/* <Login/> */}
+//       {/* <Contact/> */}
+//       {/* <Home/> */} 
+//       {/* <Error/> */}
+//       {/* <Package/> */}
+//       {/* <Portfolio/> */}
+//       {/* <Booking/> */}
+//       {/* <Admin/> */}
+//       {/* <SetManualSchedule/> */}
+//       {/* <Calendar2/> */}
+
+//       </Routes>
+//     </BrowserRouter> 
+//     </>
+//   )
+// }
+
+function App() {
   return (
     <>
-    {/* <RouterProvider router={router}/> */}
-
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
@@ -50,31 +95,17 @@ function App() {
         <Route path={"/packages"} element={<Package/>}/>
         <Route path={"/about"} element={<About/>}/>
         <Route path={"/booking"} element={<Booking/>}/>
-{/* //  <Route path={"/auth/login"} element={<Login/>}/> */}
-        <Route path={"*"} element={<Error/>} />
         <Route path={"/login"} element={<Login/>} />
-
-        {AdminService.adminOnly() && (
-              <>
-                <Route path={"/admin"} element={<Admin/>} />
-                {/* <Route path="/register" element={<RegistrationPage />} />
-                <Route path="/admin/user-management" element={<UserManagementPage />} />
-                <Route path="/update-user/:userId" element={<UpdateUser />} /> */}
-              </>
-            )}
-
-
-      {/* <Login/> */}
-      {/* <Contact/> */}
-      {/* <Home/> */} 
-      {/* <Error/> */}
-      {/* <Package/> */}
-      {/* <Portfolio/> */}
-      {/* <Booking/> */}
-      {/* <Admin/> */}
-      {/* <SetManualSchedule/> */}
-      {/* <Calendar2/> */}
-
+        
+        {/* Protected Admin Route */}
+        <Route path="/admin" element={
+          <ProtectedAdminRoute>
+            <Admin />
+          </ProtectedAdminRoute>
+        } />
+        
+        {/* Error route must come last */}
+        <Route path={"*"} element={<Error/>} />
       </Routes>
     </BrowserRouter> 
     </>
