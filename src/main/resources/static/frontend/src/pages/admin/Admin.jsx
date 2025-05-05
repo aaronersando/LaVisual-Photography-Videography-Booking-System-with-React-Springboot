@@ -16,7 +16,7 @@ import {
 
 function Admin() {
   const [isNavOpen, setIsNavOpen] = useState(true);
-  const [currentSection, setCurrentSection] = useState('calendar');
+  const [currentSection, setCurrentSection] = useState('analytics');
 
   const isAuthenticated = AdminService.isAuthenticated();
   const isAdmin = AdminService.isAdmin();
@@ -68,13 +68,13 @@ function Admin() {
             </button>
             <h1 className="text-2xl text-white font-bold">Admin Dashboard</h1>
           </div>
-          <Link to="/" className="flex items-center space-x-2" onClick={handleLogout}>
+          <Link to="#" className="flex items-center space-x-2" onClick={() => setCurrentSection('profile')}>
             <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-            <span className="text-white font-medium">
-              {adminProfile && adminProfile.name ? adminProfile.name[0]?.toUpperCase() : 'A'}
-            </span>
+              <span className="text-white font-medium">
+                {adminProfile && adminProfile.name ? adminProfile.name[0]?.toUpperCase() : 'A'}
+              </span>
             </div>
-            <h2>{adminProfile && adminProfile.name ? adminProfile.name : 'Admin'}</h2>
+            <h2 className="text-white">{adminProfile && adminProfile.name ? adminProfile.name : 'Admin'}</h2>
           </Link>
         </div>
       </header>
