@@ -10,13 +10,13 @@ function ImageModal({ isOpen, onClose, image, title, category }) {
         onClick={onClose}
       >
         <div 
-          className="relative w-full max-w-5xl" 
+          className="relative w-full max-w-5xl mt-5" 
           onClick={e => e.stopPropagation()}
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute -top-12 right-0 text-white/80 hover:text-white"
+            className="absolute z-51 -top-0 right-5 text-white/80 hover:text-white"
           >
             <FontAwesomeIcon icon={faX} className="text-lg pr-4 pt-4 hover:cursor-pointer"/>
           </button>

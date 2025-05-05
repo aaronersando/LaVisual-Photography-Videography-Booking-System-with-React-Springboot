@@ -273,14 +273,16 @@ function Home() {
                 { image: "/src/assets/home/h_videos.webp", category: "Videos", title: "Khay & Jha's SDE Video" }
               ].map((item, index) => (
                 <motion.div 
-                  key={index} 
-                  variants={portfolioItemVariants}
-                  custom={index}
+                  // key={index} 
+                  // variants={portfolioItemVariants}
+                  // custom={index}
                 >
                   <PortfolioCard
+                    key={index}
                     image={item.image}
                     category={item.category}
                     title={item.title}
+
                   />
                 </motion.div>
               ))}
