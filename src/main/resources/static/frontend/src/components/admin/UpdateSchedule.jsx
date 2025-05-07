@@ -104,8 +104,8 @@ function UpdateSchedule({ booking, onClose, onUpdate }) {
     };
 
     return (
-        <div className="fixed inset-0 mt-[80px] bg-black/50 flex items-center justify-center p-4 z-50">
-        <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 mt-[80px] bg-black/50 flex items-center justify-center p-4 z-50" >
+        <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" >
             {/* Header */}
             <div className="sticky top-0 bg-gray-800 px-6 py-4 border-b border-gray-700 z-10">
                 <h2 className="text-xl font-semibold text-white">Update Booking</h2>

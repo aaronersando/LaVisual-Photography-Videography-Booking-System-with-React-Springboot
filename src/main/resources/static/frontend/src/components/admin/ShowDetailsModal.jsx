@@ -4,8 +4,8 @@ import { faX } from "@fortawesome/free-solid-svg-icons";
 
 function ShowDetailsModal({ admin, onClose }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-white">Admin Details</h2>

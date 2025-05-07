@@ -324,8 +324,8 @@ function PendingBookings() {
 
             {/* Details Modal */}
             {showDetailsModal && selectedBooking && (
-                <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4" onClick={() => setShowDetailsModal(false)}>
+                    <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation}>
                         <div className="px-6 py-4 border-b border-gray-700">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-xl font-semibold text-white">
