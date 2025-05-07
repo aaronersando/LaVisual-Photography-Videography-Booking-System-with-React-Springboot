@@ -245,9 +245,12 @@ function SetManualSchedule({ onClose, selectedTimeRange, selectedDate, existingB
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-[9999]">
+        <div className="fixed inset-0 bg-black/50 z-[60]" onClick={(e) => {
+            e.stopPropagation(); // Stop propagation to parent modals
+            onClose();
+        }}>
             <div className="absolute top-15 left-1/2 transform -translate-x-1/2 p-4 w-full max-w-md">
-                <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+                <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
                     {/* Header */}
                     <div className="px-6 py-4 border-b border-gray-700 shrink-0">
                         <h2 className="text-xl font-semibold text-white">Set Manual Schedule</h2>

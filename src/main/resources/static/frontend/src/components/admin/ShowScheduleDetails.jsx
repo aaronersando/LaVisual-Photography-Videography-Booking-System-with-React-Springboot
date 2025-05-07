@@ -117,8 +117,11 @@ function ShowScheduleDetails({ booking, onClose, onUpdate }) {
     };
 
     return (
-        <div className="fixed inset-0 mt-[80px] bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 mt-[80px] bg-black/50 flex items-center justify-center p-4 z-[60]" onClick={(e) => {
+            e.stopPropagation(); 
+            onClose();
+        }}>
+            <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="p-6 space-y-6">
                     {/* Header */}
                     <h2 className="text-xl font-semibold text-white">Booking Details</h2>
