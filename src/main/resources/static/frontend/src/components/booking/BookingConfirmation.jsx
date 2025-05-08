@@ -30,21 +30,21 @@ function BookingConfirmation({ bookingData }) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 text-center">
-      <div className="mb-6">
-        <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FontAwesomeIcon icon={faCheck} className='text-3xl'/>
+    <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6 text-center">
+      <div className="mb-4 sm:mb-6">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+          <FontAwesomeIcon icon={faCheck} className='text-xl sm:text-2xl md:text-3xl'/>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Thank You For Booking!</h2>
-        <p className="text-gray-400">Your booking has been confirmed</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Thank You For Booking!</h2>
+        <p className="text-sm sm:text-base text-gray-400">Your booking has been confirmed</p>
       </div>
 
-      <div className="bg-gray-700 p-4 rounded-lg text-left mb-6">
-        <h3 className="font-semibold text-white mb-4">Booking Details</h3>
-        <div className="space-y-2 text-gray-300">
+      <div className="bg-gray-700 p-3 sm:p-4 rounded-lg text-left mb-4 sm:mb-6">
+        <h3 className="font-semibold text-base sm:text-lg text-white mb-3 sm:mb-4">Booking Details</h3>
+        <div className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-gray-300">
           <p className="bg-purple-500/10 p-2 rounded border border-purple-500/30">
             <span className="font-medium">Booking Reference:</span> 
-            <span className="text-white text-lg ml-2">{bookingData.reference}</span>
+            <span className="text-white text-base sm:text-lg ml-1 sm:ml-2">{bookingData.reference}</span>
           </p>
           <p>Booking ID: <span className="text-white">{bookingData.bookingId}</span></p>
           <p>Package: <span className="text-white">{bookingData.package}</span></p>
@@ -63,31 +63,31 @@ function BookingConfirmation({ bookingData }) {
 
       {/* Payment Proof Section */}
       {/* {bookingData.paymentProofUploaded && (
-        <div className="mt-4 pt-4 border-t border-gray-600">
-          <h4 className="font-medium text-white mb-2">Payment Proof</h4>
-          <div className="bg-gray-600/50 p-4 rounded">
-            {!imageLoaded && <p className="text-gray-400 text-sm">Loading image...</p>}
+        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-600">
+          <h4 className="font-medium text-base sm:text-lg text-white mb-2">Payment Proof</h4>
+          <div className="bg-gray-600/50 p-3 sm:p-4 rounded">
+            {!imageLoaded && <p className="text-gray-400 text-xs sm:text-sm">Loading image...</p>}
             {imageLoaded && (
               <img 
                 src={imageSrc}
                 alt="Payment Proof"
-                className="w-full md:max-w-lg mx-auto rounded shadow-md"
-                style={{ maxHeight: '50vh', objectFit: 'contain' }}
+                className="w-full sm:max-w-md md:max-w-lg mx-auto rounded shadow-md"
+                style={{ maxHeight: '40vh', objectFit: 'contain' }}
               />
             )}
           </div>
         </div>
       )} */}
 
-      <div className="text-gray-400 text-sm">
+      <div className="text-gray-400 text-xs sm:text-sm">
         <p>A confirmation email has been sent to {bookingData.customerDetails.email}</p>
-        <p className="mt-2">For any questions, please contact us at lavisualmedia@gmail.com</p>
+        <p className="mt-1 sm:mt-2">For any questions, please contact us at lavisualmedia@gmail.com</p>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <a
           href="/"
-          className="px-6 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 inline-block"
+          className="px-4 py-2 sm:px-6 sm:py-3 bg-purple-600 text-white text-sm sm:text-base rounded hover:bg-purple-700 inline-block"
         >
           Return to Home
         </a>

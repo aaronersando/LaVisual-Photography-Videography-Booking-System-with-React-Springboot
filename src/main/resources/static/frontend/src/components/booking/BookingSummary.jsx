@@ -207,63 +207,63 @@ const handleFinalSubmit = async () => {
   // If we're on the file upload step (for GCash)
   if (showUploadStep) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-xl text-white mb-6">Payment Proof Upload</h2>
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
+        <h2 className="text-lg sm:text-xl md:text-2xl text-white mb-4 sm:mb-6">Payment Proof Upload</h2>
         
-        <div className="bg-gray-700 p-4 rounded-lg mb-6">
-          <h3 className="font-semibold text-lg text-white mb-4">GCash Payment</h3>
-          <p className="text-gray-300 mb-4">
+        <div className="bg-gray-700 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6">
+          <h3 className="font-semibold text-base sm:text-lg text-white mb-3 sm:mb-4">GCash Payment</h3>
+          <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4">
             Please scan the QR code below to make your payment of ₱{(paymentType === 'full' ? data.price : calculateDownPayment()).toLocaleString()}
           </p>
           
           {/* QR Code Display */}
-          <div className="bg-white p-4 rounded-lg flex justify-center mb-4">
+          <div className="bg-white p-3 sm:p-4 rounded-lg flex justify-center mb-3 sm:mb-4">
             <img 
               src={qrCode} 
               alt="GCash QR Code" 
-              className="max-w-[200px]"
+              className="w-36 sm:w-40 md:w-48 max-w-full"
             />
           </div>
           
           {/* Upload Section */}
-          <div className="mt-6">
-            <h4 className="text-sm font-medium text-gray-300 mb-2">
+          <div className="mt-4 sm:mt-6">
+            <h4 className="text-sm sm:text-base font-medium text-gray-300 mb-2">
               Upload Payment Screenshot
             </h4>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">
               After completing your payment, please upload a screenshot as proof of payment.
             </p>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
                 ref={fileInputRef}
-                className="block w-full text-sm text-gray-400
-                  file:mr-4 file:py-2 file:px-4
+                className="block w-full text-xs sm:text-sm text-gray-400
+                  file:mr-3 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4
                   file:rounded file:border-0
-                  file:text-sm file:font-semibold
+                  file:text-xs sm:file:text-sm file:font-semibold
                   file:bg-purple-600 file:text-white
                   hover:file:bg-purple-700
                   file:cursor-pointer cursor-pointer"
               />
               
               {paymentProofFile && (
-                <div className="mt-4">
-                  <h5 className="text-sm text-gray-300 mb-2">Preview:</h5>
-                  <div className="border border-gray-600 rounded-lg p-2 bg-gray-700">
+                <div className="mt-3 sm:mt-4">
+                  <h5 className="text-xs sm:text-sm text-gray-300 mb-2">Preview:</h5>
+                  <div className="border border-gray-600 rounded-lg p-1.5 sm:p-2 bg-gray-700">
                     <img 
                       src={URL.createObjectURL(paymentProofFile)} 
                       alt="Payment Proof Preview" 
-                      className="w-full max-h-48 object-contain rounded"
+                      className="w-full max-h-32 sm:max-h-48 object-contain rounded"
                     />
                   </div>
                 </div>
               )}
               
               {uploadError && (
-                <div className="text-red-500 text-sm mt-2">
+                <div className="text-red-500 text-xs sm:text-sm mt-2">
                   {uploadError}
                 </div>
               )}
@@ -273,19 +273,19 @@ const handleFinalSubmit = async () => {
         
         {/* Error Display */}
         {error && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-100 rounded">
-            <p className="flex items-center">
-              <i className="fa fa-exclamation-circle w-5 h-5 mr-2 flex-shrink-0" aria-hidden="true"></i>
+          <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-red-500/20 border border-red-500 text-red-100 rounded">
+            <p className="flex items-center text-xs sm:text-sm">
+              <i className="fa fa-exclamation-circle w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true"></i>
               {error}
             </p>
           </div>
         )}
         
         {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
+        <div className="flex justify-between mt-4 sm:mt-6">
           <button
             onClick={() => setShowUploadStep(false)}
-            className="px-4 py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded text-sm sm:text-base"
             disabled={isSubmitting}
           >
             Back
@@ -293,7 +293,7 @@ const handleFinalSubmit = async () => {
           <button
             onClick={handleFinalSubmit}
             disabled={!paymentProofFile || isSubmitting}
-            className={`px-4 py-2 ${isSubmitting ? 'bg-purple-700 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded disabled:opacity-50`}
+            className={`px-3 py-1.5 sm:px-4 sm:py-2 ${isSubmitting ? 'bg-purple-700 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded disabled:opacity-50 text-sm sm:text-base`}
           >
             {isSubmitting ? 'Processing...' : 'Complete Booking'}
           </button>
@@ -304,29 +304,29 @@ const handleFinalSubmit = async () => {
 
   // Original payment selection view
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
-      <h2 className="text-xl text-white mb-6">Review & Payment</h2>
+    <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
+      <h2 className="text-lg sm:text-xl md:text-2xl text-white mb-4 sm:mb-6">Review & Payment</h2>
       
       {/* Booking Summary */}
-      <div className="space-y-4 text-white mb-8">
-        <div className="bg-gray-700 p-4 rounded-lg">
-          <h3 className="font-semibold text-lg mb-4">Booking Summary</h3>
+      <div className="space-y-3 sm:space-y-4 text-white mb-6 sm:mb-8">
+        <div className="bg-gray-700 p-3 sm:p-4 rounded-lg">
+          <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Booking Summary</h3>
           <div className="space-y-2">
-            <div className="flex justify-between">
+            <div className="flex justify-between text-sm sm:text-base">
               <span>Package:</span>
               <span className="font-medium">{data.package}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between text-sm sm:text-base">
               <span>Category:</span>
               <span className="font-medium">{data.category}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between text-sm sm:text-base">
               <span>Date:</span>
               <span className="font-medium">
                 {new Date(data.date).toLocaleDateString()} 
               </span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between text-sm sm:text-base">
               <span>Time:</span>
               <span className="font-medium">
                 {data.timeRange 
@@ -335,7 +335,7 @@ const handleFinalSubmit = async () => {
                 }
               </span>
             </div>
-            <div className="flex justify-between text-lg font-semibold text-purple-400 mt-4">
+            <div className="flex justify-between text-base sm:text-lg font-semibold text-purple-400 mt-3 sm:mt-4">
               <span>Total Amount:</span>
               <span>₱{data.price.toLocaleString()}</span>
             </div>
@@ -343,9 +343,9 @@ const handleFinalSubmit = async () => {
         </div>
 
         {/* Customer Details */}
-        <div className="bg-gray-700 p-4 rounded-lg">
-          <h3 className="font-semibold text-lg mb-4">Customer Details</h3>
-          <div className="space-y-2">
+        <div className="bg-gray-700 p-3 sm:p-4 rounded-lg">
+          <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Customer Details</h3>
+          <div className="space-y-1.5 sm:space-y-2 text-sm sm:text-base">
             <p><span className="text-gray-400">Name:</span> {data.customerDetails.name}</p>
             <p><span className="text-gray-400">Email:</span> {data.customerDetails.email}</p>
             <p><span className="text-gray-400">Phone:</span> {data.customerDetails.phone}</p>
@@ -357,49 +357,49 @@ const handleFinalSubmit = async () => {
         </div>
 
         {/* Payment Options */}
-        <div className="bg-gray-700 p-4 rounded-lg">
-          <h3 className="font-semibold text-lg mb-4">Payment Options</h3>
+        <div className="bg-gray-700 p-3 sm:p-4 rounded-lg">
+          <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Payment Options</h3>
           
           {/* Payment Type Selection */}
-          <div className="mb-4">
-            <h4 className="text-sm text-gray-400 mb-2">Select Payment Type</h4>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="mb-3 sm:mb-4">
+            <h4 className="text-xs sm:text-sm text-gray-400 mb-2">Select Payment Type</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
               <button
                 type="button"
                 onClick={() => setPaymentType('full')}
-                className={`p-3 rounded-lg border ${
+                className={`p-2 sm:p-3 rounded-lg border ${
                   paymentType === 'full'
                     ? 'border-purple-500 bg-purple-500/20'
                     : 'border-gray-600 hover:border-purple-500'
                 }`}
               >
-                <div className="text-sm">Full Payment</div>
-                <div className="text-lg font-semibold">₱{data.price.toLocaleString()}</div>
+                <div className="text-xs sm:text-sm">Full Payment</div>
+                <div className="text-sm sm:text-lg font-semibold">₱{data.price.toLocaleString()}</div>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentType('down')}
-                className={`p-3 rounded-lg border ${
+                className={`p-2 sm:p-3 rounded-lg border ${
                   paymentType === 'down'
                     ? 'border-purple-500 bg-purple-500/20'
                     : 'border-gray-600 hover:border-purple-500'
                 }`}
               >
-                <div className="text-sm">50% Down Payment</div>
-                <div className="text-lg font-semibold">₱{calculateDownPayment().toLocaleString()}</div>
+                <div className="text-xs sm:text-sm">50% Down Payment</div>
+                <div className="text-sm sm:text-lg font-semibold">₱{calculateDownPayment().toLocaleString()}</div>
               </button>
             </div>
           </div>
 
           {/* Payment Method Selection */}
           {paymentType && (
-            <div className="mb-4">
-              <h4 className="text-sm text-gray-400 mb-2">GCash Payment</h4>
+            <div className="mb-3 sm:mb-4">
+              <h4 className="text-xs sm:text-sm text-gray-400 mb-2">GCash Payment</h4>
               <div>
                 <input
                   type="text"
                   placeholder="GCash Number (e.g., 09XX-XXX-XXXX)"
-                  className="w-full p-2 bg-gray-600 rounded border border-gray-500"
+                  className="w-full p-2 sm:p-2.5 text-sm sm:text-base bg-gray-600 rounded border border-gray-500"
                   value={gcashNumber}
                   onChange={(e) => setGcashNumber(e.target.value)}
                   required
@@ -413,19 +413,19 @@ const handleFinalSubmit = async () => {
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-100 rounded">
-          <p className="flex items-center">
-            <i className="fa fa-exclamation-circle w-5 h-5 mr-2 flex-shrink-0" aria-hidden="true"></i>
+        <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-red-500/20 border border-red-500 text-red-100 rounded">
+          <p className="flex items-center text-xs sm:text-sm">
+            <i className="fa fa-exclamation-circle w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true"></i>
             {error}
           </p>
         </div>
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between mt-4 sm:mt-6">
         <button
           onClick={onBack}
-          className="px-4 py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded text-sm sm:text-base"
           disabled={isSubmitting}
         >
           Back
@@ -433,7 +433,7 @@ const handleFinalSubmit = async () => {
         <button
           onClick={handleInitialSubmit}
           disabled={!paymentType || isSubmitting || !gcashNumber}
-          className={`px-4 py-2 ${isSubmitting ? 'bg-purple-700 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded disabled:opacity-50`}
+          className={`px-3 py-1.5 sm:px-4 sm:py-2 ${isSubmitting ? 'bg-purple-700 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded disabled:opacity-50 text-sm sm:text-base`}
         >
           {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
         </button>

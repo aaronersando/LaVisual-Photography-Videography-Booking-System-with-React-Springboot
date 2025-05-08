@@ -183,23 +183,23 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
-      <h2 className="text-xl text-white mb-6">Select Date & Time</h2>
+    <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
+      <h2 className="text-lg sm:text-xl md:text-2xl text-white mb-4 sm:mb-6">Select Date & Time</h2>
       
       {isLoading && (
-        <div className="text-center text-purple-400 mb-4">
+        <div className="text-center text-purple-400 mb-3 sm:mb-4">
           <p>Loading availability data...</p>
         </div>
       )}
       
       {error && (
-        <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-100 rounded">
-          <p>{error}</p>
+        <div className="mb-3 sm:mb-4 p-3 bg-red-500/20 border border-red-500 text-red-100 rounded">
+          <p className="text-sm sm:text-base">{error}</p>
         </div>
       )}
       
       {/* Calendar */}
-      <div className="mb-3">
+      <div className="mb-3 sm:mb-4 md:mb-5 mx-auto max-w-xs sm:max-w-sm md:max-w-md">
         <CalendarComp
           onDateSelect={handleDateSelect}
           selectedDate={selectedDate}
@@ -209,18 +209,18 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
 
       {/* Display a message if no date is selected */}
       {!selectedDate && (
-        <div className="text-center text-gray-400 mb-4">
-          <p>Please select a date to view available time slots</p>
+        <div className="text-center text-gray-400 mb-3 sm:mb-4">
+          <p className="text-sm sm:text-base">Please select a date to view available time slots</p>
         </div>
       )}
 
       {/* Time Range Selection */}
       {selectedDate && (
-        <div className="mb-6">
-          <h3 className="text-white text-center text-lg font-bold mb-3">
+        <div className="mb-4 sm:mb-5 md:mb-6">
+          <h3 className="text-white text-center text-base sm:text-lg font-bold mb-2 sm:mb-3">
             Select Time Range ({packageDuration} hours)
           </h3>
-          <div className="grid grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto pr-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-h-[40vh] sm:max-h-[50vh] overflow-y-auto pr-1 sm:pr-2">
             {getTimeRangesWithAvailability().map((range) => {
               const isSelected = selectedTimeRange?.startTime === range.startTime;
               
@@ -230,7 +230,7 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
                   onClick={() => !range.isOverlapping && handleTimeSelect(range)}
                   disabled={range.isOverlapping}
                   className={`
-                    p-3 rounded-lg border transition-all
+                    p-2 sm:p-3 rounded-lg border transition-all
                     ${range.isOverlapping 
                       ? 'bg-red-900/20 border-red-900/50 text-red-300/50 cursor-not-allowed'
                       : isSelected
@@ -239,11 +239,11 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
                     }
                   `}
                 >
-                  <div className="text-sm">
+                  <div className="text-xs sm:text-sm">
                     {range.formattedStartTime} - {range.formattedEndTime}
                   </div>
                   {range.isOverlapping && (
-                    <div className="text-xs text-red-300/50 mt-1">
+                    <div className="text-xs mt-1">
                       Already Booked
                     </div>
                   )}
@@ -255,17 +255,17 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between mt-4 sm:mt-6">
         <button
           onClick={onBack}
-          className="px-4 py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded text-sm sm:text-base"
         >
           Back
         </button>
         <button
           onClick={handleSubmit}
           disabled={!selectedDate || !selectedTimeRange}
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 text-sm sm:text-base"
         >
           Continue
         </button>

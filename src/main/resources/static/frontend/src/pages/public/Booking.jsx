@@ -60,14 +60,14 @@ function Booking() {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-[#111827] py-20">
-          <div className="container mx-auto px-4">
-            <div className="bg-red-500/20 border border-red-500 text-red-100 p-4 rounded">
-              <h2 className="text-xl font-bold">An error occurred</h2>
-              <p>{bookingError}</p>
+        <main className="min-h-screen bg-[#111827] py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+          <div className="w-full max-w-md sm:max-w-lg md:max-w-xl">
+            <div className="bg-red-500/20 border border-red-500 text-red-100 p-4 sm:p-6 rounded shadow-lg">
+              <h2 className="text-lg sm:text-xl font-bold">An error occurred</h2>
+              <p className="mt-2 text-sm sm:text-base">{bookingError}</p>
               <button 
                 onClick={() => setBookingError(null)}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded"
+                className="mt-4 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 text-white text-sm sm:text-base rounded hover:bg-red-700 transition-colors"
               >
                 Try Again
               </button>
@@ -79,22 +79,24 @@ function Booking() {
     );
   }
 
-  
-
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#111827] py-20">
+      <main className="min-h-screen bg-[#111827] py-10 sm:py-14 md:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-white text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white text-center mb-6 sm:mb-8">
             Book Your Session
           </h1>
           
           {/* Progress Steps */}
-          {currentStep < 5 && <BookingSteps steps={steps.slice(0, 4)} currentStep={currentStep} />}
+          {currentStep < 5 && (
+            <div className="px-2 sm:px-4">
+              <BookingSteps steps={steps.slice(0, 4)} currentStep={currentStep} />
+            </div>
+          )}
 
           {/* Step Content */}
-          <div className="mt-8 max-w-3xl mx-auto">
+          <div className="mt-6 sm:mt-8 max-w-3xl mx-auto bg-gray-900/50 rounded-lg p-4 sm:p-6 md:p-8">
             {currentStep === 1 && (
               <PackageSelection 
                 onNext={handleNext} 
