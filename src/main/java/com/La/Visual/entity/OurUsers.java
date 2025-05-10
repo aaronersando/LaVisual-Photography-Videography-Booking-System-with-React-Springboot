@@ -59,20 +59,4 @@ public record OurUsers(
     public int getId() {
         return id; // Return 0 if id is null
     }
-
-    // public String getEmail() {
-        
-    // }
-
-    // public String getName() {
-        
-    // }
-
-    // public String getCity() {
-        
-    // }
-
-    // public String getRole() {
-        
-    // }
 }

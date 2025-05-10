@@ -1,9 +1,11 @@
 
-
+/* To set the default background color and text of the body */
 body{
     background-color: #111827;
     color: #fff;
 }
+
+/* Tailwind css import/configuration and all generated css code */
 
 @import "tailwindcss";
 
