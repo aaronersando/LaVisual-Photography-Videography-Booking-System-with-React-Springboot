@@ -458,52 +458,5 @@ function PortfolioBackground() {
   );
 }
 
-// Enhanced floating particles for CTA section
-// function EnhancedFloatingParticles() {
-//   return (
-//     <div className="absolute inset-0 overflow-hidden">
-//       {[...Array(30)].map((_, i) => {
-//         const size = Math.random() * 12 + 2;
-//         const isLarge = Math.random() > 0.8;
-//         const isGlowing = Math.random() > 0.7;
-        
-//         return (
-//           <motion.div
-//             key={i}
-//             className={`absolute rounded-full ${isGlowing ? 'shadow-glow' : ''}`}
-//             initial={{ 
-//               x: `${Math.random() * 100}%`, 
-//               y: `${Math.random() * 100}%`,
-//               opacity: Math.random() * 0.5 + 0.2,
-//               scale: 0
-//             }}
-//             animate={{ 
-//               y: [`${Math.random() * 100}%`, `${Math.random() * 100}%`],
-//               x: [`${Math.random() * 100}%`, `${Math.random() * 100}%`],
-//               opacity: [Math.random() * 0.3 + 0.2, Math.random() * 0.5 + 0.3],
-//               scale: [0, 1, isLarge ? 1.5 : 1, 0],
-//               rotate: isLarge ? [0, 360] : [0, 0]
-//             }}
-//             transition={{ 
-//               duration: 15 + Math.random() * 20,
-//               times: [0, 0.2, 0.8, 1],
-//               repeat: Infinity,
-//               repeatType: "loop",
-//               ease: "easeInOut"
-//             }}
-//             style={{ 
-//               width: `${size}px`,
-//               height: `${size}px`,
-//               background: isGlowing 
-//                 ? `radial-gradient(circle at center, rgba(196, 130, 252, 0.8) 0%, rgba(196, 130, 252, 0.4) 60%, rgba(196, 130, 252, 0) 100%)`
-//                 : `rgba(255, 255, 255, ${Math.random() * 0.2 + 0.1})`,
-//               boxShadow: isGlowing ? '0 0 10px 2px rgba(196, 130, 252, 0.5)' : 'none'
-//             }}
-//           />
-//         );
-//       })}
-//     </div>
-//   );
-// }
 
 export default Home;

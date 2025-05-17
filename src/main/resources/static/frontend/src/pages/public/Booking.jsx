@@ -21,7 +21,7 @@ function Booking() {
       name: '',
       email: '',
       phone: '',
-      location: '', // Add location field
+      location: '', 
       notes: ''
     },
     price: 0,
