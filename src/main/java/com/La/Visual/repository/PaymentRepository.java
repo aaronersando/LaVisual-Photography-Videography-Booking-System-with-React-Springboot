@@ -88,8 +88,8 @@ public class PaymentRepository {
         
         // If payment type is DOWNPAYMENT, calculate remaining balance
         Payment payment = findById(paymentId).orElse(null);
-        if (payment != null && "DOWNPAYMENT".equals(payment.paymentType())) {
-            remainingBalance = packagePrice - payment.amount();
+        if (payment != null && "DOWNPAYMENT".equals(payment.getPaymentType())) {
+            remainingBalance = packagePrice - payment.getAmount();
         }
         
         jdbcTemplate.update(
@@ -123,12 +123,12 @@ public class PaymentRepository {
             "UPDATE payments SET payment_type = ?, payment_method = ?, amount = ?, " +
             "payment_status = ?, remaining_balance = ? " +
             "WHERE payment_id = ?",
-            payment.paymentType(),
-            payment.paymentMethod(),
-            payment.amount(),
-            payment.paymentStatus(),
-            payment.remainingBalance(),
-            payment.paymentId()
+            payment.getPaymentType(),
+            payment.getPaymentMethod(),
+            payment.getAmount(),
+            payment.getPaymentStatus(),
+            payment.getRemainingBalance(),
+            payment.getPaymentId()
         );
         
         return payment;

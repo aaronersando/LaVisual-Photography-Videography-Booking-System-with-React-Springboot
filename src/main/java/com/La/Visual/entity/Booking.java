@@ -1,65 +1,44 @@
 package com.La.Visual.entity;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.With;
+import lombok.ToString;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 
-@Builder
+@Getter
 @With
-public record Booking(
-    Integer bookingId,
-    String guestName,
-    String guestEmail,
-    String guestPhone,
-    LocalDate bookingDate,
-    LocalTime bookingTimeStart,
-    LocalTime bookingTimeEnd,
-    Integer bookingHours,
-    String location,
-    String categoryName,
-    String packageName,
-    Double packagePrice,
-    String specialRequests,
-    String bookingStatus,
-    String bookingReference,
-    Integer paymentId,
-    String paymentProof,
-    String adminNotes,
-    LocalDateTime createdAt
-) {
-    // Remove this custom builder method - Lombok generates it for you
-    // public static Builder builder() {
-    //     return new Builder();
-    // }
-
-    // Keep your other methods
-    public Booking withAdminNotes(String adminNotes) {
-        return new Booking(
-            this.bookingId,
-            this.guestName,
-            this.guestEmail,
-            this.guestPhone,
-            this.bookingDate,
-            this.bookingTimeStart,
-            this.bookingTimeEnd,
-            this.bookingHours,
-            this.location,
-            this.categoryName,
-            this.packageName,
-            this.packagePrice,
-            this.specialRequests,
-            this.bookingStatus,
-            this.bookingReference,
-            this.paymentId,
-            this.paymentProof,
-            adminNotes,
-            this.createdAt
-        );
-    }
+@Builder(toBuilder = true)
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class Booking {
+    private final Integer bookingId;
+    private final String guestName;
+    private final String guestEmail;
+    private final String guestPhone;
+    private final LocalDate bookingDate;
+    private final LocalTime bookingTimeStart;
+    private final LocalTime bookingTimeEnd;
+    private final Integer bookingHours;
+    private final String location;
+    private final String categoryName;
+    private final String packageName;
+    private final Double packagePrice;
+    private final String specialRequests;
+    private final String bookingStatus;
+    private final String bookingReference;
+    private final Integer paymentId;
+    private final String paymentProof;
+    private final String adminNotes;
+    private final LocalDateTime createdAt;
     
+    // Keep your custom methods
     public boolean isUpcoming() {
         return bookingDate != null && bookingDate.isAfter(LocalDate.now());
     }

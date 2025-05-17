@@ -70,23 +70,23 @@ public class BookingService {
                 .specialRequests(request.specialRequests())
                 .bookingStatus("PENDING") // Initial status
                 .bookingReference(bookingReference) // Add this line
-                .paymentId(initialPayment.paymentId())
+                .paymentId(initialPayment.getPaymentId())
                 .build();
             
             Booking savedBooking = bookingRepository.save(booking);
             
             // Step 3: Update payment with booking_id
             paymentRepository.updateBookingId(
-                initialPayment.paymentId(),
-                savedBooking.bookingId(),
-                savedBooking.packagePrice()
+                initialPayment.getPaymentId(),
+                savedBooking.getBookingId(),
+                savedBooking.getPackagePrice()
             );
             
             // Prepare response
             Map<String, Object> data = new HashMap<>();
-            data.put("bookingId", savedBooking.bookingId());
-            data.put("paymentId", initialPayment.paymentId());
-            data.put("bookingReference", savedBooking.bookingReference()); // Add this line
+            data.put("bookingId", savedBooking.getBookingId());
+            data.put("paymentId", initialPayment.getPaymentId());
+            data.put("bookingReference", savedBooking.getBookingReference()); // Add this line
             
             return new RequestResponse(
                 "Booking created successfully",
@@ -113,7 +113,7 @@ public class BookingService {
         try {
             return bookingRepository.findById(id)
                 .map(booking -> {
-                    List<Payment> payments = paymentRepository.findByBookingId(booking.bookingId());
+                    List<Payment> payments = paymentRepository.findByBookingId(booking.getBookingId());
                     
                     Map<String, Object> data = new HashMap<>();
                     data.put("booking", booking);
@@ -229,7 +229,7 @@ public class BookingService {
             );
             
             // Step 2: Set the payment proof immediately
-            paymentRepository.updatePaymentProof(initialPayment.paymentId(), proofFileName);
+            paymentRepository.updatePaymentProof(initialPayment.getPaymentId(), proofFileName);
             
             // Use provided reference or generate a new one if not provided
             String bookingReference = request.bookingReference();
@@ -253,7 +253,7 @@ public class BookingService {
                 .specialRequests(request.specialRequests())
                 .bookingStatus("PENDING") // Initial status
                 .bookingReference(bookingReference)
-                .paymentId(initialPayment.paymentId())
+                .paymentId(initialPayment.getPaymentId())
                 .paymentProof(proofFileName)  // Add payment proof directly to booking
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -262,24 +262,24 @@ public class BookingService {
             
             // Update payment with booking_id
             paymentRepository.updateBookingId(
-                initialPayment.paymentId(),
-                savedBooking.bookingId(),
-                savedBooking.packagePrice()
+                initialPayment.getPaymentId(),
+                savedBooking.getBookingId(),
+                savedBooking.getPackagePrice()
             );
             
             // Update payment status to COMPLETED since proof is provided
             Payment updatedPayment = initialPayment
                 .withPaymentStatus("COMPLETED")
-                .withBookingId(savedBooking.bookingId())
+                .withBookingId(savedBooking.getBookingId())
                 .withPaymentProof(proofFileName);
                 
             paymentRepository.update(updatedPayment);
             
             // Prepare response data
             Map<String, Object> data = new HashMap<>();
-            data.put("bookingId", savedBooking.bookingId());
-            data.put("paymentId", initialPayment.paymentId());
-            data.put("bookingReference", savedBooking.bookingReference());
+            data.put("bookingId", savedBooking.getBookingId());
+            data.put("paymentId", initialPayment.getPaymentId());
+            data.put("bookingReference", savedBooking.getBookingReference());
             data.put("paymentProof", proofFileName);
             
             return new RequestResponse(
@@ -321,7 +321,7 @@ public class BookingService {
                         }
                         
                         // Step 3: Delete any associated payments (optional if they're already unlinked)
-                        Integer paymentId = booking.paymentId();
+                        Integer paymentId = booking.getPaymentId();
                         if (paymentId != null) {
                             paymentRepository.deleteById(paymentId);
                         }
@@ -411,10 +411,10 @@ public class BookingService {
             
             // Check if there are any overlapping bookings (excluding the current booking)
             List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(
-                booking.bookingDate(), 
+                booking.getBookingDate(), 
                 startTime, 
                 endTime,
-                booking.bookingId()
+                booking.getBookingId()
             );
             
             if (!overlappingBookings.isEmpty()) {
@@ -484,7 +484,7 @@ public class BookingService {
                 .specialRequests(request.specialRequests())
                 .bookingStatus("CONFIRMED") // Admin-created bookings are automatically confirmed
                 .bookingReference(bookingReference)
-                .paymentId(initialPayment.paymentId())
+                .paymentId(initialPayment.getPaymentId())
                 .build();
             
             // Save the booking
@@ -493,7 +493,7 @@ public class BookingService {
             // Step 3: Update payment with booking_id and set to completed
             Payment updatedPayment = initialPayment
                 .withPaymentStatus("COMPLETED")
-                .withBookingId(savedBooking.bookingId());
+                .withBookingId(savedBooking.getBookingId());
             
             paymentRepository.update(updatedPayment);
             
@@ -501,7 +501,7 @@ public class BookingService {
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("booking", savedBooking);
             responseData.put("payment", updatedPayment);
-            responseData.put("bookingReference", savedBooking.bookingReference());
+            responseData.put("bookingReference", savedBooking.getBookingReference());
             
             return new RequestResponse(
                 "Booking created successfully",
@@ -543,29 +543,29 @@ public class BookingService {
                 .map(booking -> {
                     try {
                         // Update booking status
-                        System.out.println("Found booking: " + booking.bookingId() + ", current status: " + booking.bookingStatus());
+                        System.out.println("Found booking: " + booking.getBookingId() + ", current status: " + booking.getBookingStatus());
                         
                         // Create updated booking with new status and admin notes
                         Booking updatedBooking = new Booking(
-                            booking.bookingId(),
-                            booking.guestName(),
-                            booking.guestEmail(),
-                            booking.guestPhone(),
-                            booking.bookingDate(),
-                            booking.bookingTimeStart(),
-                            booking.bookingTimeEnd(),
-                            booking.bookingHours(),
-                            booking.location(),
-                            booking.categoryName(),
-                            booking.packageName(),
-                            booking.packagePrice(),
-                            booking.specialRequests(),
+                            booking.getBookingId(),
+                            booking.getGuestName(),
+                            booking.getGuestEmail(),
+                            booking.getGuestPhone(),
+                            booking.getBookingDate(),
+                            booking.getBookingTimeStart(),
+                            booking.getBookingTimeEnd(),
+                            booking.getBookingHours(),
+                            booking.getLocation(),
+                            booking.getCategoryName(),
+                            booking.getPackageName(),
+                            booking.getPackagePrice(),
+                            booking.getSpecialRequests(),
                             "CONFIRMED", // Change from "APPROVED" to "CONFIRMED" to match the ENUM
-                            booking.bookingReference(),
-                            booking.paymentId(),
-                            booking.paymentProof(),
+                            booking.getBookingReference(),
+                            booking.getPaymentId(),
+                            booking.getPaymentProof(),
                             adminNotes,
-                            booking.createdAt()
+                            booking.getCreatedAt()
                         );
                         
                         // Save the updated booking
@@ -677,15 +677,15 @@ public class BookingService {
                     data.put("booking", booking);
                     
                     // Get payment info if exists
-                    if (booking.paymentId() != null) {
-                        Payment payment = paymentRepository.findById(booking.paymentId()).orElse(null);
+                    if (booking.getPaymentId() != null) {
+                        Payment payment = paymentRepository.findById(booking.getPaymentId()).orElse(null);
                         data.put("payment", payment);
                     }
                     
                     // Add payment proof URL if exists
                     String paymentProofUrl = null;
-                    if (booking.paymentProof() != null && !booking.paymentProof().isEmpty()) {
-                        paymentProofUrl = "/api/files/download/" + booking.paymentProof();
+                    if (booking.getPaymentProof() != null && !booking.getPaymentProof().isEmpty()) {
+                        paymentProofUrl = "/api/files/download/" + booking.getPaymentProof();
                         data.put("paymentProofUrl", paymentProofUrl);
                     }
                     

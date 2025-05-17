@@ -34,18 +34,18 @@ public class UsersRepository {
     
         // Execute the INSERT query
         int rowsAffected = jdbcClient.sql(sql)
-            .param("email", ourUser.email())
-            .param("name", ourUser.name())
-            .param("password", ourUser.password())
-            .param("city", ourUser.city())
-            .param("role", ourUser.role())
+            .param("email", ourUser.getEmail())
+            .param("name", ourUser.getName())
+            .param("password", ourUser.getPassword())
+            .param("city", ourUser.getCity())
+            .param("role", ourUser.getRole())
             .update();
     
         if (rowsAffected > 0) {
             // Retrieve the generated ID
             String selectSql = "SELECT id FROM our_users WHERE email = :email";
             Integer generatedId = jdbcClient.sql(selectSql)
-                .param("email", ourUser.email())
+                .param("email", ourUser.getEmail())
                 .query(Integer.class)
                 .single();
     
@@ -83,18 +83,18 @@ public class UsersRepository {
         """;
     
         int rowsAffected = jdbcClient.sql(sql)
-            .param("id", ourUser.id())
-            .param("name", ourUser.name())
-            .param("email", ourUser.email())
-            .param("password", ourUser.password())
-            .param("city", ourUser.city())
-            .param("role", ourUser.role())
+            .param("id", ourUser.getId())
+            .param("name", ourUser.getName())
+            .param("email", ourUser.getEmail())
+            .param("password", ourUser.getPassword())
+            .param("city", ourUser.getCity())
+            .param("role", ourUser.getRole())
             .update();
     
         if (rowsAffected > 0) {
             return ourUser;
         } else {
-            throw new IllegalStateException("Failed to update user with ID: " + ourUser.id());
+            throw new IllegalStateException("Failed to update user with ID: " + ourUser.getId());
         }
     }
 

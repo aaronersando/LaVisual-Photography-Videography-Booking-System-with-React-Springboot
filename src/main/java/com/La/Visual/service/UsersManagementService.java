@@ -78,7 +78,7 @@ public class UsersManagementService {
             var refreshToken = jwtUtilities.generateRefreshToken(new HashMap<>(),user);
             response.setStatusCode(200);
             response.setToken(jwt);
-            response.setRole(user.role());
+            response.setRole(user.getRole());
             response.setRefreshToken(refreshToken);
             response.setExpirationTime("24Hrs");
             response.setMessage("Login successful");
@@ -177,10 +177,10 @@ public class UsersManagementService {
             Optional<OurUsers> userOptional = usersRepository.findById(userId);
             if (userOptional.isPresent()) {
                 OurUsers existingUser = userOptional.get()
-                    .withName(updatedUser.name())
-                    .withEmail(updatedUser.email())
-                    .withCity(updatedUser.city())
-                    .withRole(updatedUser.role());
+                    .withName(updatedUser.getName())
+                    .withEmail(updatedUser.getEmail())
+                    .withCity(updatedUser.getCity())
+                    .withRole(updatedUser.getRole());
     
                 if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
                     existingUser = existingUser.withPassword(passwordEncoder.encode(updatedUser.getPassword()));

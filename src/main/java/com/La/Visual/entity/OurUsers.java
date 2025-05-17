@@ -1,7 +1,10 @@
 package com.La.Visual.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-// import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.With;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -10,16 +13,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Builder
+@Getter
 @With
-public record OurUsers(
-    Integer id,
-    String email,
-    String name,
-    String password,
-    String city,
-    String role
-) implements UserDetails {
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
+public class OurUsers implements UserDetails {
+    private final Integer id;
+    private final String email;
+    private final String name;
+    private final String password;
+    private final String city;
+    private final String role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -57,6 +63,6 @@ public record OurUsers(
     }
 
     public int getId() {
-        return id; // Return 0 if id is null
+        return id != null ? id : 0; // Return 0 if id is null
     }
 }

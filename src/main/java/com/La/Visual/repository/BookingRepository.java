@@ -59,24 +59,24 @@ public class BookingRepository {
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 Statement.RETURN_GENERATED_KEYS
             );
-            ps.setString(1, booking.guestName());
-            ps.setString(2, booking.guestEmail());
-            ps.setString(3, booking.guestPhone());
-            ps.setDate(4, java.sql.Date.valueOf(booking.bookingDate()));
-            ps.setTime(5, java.sql.Time.valueOf(booking.bookingTimeStart()));
-            ps.setTime(6, java.sql.Time.valueOf(booking.bookingTimeEnd()));
-            ps.setInt(7, booking.bookingHours());
-            ps.setString(8, booking.location());
-            ps.setString(9, booking.categoryName());
-            ps.setString(10, booking.packageName());
-            ps.setDouble(11, booking.packagePrice());
-            ps.setString(12, booking.specialRequests());
-            ps.setString(13, booking.bookingStatus());
-            ps.setString(14, booking.bookingReference()); // Add this line
-            ps.setInt(15, booking.paymentId());
-            ps.setString(16, booking.paymentProof()); // Add this line
-            ps.setTimestamp(17, Timestamp.valueOf(booking.createdAt() != null ? 
-                      booking.createdAt() : LocalDateTime.now()));
+            ps.setString(1, booking.getGuestName());
+            ps.setString(2, booking.getGuestEmail());
+            ps.setString(3, booking.getGuestPhone());
+            ps.setDate(4, java.sql.Date.valueOf(booking.getBookingDate()));
+            ps.setTime(5, java.sql.Time.valueOf(booking.getBookingTimeStart()));
+            ps.setTime(6, java.sql.Time.valueOf(booking.getBookingTimeEnd()));
+            ps.setInt(7, booking.getBookingHours());
+            ps.setString(8, booking.getLocation());
+            ps.setString(9, booking.getCategoryName());
+            ps.setString(10, booking.getPackageName());
+            ps.setDouble(11, booking.getPackagePrice());
+            ps.setString(12, booking.getSpecialRequests());
+            ps.setString(13, booking.getBookingStatus());
+            ps.setString(14, booking.getBookingReference()); // Add this line
+            ps.setInt(15, booking.getPaymentId());
+            ps.setString(16, booking.getPaymentProof()); // Add this line
+            ps.setTimestamp(17, Timestamp.valueOf(booking.getCreatedAt() != null ? 
+                      booking.getCreatedAt() : LocalDateTime.now()));
             return ps;
         }, keyHolder);
         
@@ -130,24 +130,24 @@ public class BookingRepository {
                 "location = ?, category_name = ?, package_name = ?, package_price = ?, " +
                 "special_requests = ?, booking_status = ?, booking_reference = ?, payment_id = ?, " +
                 "payment_proof = ?, admin_notes = ? WHERE booking_id = ?",
-                booking.guestName(),
-                booking.guestEmail(),
-                booking.guestPhone(),
-                java.sql.Date.valueOf(booking.bookingDate()),
-                java.sql.Time.valueOf(booking.bookingTimeStart()),
-                java.sql.Time.valueOf(booking.bookingTimeEnd()),
-                booking.bookingHours(),
-                booking.location(),
-                booking.categoryName(),
-                booking.packageName(),
-                booking.packagePrice(),
-                booking.specialRequests(),
-                booking.bookingStatus(),
-                booking.bookingReference(),
-                booking.paymentId(),
-                booking.paymentProof(),
-                booking.adminNotes(),          // Add the adminNotes field
-                booking.bookingId()
+                booking.getGuestName(),
+                booking.getGuestEmail(),
+                booking.getGuestPhone(),
+                java.sql.Date.valueOf(booking.getBookingDate()),
+                java.sql.Time.valueOf(booking.getBookingTimeStart()),
+                java.sql.Time.valueOf(booking.getBookingTimeEnd()),
+                booking.getBookingHours(),
+                booking.getLocation(),
+                booking.getCategoryName(),
+                booking.getPackageName(),
+                booking.getPackagePrice(),
+                booking.getSpecialRequests(),
+                booking.getBookingStatus(),
+                booking.getBookingReference(),
+                booking.getPaymentId(),
+                booking.getPaymentProof(),
+                booking.getAdminNotes(),          // Add the adminNotes field
+                booking.getBookingId()
             );
             return booking;
         } catch (Exception e) {

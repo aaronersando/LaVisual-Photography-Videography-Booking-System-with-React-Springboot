@@ -73,20 +73,20 @@ public class AnalyticsController {
             // Fetch all bookings (use confirmed/completed only for revenue)
             List<Booking> allBookings = bookingRepository.findAll();
             List<Booking> confirmedBookings = allBookings.stream()
-                .filter(booking -> "CONFIRMED".equals(booking.bookingStatus()) || 
-                                 "COMPLETED".equals(booking.bookingStatus()))
+                .filter(booking -> "CONFIRMED".equals(booking.getBookingStatus()) || 
+                                 "COMPLETED".equals(booking.getBookingStatus()))
                 .collect(Collectors.toList());
             
             // Calculate total bookings and revenue
             int totalBookings = confirmedBookings.size();
             double totalProfit = confirmedBookings.stream()
-                .mapToDouble(Booking::packagePrice)
+                .mapToDouble(Booking::getPackagePrice)
                 .sum();
             
             // Calculate monthly averages
             Map<YearMonth, List<Booking>> bookingsByMonth = confirmedBookings.stream()
                 .collect(Collectors.groupingBy(booking -> 
-                    YearMonth.from(booking.bookingDate())));
+                    YearMonth.from(booking.getBookingDate())));
             
             double monthlyAvgBookings = bookingsByMonth.isEmpty() ? 0 : 
                 (double) totalBookings / bookingsByMonth.size();
@@ -100,7 +100,7 @@ public class AnalyticsController {
             
             int currentMonthBookingsCount = currentMonthBookings.size();
             double currentMonthProfit = currentMonthBookings.stream()
-                .mapToDouble(Booking::packagePrice)
+                .mapToDouble(Booking::getPackagePrice)
                 .sum();
             
             // Prepare monthly data for charts
@@ -132,7 +132,7 @@ public class AnalyticsController {
                 Map<String, Object> profitData = new HashMap<>();
                 profitData.put("month", monthLabel);
                 profitData.put("value", monthBookings.stream()
-                    .mapToDouble(Booking::packagePrice)
+                    .mapToDouble(Booking::getPackagePrice)
                     .sum());
                 monthlyProfitData.add(profitData);
             }
@@ -140,14 +140,14 @@ public class AnalyticsController {
             // Calculate category distribution
             Map<String, Integer> categoryDistribution = confirmedBookings.stream()
                 .collect(Collectors.groupingBy(
-                    Booking::categoryName,
+                    Booking::getCategoryName,
                     Collectors.summingInt(booking -> 1)
                 ));
             
             // Calculate package popularity
             Map<String, Integer> packagePopularity = confirmedBookings.stream()
                 .collect(Collectors.groupingBy(
-                    Booking::packageName,
+                    Booking::getPackageName,
                     Collectors.summingInt(booking -> 1)
                 ));
             
