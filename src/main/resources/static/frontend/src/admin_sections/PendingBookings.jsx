@@ -3,6 +3,7 @@ import axios from 'axios';
 import emailjs from '@emailjs/browser';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes, faEye, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import PaymentProofViewer from '../components/admin/PaymentProofViewer'
 
 function PendingBookings() {
     const [pendingBookings, setPendingBookings] = useState([]);
@@ -67,11 +68,18 @@ function PendingBookings() {
         try {
             setActionInProgress(true);
             const token = localStorage.getItem('token');
-            const response = await axios.get(`/api/bookings/${bookingId}/details`, {
+            const response = await axios.get(`http://localhost:8080/api/bookings/${bookingId}/details`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
             if (response.data.success) {
+                console.log("Booking details:", response.data.data);
+                console.log("Payment proof URL:", response.data.data.paymentProofUrl);
+                
+                if (response.data.data.payment && response.data.data.payment.paymentProof) {
+                    console.log("Payment proof from payment:", response.data.data.payment.paymentProof);
+                }
+                
                 setSelectedBooking(response.data.data);
                 setShowDetailsModal(true);
             } else {
@@ -379,17 +387,13 @@ function PendingBookings() {
                                 <h4 className="text-lg font-medium text-white border-b border-gray-600 pb-2">Payment Proof</h4>
 
                                 {selectedBooking.paymentProofUrl ? (
-                                    <div className="bg-gray-700 p-2 rounded-lg">
-                                        <img 
-                                            src={selectedBooking.paymentProofUrl}
-                                            alt="Payment Proof" 
-                                            className="w-full max-h-60 object-contain rounded"
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = '/images/payment-placeholder.png';
-                                            }}
-                                        />
-                                    </div>
+                                    <PaymentProofViewer 
+                                        proofUrl={selectedBooking.paymentProofUrl} 
+                                    />
+                                ) : selectedBooking.payment && selectedBooking.payment.paymentProof ? (
+                                    <PaymentProofViewer 
+                                        proofUrl={selectedBooking.payment.paymentProof} 
+                                    />
                                 ) : (
                                     <div className="bg-gray-700 p-4 rounded-lg text-center text-gray-400">
                                         No payment proof available

@@ -677,16 +677,26 @@ public class BookingService {
                     data.put("booking", booking);
                     
                     // Get payment info if exists
+                    Payment payment = null;
                     if (booking.getPaymentId() != null) {
-                        Payment payment = paymentRepository.findById(booking.getPaymentId()).orElse(null);
+                        payment = paymentRepository.findById(booking.getPaymentId()).orElse(null);
                         data.put("payment", payment);
-                    }
-                    
-                    // Add payment proof URL if exists
-                    String paymentProofUrl = null;
-                    if (booking.getPaymentProof() != null && !booking.getPaymentProof().isEmpty()) {
-                        paymentProofUrl = "/api/files/download/" + booking.getPaymentProof();
-                        data.put("paymentProofUrl", paymentProofUrl);
+                        
+                        // Add payment proof URL if exists in the payment object
+                        if (payment != null && payment.getPaymentProof() != null && !payment.getPaymentProof().isEmpty()) {
+                            String paymentProofUrl = "/api/files/view/" + payment.getPaymentProof();
+                            data.put("paymentProofUrl", paymentProofUrl);
+                            System.out.println("Found payment proof: " + payment.getPaymentProof());
+                        } else {
+                            // Try to get from booking as fallback (depending on your schema)
+                            if (booking.getPaymentProof() != null && !booking.getPaymentProof().isEmpty()) {
+                                String paymentProofUrl = "/api/files/view/" + booking.getPaymentProof();
+                                data.put("paymentProofUrl", paymentProofUrl);
+                                System.out.println("Found booking payment proof: " + booking.getPaymentProof());
+                            } else {
+                                System.out.println("No payment proof found for booking ID: " + id);
+                            }
+                        }
                     }
                     
                     return new RequestResponse(
@@ -703,6 +713,7 @@ public class BookingService {
                     false
                 ));
         } catch (Exception e) {
+            e.printStackTrace();
             return new RequestResponse(
                 "Error retrieving booking details: " + e.getMessage(),
                 null,

@@ -8,7 +8,7 @@ import com.La.Visual.entity.Booking;
 import com.La.Visual.repository.BookingRepository;
 import com.La.Visual.repository.PaymentRepository;
 import com.La.Visual.service.BookingService;
-import com.La.Visual.service.FileStorageService;
+import com.La.Visual.storage.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,17 +26,8 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.La.Visual.entity.Booking;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.util.Random;
-import com.La.Visual.entity.Payment;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -42,17 +35,17 @@ import com.La.Visual.entity.Payment;
 public class BookingController {
 
     private final BookingService bookingService;
-    private final FileStorageService fileStorageService;
+    private final StorageService storageService;
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
 
     @Autowired
     public BookingController(BookingService bookingService, 
-                            FileStorageService fileStorageService,
+                            StorageService storageService,
                             PaymentRepository paymentRepository,
                             BookingRepository bookingRepository) {
         this.bookingService = bookingService;
-        this.fileStorageService = fileStorageService;
+        this.storageService = storageService;
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
     }
@@ -117,7 +110,13 @@ public class BookingController {
                 ));
             }
             
-            String fileName = fileStorageService.storeFile(file);
+            // Generate a unique filename
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            String fileName = UUID.randomUUID().toString() + extension;
+            
+            // Store file with new name
+            storageService.store(file, fileName);
             paymentRepository.updatePaymentProof(paymentId, fileName);
             
             Map<String, Object> data = new HashMap<>();
@@ -172,7 +171,25 @@ public class BookingController {
             }
             
             // Store the file and get the filename
-            String proofFileName = fileStorageService.storeFile(proofFile);
+            String proofFileName = null;
+            try {
+                // Generate a unique filename
+                String originalFilename = proofFile.getOriginalFilename();
+                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                proofFileName = UUID.randomUUID().toString() + extension;
+                
+                // Store the file
+                storageService.store(proofFile, proofFileName);
+                System.out.println("Successfully saved payment proof file: " + proofFileName);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(500).body(new RequestResponse(
+                    "Error saving payment proof: " + e.getMessage(), 
+                    null, 
+                    500, 
+                    false
+                ));
+            }
             
             // Create the booking with payment proof
             RequestResponse response = bookingService.createBookingWithProof(bookingRequest, proofFileName);
@@ -180,6 +197,7 @@ public class BookingController {
             return ResponseEntity.status(response.getStatusCode()).body(response);
             
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).body(new RequestResponse(
                 "Error creating booking: " + e.getMessage(), 
                 null, 
@@ -369,5 +387,4 @@ public class BookingController {
         RequestResponse response = bookingService.getBookingsForMonthCalendar(year, month);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
-
 }

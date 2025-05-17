@@ -116,6 +116,22 @@
 	<build>
 		<plugins>
 			<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-clean-plugin</artifactId>
+            <configuration>
+                <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                <filesets>
+                    <fileset>
+                        <directory>${project.build.directory}</directory>
+                        <excludes>
+                            <exclude>classes/static/frontend/node_modules/**</exclude>
+                        </excludes>
+                        <followSymlinks>false</followSymlinks>
+                    </fileset>
+                </filesets>
+            </configuration>
+        </plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
