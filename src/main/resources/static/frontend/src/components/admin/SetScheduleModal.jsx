@@ -1,3 +1,21 @@
+/**
+ * Schedule Management Modal Component
+ * 
+ * This component provides an administrator interface for managing photography session schedules.
+ * It displays a modal dialog that allows administrators to:
+ * 
+ * - View all bookings for a selected date
+ * - Create new manual bookings for available time slots
+ * - Edit existing booking time ranges
+ * - Mark time slots as unavailable
+ * - Delete bookings or unavailable time slots
+ * 
+ * The component handles time format conversions, conflict detection between overlapping bookings,
+ * and communicates with the backend API to persist all changes.
+ * 
+ * It's typically used from the admin calendar view when an admin clicks on a date to manage
+ * its schedule.
+ */
 import { useState, useEffect } from 'react';
 import SetManualSchedule from './SetManualSchedule';
 import ShowScheduleDetails from './ShowScheduleDetails';
@@ -5,249 +23,262 @@ import { faTrash, faTrashAlt, faTrashArrowUp, faTrashCan, faTrashRestore, faX } 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 function SetScheduleModal({ date, onClose, onSetManual, onShowDetails, bookings }) {
+    // Formats Date object to YYYY-MM-DD string format for API calls
     const formatDate = (date) => date.toISOString().split('T')[0];
     const currentDateStr = formatDate(date);
-    const [showManualSchedule, setShowManualSchedule] = useState(false);
-    const [selectedTimeRange, setSelectedTimeRange] = useState(null);
-    const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [selectedBooking, setSelectedBooking] = useState(null);
-    const [timeRanges, setTimeRanges] = useState([]);
-    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-    const [bookingToDelete, setBookingToDelete] = useState(null);
-    const [pendingDeletions, setPendingDeletions] = useState([]);
-    const [editedBookings, setEditedBookings] = useState([]);
-    const [isEdited, setIsEdited] = useState(false);
+    
+    // State for child modal visibility
+    const [showManualSchedule, setShowManualSchedule] = useState(false); // Controls visibility of manual schedule creation modal
+    const [selectedTimeRange, setSelectedTimeRange] = useState(null); // Stores the selected time range for manual scheduling
+    const [showDetailsModal, setShowDetailsModal] = useState(false); // Controls visibility of booking details modal
+    const [selectedBooking, setSelectedBooking] = useState(null); // Stores the booking to show details for
+    
+    // State for time ranges and booking management
+    const [timeRanges, setTimeRanges] = useState([]); // Stores all time ranges (booked, available, unavailable)
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false); // For confirmation dialogs
+    const [bookingToDelete, setBookingToDelete] = useState(null); // Stores booking pending deletion
+    const [pendingDeletions, setPendingDeletions] = useState([]); // Tracks bookings to be deleted on save
+    const [editedBookings, setEditedBookings] = useState([]); // Tracks bookings that have been edited
+    const [isEdited, setIsEdited] = useState(false); // Flag to indicate unsaved changes exist
 
-    // Load time ranges and unavailable slots
-    // Load time ranges and unavailable slots
-useEffect(() => {
-    // Format date as YYYY-MM-DD for comparison with a fixed time (noon)
-    const selectedDate = new Date(date);
-    selectedDate.setHours(12, 0, 0, 0);
-    const formattedDateStr = selectedDate.toISOString().split('T')[0];
-    
-    console.log("SetScheduleModal - Selected date:", formattedDateStr);
-    
-    // Filter bookings for confirmed/completed status first
-    const confirmedBookings = bookings?.filter(booking => 
-        booking.bookingStatus === "CONFIRMED" || 
-        booking.bookingStatus === "COMPLETED"
-    ) || [];
-    
-    console.log(`SetScheduleModal: Filtered ${confirmedBookings.length} confirmed bookings out of ${bookings?.length || 0}`);
-    
-    // Filter confirmed bookings for the selected date with strict date comparison
-    const dateBookings = confirmedBookings.filter(booking => {
-        let bookingDateStr;
+    // Load time ranges and unavailable slots when component mounts or date/bookings change
+    useEffect(() => {
+        // Format date as YYYY-MM-DD for comparison with a fixed time (noon)
+        const selectedDate = new Date(date);
+        // Set time to noon to avoid timezone issues in date comparison
+        selectedDate.setHours(12, 0, 0, 0);
+        const formattedDateStr = selectedDate.toISOString().split('T')[0];
         
-        try {
-            // Handle booking.date field
-            if (booking.date) {
-                if (typeof booking.date === 'string') {
-                    // If already in YYYY-MM-DD format, use directly
-                    if (booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        bookingDateStr = booking.date;
+        console.log("SetScheduleModal - Selected date:", formattedDateStr);
+        
+        // Filter bookings for confirmed/completed status first
+        // Only show confirmed or completed bookings, ignore pending or canceled
+        const confirmedBookings = bookings?.filter(booking => 
+            booking.bookingStatus === "CONFIRMED" || 
+            booking.bookingStatus === "COMPLETED"
+        ) || [];
+        
+        console.log(`SetScheduleModal: Filtered ${confirmedBookings.length} confirmed bookings out of ${bookings?.length || 0}`);
+        
+        // Filter confirmed bookings for the selected date with strict date comparison
+        // This complex filtering handles different date formats that might come from the API
+        const dateBookings = confirmedBookings.filter(booking => {
+            let bookingDateStr;
+            
+            try {
+                // Handle booking.date field
+                if (booking.date) {
+                    if (typeof booking.date === 'string') {
+                        // If already in YYYY-MM-DD format, use directly
+                        if (booking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            bookingDateStr = booking.date;
+                        } else {
+                            // Otherwise parse and format consistently
+                            const bookingDate = new Date(booking.date);
+                            bookingDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+                            bookingDateStr = bookingDate.toISOString().split('T')[0];
+                        }
                     } else {
-                        // Otherwise parse and format consistently
+                        // Handle Date object
                         const bookingDate = new Date(booking.date);
-                        bookingDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+                        bookingDate.setHours(12, 0, 0, 0);
                         bookingDateStr = bookingDate.toISOString().split('T')[0];
                     }
-                } else {
-                    // Handle Date object
-                    const bookingDate = new Date(booking.date);
-                    bookingDate.setHours(12, 0, 0, 0);
-                    bookingDateStr = bookingDate.toISOString().split('T')[0];
-                }
-            } 
-            // Handle booking.bookingDate field
-            else if (booking.bookingDate) {
-                if (typeof booking.bookingDate === 'string') {
-                    if (booking.bookingDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        bookingDateStr = booking.bookingDate;
+                } 
+                // Handle booking.bookingDate field (alternative field name in API)
+                else if (booking.bookingDate) {
+                    if (typeof booking.bookingDate === 'string') {
+                        if (booking.bookingDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            bookingDateStr = booking.bookingDate;
+                        } else {
+                            const bookingDate = new Date(booking.bookingDate);
+                            bookingDate.setHours(12, 0, 0, 0);
+                            bookingDateStr = bookingDate.toISOString().split('T')[0];
+                        }
                     } else {
                         const bookingDate = new Date(booking.bookingDate);
                         bookingDate.setHours(12, 0, 0, 0);
                         bookingDateStr = bookingDate.toISOString().split('T')[0];
                     }
-                } else {
-                    const bookingDate = new Date(booking.bookingDate);
-                    bookingDate.setHours(12, 0, 0, 0);
-                    bookingDateStr = bookingDate.toISOString().split('T')[0];
                 }
+                
+                console.log(`Comparing booking date: ${bookingDateStr} with selected date: ${formattedDateStr} - Match: ${bookingDateStr === formattedDateStr}`);
+                
+                // Return true only for bookings that match our selected date
+                return bookingDateStr === formattedDateStr;
+            } catch (e) {
+                console.error("Error processing booking date:", e, booking);
+                return false;
             }
-            
-            console.log(`Comparing booking date: ${bookingDateStr} with selected date: ${formattedDateStr} - Match: ${bookingDateStr === formattedDateStr}`);
-            
-            return bookingDateStr === formattedDateStr;
-        } catch (e) {
-            console.error("Error processing booking date:", e, booking);
-            return false;
+        }) || [];
+        
+        console.log("Filtered bookings for this date:", dateBookings);
+        
+        // Create initial time ranges including any bookings
+        let initialRanges = [];
+        if (dateBookings.length > 0) {
+            // Sort bookings by start time before mapping to maintain chronological order
+            initialRanges = dateBookings
+                .sort((a, b) => {
+                    // Parse times for comparison
+                    const aTimeStr = a.timeRange?.startTime || a.bookingTimeStart || '00:00';
+                    const bTimeStr = b.timeRange?.startTime || b.bookingTimeStart || '00:00';
+                    
+                    // Convert to comparable format
+                    const aTime = convertTimeStringTo24Hr(aTimeStr);
+                    const bTime = convertTimeStringTo24Hr(bTimeStr);
+                    
+                    return aTime.localeCompare(bTime);
+                })
+                .map((booking, index) => {
+                    // Extract proper time format from booking
+                    const startTime = parseTimeFormat(booking.timeRange?.startTime || booking.bookingTimeStart || '12:00');
+                    const endTime = parseTimeFormat(booking.timeRange?.endTime || booking.bookingTimeEnd || '15:00');
+                    
+                    console.log(`Booking ${index+1} time range: ${startTime} - ${endTime}`);
+                    
+                    // Create a properly formatted booking object with the correct date
+                    // This standardizes data from different API formats into a consistent structure
+                    const bookingData = {
+                        // Use the actual database booking ID, which could be bookingId or id
+                        id: booking.bookingId || booking.id || index + 1,
+                        // Keep track of the actual booking ID separately to ensure we have the right one
+                        databaseId: booking.bookingId || booking.id,
+                        bookingReference: booking.bookingReference || booking.reference || `BKLQ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+                        client: booking.customerDetails?.name || booking.guestName || 'Client',
+                        clientEvent: booking.package || booking.packageName || 'Booking',
+                        category: booking.category || 'Photography',
+                        date: formattedDateStr, // Use the selected date to ensure consistency
+                        timeRange: {
+                            startTime: startTime,
+                            endTime: endTime
+                        },
+                        customerDetails: {
+                            name: booking.customerDetails?.name || booking.guestName || 'Client',
+                            email: booking.customerDetails?.email || booking.guestEmail || '',
+                            phone: booking.customerDetails?.phone || booking.guestPhone || '',
+                            location: booking.customerDetails?.location || booking.location || 'ewan',
+                            notes: booking.customerDetails?.notes || booking.specialRequests || ''
+                        },
+                        paymentDetails: {
+                            type: booking.paymentDetails?.type || booking.paymentType || 'Full Payment',
+                            method: booking.paymentDetails?.method || booking.paymentMethod || 'GCash',
+                            amount: booking.paymentDetails?.amount || booking.amount || 3000,
+                            accountNumber: booking.paymentDetails?.accountNumber || booking.gcashNumber || '09665469008'
+                        },
+                        totalAmount: booking.totalAmount || booking.packagePrice || booking.price || 3000
+                    };
+                    
+                    // Return a time range object with the booking data attached
+                    return {
+                        id: index + 1,
+                        start: startTime,
+                        end: endTime,
+                        status: 'booking', // Mark as a booked slot
+                        date: formattedDateStr,
+                        booking: bookingData // Attach the booking data for reference
+                    };
+                });
         }
-    }) || [];
-    
-    console.log("Filtered bookings for this date:", dateBookings);
-    
-    // Create initial time ranges including any bookings
-    let initialRanges = [];
-    if (dateBookings.length > 0) {
-        // Sort bookings by start time before mapping
-        initialRanges = dateBookings
-            .sort((a, b) => {
-                // Parse times for comparison
-                const aTimeStr = a.timeRange?.startTime || a.bookingTimeStart || '00:00';
-                const bTimeStr = b.timeRange?.startTime || b.bookingTimeStart || '00:00';
-                
-                // Convert to comparable format
-                const aTime = convertTimeStringTo24Hr(aTimeStr);
-                const bTime = convertTimeStringTo24Hr(bTimeStr);
-                
-                return aTime.localeCompare(bTime);
-            })
-            .map((booking, index) => {
-                // Extract proper time format from booking
-                const startTime = parseTimeFormat(booking.timeRange?.startTime || booking.bookingTimeStart || '12:00');
-                const endTime = parseTimeFormat(booking.timeRange?.endTime || booking.bookingTimeEnd || '15:00');
-                
-                console.log(`Booking ${index+1} time range: ${startTime} - ${endTime}`);
-                
-                // Create a properly formatted booking object with the correct date
-                const bookingData = {
-                    // Use the actual database booking ID, which could be bookingId or id
-                    id: booking.bookingId || booking.id || index + 1,
-                    // Keep track of the actual booking ID separately to ensure we have the right one
-                    databaseId: booking.bookingId || booking.id,
-                    bookingReference: booking.bookingReference || booking.reference || `BKLQ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-                    client: booking.customerDetails?.name || booking.guestName || 'Client',
-                    clientEvent: booking.package || booking.packageName || 'Booking',
-                    category: booking.category || 'Photography',
-                    date: formattedDateStr, // Use the selected date to ensure consistency
-                    timeRange: {
-                        startTime: startTime,
-                        endTime: endTime
-                    },
-                    customerDetails: {
-                        name: booking.customerDetails?.name || booking.guestName || 'Client',
-                        email: booking.customerDetails?.email || booking.guestEmail || '',
-                        phone: booking.customerDetails?.phone || booking.guestPhone || '',
-                        location: booking.customerDetails?.location || booking.location || 'ewan',
-                        notes: booking.customerDetails?.notes || booking.specialRequests || ''
-                    },
-                    paymentDetails: {
-                        type: booking.paymentDetails?.type || booking.paymentType || 'Full Payment',
-                        method: booking.paymentDetails?.method || booking.paymentMethod || 'GCash',
-                        amount: booking.paymentDetails?.amount || booking.amount || 3000,
-                        accountNumber: booking.paymentDetails?.accountNumber || booking.gcashNumber || '09665469008'
-                    },
-                    totalAmount: booking.totalAmount || booking.packagePrice || booking.price || 3000
-                };
-                
-                return {
-                    id: index + 1,
-                    start: startTime,
-                    end: endTime,
-                    status: 'booking',
-                    date: formattedDateStr,
-                    booking: bookingData
-                };
+
+        // Add a default available time range if no bookings
+        // This gives the admin a starting point to work with on empty days
+        if (initialRanges.length === 0) {
+            initialRanges.push({
+                id: 1,
+                start: '06:00 AM',
+                end: '10:00 PM',
+                status: 'available',
+                date: formattedDateStr,
+                booking: null
             });
-    }
+        }
 
-    // Add a default available time range if no bookings
-    if (initialRanges.length === 0) {
-        initialRanges.push({
-            id: 1,
-            start: '06:00 AM',
-            end: '10:00 PM',
-            status: 'available',
-            date: formattedDateStr,
-            booking: null
-        });
-    }
+        // Update state with the initial time ranges
+        setTimeRanges(initialRanges);
 
-    setTimeRanges(initialRanges);
-
-    const loadUnavailableTimeRanges = async (dateStr) => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                console.warn('Admin token not found, skipping unavailable ranges loading');
+        // Function to load unavailable time ranges from the API
+        const loadUnavailableTimeRanges = async (dateStr) => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    console.warn('Admin token not found, skipping unavailable ranges loading');
+                    return [];
+                }
+        
+                // Fetch unavailable time ranges from the API
+                const response = await fetch(`http://localhost:8080/api/schedules/unavailable/${dateStr}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+        
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data && data.data.unavailableRanges) {
+                        return data.data.unavailableRanges;
+                    }
+                }
+        
+                return [];
+            } catch (error) {
+                console.error('Error loading unavailable time ranges:', error);
                 return [];
             }
-    
-            const response = await fetch(`http://localhost:8080/api/schedules/unavailable/${dateStr}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-    
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.data && data.data.unavailableRanges) {
-                    return data.data.unavailableRanges;
-                }
-            }
-    
-            return [];
-        } catch (error) {
-            console.error('Error loading unavailable time ranges:', error);
-            return [];
-        }
-    };
-    
-    // Load unavailable time ranges - NEW FUNCTIONALITY
-    const fetchUnavailableRanges = async () => {
-        const unavailableRanges = await loadUnavailableTimeRanges(formattedDateStr);
+        };
         
-        if (unavailableRanges.length > 0) {
-            // Use the current state to get the highest ID
-            setTimeRanges(prevRanges => {
-                // Calculate highest existing ID from current state
-                const highestId = prevRanges.length > 0 
-                    ? Math.max(...prevRanges.map(r => r.id)) 
-                    : 0;
-                
-                // Convert to UI format and add to time ranges with truly unique IDs
-                const formattedUnavailableRanges = unavailableRanges
-                    // First deduplicate based on start and end times
-                    .filter((range, index, self) => 
-                        index === self.findIndex(r => 
-                            r.startTime === range.startTime && r.endTime === range.endTime
+        // Load unavailable time ranges from the API and add them to state
+        const fetchUnavailableRanges = async () => {
+            const unavailableRanges = await loadUnavailableTimeRanges(formattedDateStr);
+            
+            if (unavailableRanges.length > 0) {
+                // Use the current state to get the highest ID
+                setTimeRanges(prevRanges => {
+                    // Calculate highest existing ID from current state to avoid duplicate IDs
+                    const highestId = prevRanges.length > 0 
+                        ? Math.max(...prevRanges.map(r => r.id)) 
+                        : 0;
+                    
+                    // Convert to UI format and add to time ranges with truly unique IDs
+                    const formattedUnavailableRanges = unavailableRanges
+                        // First deduplicate based on start and end times to avoid duplicates
+                        .filter((range, index, self) => 
+                            index === self.findIndex(r => 
+                                r.startTime === range.startTime && r.endTime === range.endTime
+                            )
                         )
-                    )
-                    .map((range, index) => ({
-                        id: highestId + index + 1, // Using current highest ID as base
-                        start: parseTimeFormat(range.startTime),
-                        end: parseTimeFormat(range.endTime),
-                        status: 'unavailable',
-                        booking: null,
-                        date: formattedDateStr,
-                        serverId: range.id // Store the server ID for deletion
-                    }));
-                
-                // Filter out duplicates based on time range
-                const existingTimeRanges = prevRanges.map(r => `${r.start}-${r.end}-${r.status}`);
-                const uniqueNewRanges = formattedUnavailableRanges.filter(
-                    range => !existingTimeRanges.includes(`${range.start}-${range.end}-${range.status}`)
-                );
-                
-                if (uniqueNewRanges.length > 0) {
-                    console.log('Added unique unavailable ranges:', uniqueNewRanges);
-                    return [...prevRanges, ...uniqueNewRanges];
-                }
-                
-                return prevRanges;
-            });
-        }
-    };
-    
-    fetchUnavailableRanges();
-}, [date, bookings]);
+                        .map((range, index) => ({
+                            id: highestId + index + 1, // Using current highest ID as base
+                            start: parseTimeFormat(range.startTime),
+                            end: parseTimeFormat(range.endTime),
+                            status: 'unavailable', // Mark as unavailable slot
+                            booking: null,
+                            date: formattedDateStr,
+                            serverId: range.id // Store the server ID for deletion
+                        }));
+                    
+                    // Filter out duplicates based on time range to avoid conflicts
+                    const existingTimeRanges = prevRanges.map(r => `${r.start}-${r.end}-${r.status}`);
+                    const uniqueNewRanges = formattedUnavailableRanges.filter(
+                        range => !existingTimeRanges.includes(`${range.start}-${range.end}-${range.status}`)
+                    );
+                    
+                    if (uniqueNewRanges.length > 0) {
+                        console.log('Added unique unavailable ranges:', uniqueNewRanges);
+                        return [...prevRanges, ...uniqueNewRanges];
+                    }
+                    
+                    return prevRanges;
+                });
+            }
+        };
+        
+        // Call the function to fetch and add unavailable ranges
+        fetchUnavailableRanges();
+    }, [date, bookings]); // Re-run when date or bookings change
 
     
-
-
-    // Function to handle booking deletion
+    // Function to handle booking deletion - marks for deletion and updates UI immediately
     const handleDeleteBooking = (booking, rangeId) => {
         // Check if we have a valid database ID to use
         const databaseId = booking.databaseId || booking.bookingId || booking.id;
@@ -257,12 +288,13 @@ useEffect(() => {
             return;
         }
         
+        // Show confirmation dialog to prevent accidental deletions
         const isConfirmed = window.confirm(
             `Are you sure you want to delete the booking for ${booking.client || booking.customerDetails?.name}? This will be deleted when you save changes.`
         );
         
         if (isConfirmed) {
-            // Add the actual database ID to pending deletions
+            // Add the actual database ID to pending deletions - will be processed on save
             setPendingDeletions([...pendingDeletions, databaseId]);
             
             // Remove from UI only (temporarily)
@@ -272,7 +304,7 @@ useEffect(() => {
         }
     };
 
-    // Function to handle confirmed deletion from database
+    // Commented out direct delete function - using the batch deletion approach instead
     // const handleConfirmDelete = async () => {
     //     if (!bookingToDelete) return;
         
@@ -337,11 +369,13 @@ useEffect(() => {
     //     }
     // };
 
+    // Function to handle setting up a manual schedule for a time range
     const handleSetManual = (timeRange) => {
         setSelectedTimeRange(timeRange);
         setShowManualSchedule(true);
     };
 
+    // Show details for a booking
     const handleShowDetails = (booking) => {
         console.log("Showing details for booking:", booking);
         
@@ -355,11 +389,13 @@ useEffect(() => {
         setShowDetailsModal(true);
     };
       
+    // Close the details modal
     const handleCloseDetails = () => {
         setShowDetailsModal(false);
         setSelectedBooking(null);
     };
       
+    // Update a booking after editing in the details modal
     const handleUpdateBooking = (updatedBooking) => {
         console.log('Booking updated:', updatedBooking);
         
@@ -383,7 +419,7 @@ useEffect(() => {
         setTimeRanges(updatedTimeRanges);
     };
 
-    // Parse time string to consistent format
+    // Parse time string to consistent format - converts to 12-hour format with AM/PM
     const parseTimeFormat = (timeStr) => {
         if (!timeStr) return '12:00 AM';
     
@@ -418,19 +454,21 @@ useEffect(() => {
             const [time, period] = timeStr.split(' ');
             let [hours, minutes] = time.split(':').map(Number);
             
+            // Convert hours based on AM/PM
             if (period === 'PM' && hours !== 12) {
                 hours += 12;
             } else if (period === 'AM' && hours === 12) {
                 hours = 0;
             }
             
+            // Format with leading zeros
             return `${hours.toString().padStart(2, '0')}:${minutes ? minutes.toString().padStart(2, '0') : '00'}`;
         } catch (e) {
             return '00:00';
         }
     };
 
-    // Check if a full day is already booked
+    // Check if a full day is already booked - used to disable adding new time ranges
     const isFullDayBooked = () => {
         return timeRanges.some(range => 
             range.status === 'booking' && 
@@ -439,13 +477,12 @@ useEffect(() => {
         );
     };
 
-    
-
-    // Generate time options in AM/PM format
+    // Generate time options in AM/PM format for the dropdowns
     const generateTimeOptions = (rangeId = null, field = null) => {
         const options = [];
         let currentStart = null, currentEnd = null;
     
+        // Get current time range values if editing an existing range
         if (rangeId !== null) {
             const range = timeRanges.find(r => r.id === rangeId);
             if (range) {
@@ -454,6 +491,7 @@ useEffect(() => {
             }
         }
     
+        // Generate options for every hour of the day
         for (let hour = 0; hour < 24; hour++) {
             const period = hour >= 12 ? 'PM' : 'AM';
             const displayHour = hour % 12 === 0 ? 12 : hour % 12;
@@ -490,6 +528,7 @@ useEffect(() => {
                 });
             }
     
+            // Add option to the list with conflict information
             options.push({
                 value: timeString,
                 label: timeString,
@@ -500,9 +539,12 @@ useEffect(() => {
         return options;
     };
 
+    // Generate time options for the dropdowns
     const timeOptions = generateTimeOptions();
 
+    // Function to save all changes to the backend
     const handleSaveChanges = async () => {
+        // Check for conflicts before saving
         const hasConflicts = timeRanges.some(range => 
             isTimeRangeOverlapping(range.start, range.end, range.id)
         );
@@ -512,6 +554,7 @@ useEffect(() => {
             return;
         }
         try {
+            // Get authentication token
             const token = localStorage.getItem('token');
             
             if (!token) {
@@ -527,6 +570,7 @@ useEffect(() => {
                 try {
                     let allSuccess = true;
                     
+                    // Update each edited booking sequentially
                     for (const booking of editedBookings) {
                         const updateSuccess = await updateBookingTimeRange(booking);
                         if (!updateSuccess) {
@@ -534,6 +578,7 @@ useEffect(() => {
                         }
                     }
                     
+                    // If some updates failed, ask user if they want to continue with other changes
                     if (!allSuccess) {
                         const proceed = window.confirm('Some booking time range updates failed. Do you want to continue with other changes?');
                         if (!proceed) return;
@@ -583,6 +628,7 @@ useEffect(() => {
             // 3. Save unavailable time ranges
             const unavailableRanges = timeRanges.filter(range => range.status === 'unavailable');
             // Always call saveUnavailableTimeRanges, even when the array is empty
+            // This will effectively replace all unavailable ranges for this date
             const saveResult = await saveUnavailableTimeRanges(unavailableRanges, currentDateStr);
             if (!saveResult) {
                 const proceed = window.confirm('Some unavailable time ranges failed to save. Continue anyway?');
@@ -608,6 +654,7 @@ useEffect(() => {
         }
     };
 
+    // Function to add a new time range
     const handleAddTimeRange = () => {
         // Don't allow adding if full day is booked
         if (isFullDayBooked()) {
@@ -658,7 +705,7 @@ useEffect(() => {
                 });
             }
         } else {
-            // No bookings at all
+            // No bookings at all - add the default business hours
             availableSlots.push({
                 start: 360, // 6:00 AM
                 end: 1320 // 10:00 PM
@@ -684,6 +731,7 @@ useEffect(() => {
             defaultEnd = convertMinutesToTimeStr(slot.end);
         }
         
+        // Create a new time range with a unique ID
         const newId = timeRanges.length > 0 ? Math.max(...timeRanges.map(r => r.id)) + 1 : 1;
         setTimeRanges([...timeRanges, {
             id: newId,
@@ -695,6 +743,7 @@ useEffect(() => {
         }]);
     };
 
+    // Delete a time range (for available or unavailable slots)
     const handleDeleteTimeRange = async (id) => {
         // Don't allow deletion of booked slots
         const range = timeRanges.find(r => r.id === id);
@@ -712,6 +761,7 @@ useEffect(() => {
         // No need to make immediate DELETE API calls - we'll use the replace approach on save
     };
 
+    // Function to handle time changes for a range
     const handleTimeChange = (id, field, value) => {
         const range = timeRanges.find(r => r.id === id);
         
@@ -727,7 +777,7 @@ useEffect(() => {
         const endMins = timeToMinutes(newEnd);
         const durationMins = endMins - startMins;
         
-        // Check for adequate duration
+        // Check for adequate duration (recommend at least 3 hours)
         if (durationMins < 180 && durationMins > 0) {
             const proceed = window.confirm(
                 `This booking is only ${Math.floor(durationMins/60)} hours and ${durationMins%60} minutes long. The minimum recommended booking is 3 hours. Continue anyway?`
@@ -765,9 +815,11 @@ useEffect(() => {
             return r;
         }));
 
+        // Mark that unsaved changes exist
         setIsEdited(true);
     };
 
+    // Function to toggle a time range between available and unavailable
     const handleToggleStatus = (rangeId) => {
         setTimeRanges(prevRanges => 
             prevRanges.map(range => {
@@ -788,7 +840,7 @@ useEffect(() => {
         setIsEdited(true);
     };
     
-    // function to determine the appropriate color for status buttons
+    // Function to determine the appropriate color for status buttons
     const getStatusColor = (status) => {
         switch (status) {
             case 'available':
@@ -796,12 +848,13 @@ useEffect(() => {
             case 'unavailable':
                 return 'bg-red-600 hover:bg-red-700';
             case 'booking':
-                return 'bg-purple-600';
+                return 'bg-purple-600'; // No hover effect for bookings as they can't be toggled
             default:
                 return 'bg-gray-600 hover:bg-gray-700';
         }
     };
 
+    // Convert time string to minutes for easy comparison
     const timeToMinutes = (timeStr) => {
         if (!timeStr) return 0;
         
@@ -831,12 +884,13 @@ useEffect(() => {
         }
     };
 
+    // Check if a time range overlaps with existing ranges
     const isTimeRangeOverlapping = (start, end, excludeId = null) => {
         const startMinutes = timeToMinutes(start);
         const endMinutes = timeToMinutes(end);
     
         return timeRanges.some(range => {
-            if (range.id === excludeId) return false;
+            if (range.id === excludeId) return false; // Skip the range we're checking
     
             if (range.status === 'booking' || range.status === 'unavailable') {
                 const rangeStartMinutes = timeToMinutes(range.start);
@@ -852,6 +906,7 @@ useEffect(() => {
         });
     };
 
+    // Track edited bookings for later API updates
     const trackEditedBooking = (rangeId, field, value) => {
         const range = timeRanges.find(r => r.id === rangeId);
         if (!range || !range.booking) return;
@@ -880,6 +935,7 @@ useEffect(() => {
         }
     };
 
+    // Update a booking's time range in the backend
     const updateBookingTimeRange = async (booking) => {
         try {
             // Get auth token from local storage
@@ -940,6 +996,7 @@ useEffect(() => {
         }
     };
 
+    // Convert time from 12-hour to 24-hour format for the backend API
     const convertToTime24Format = (timeStr) => {
         if (!timeStr) return null;
     
@@ -962,7 +1019,7 @@ useEffect(() => {
         return `${hours.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`;
     };
 
-    // Helper function to convert time from 12h to 24h format for the backend
+    // Save unavailable time ranges to the backend
     const saveUnavailableTimeRanges = async (unavailableRanges, currentDateStr) => {
         try {
             const token = localStorage.getItem('token');
@@ -980,6 +1037,7 @@ useEffect(() => {
     
             console.log('Saving unavailable time ranges:', formattedRanges);
     
+            // This API call replaces all unavailable ranges for the date
             const response = await fetch('http://localhost:8080/api/schedules/unavailable', {
                 method: 'POST',
                 headers: {
@@ -1008,7 +1066,7 @@ useEffect(() => {
         }
     };
 
-    // Helper function to convert 24-hour format to 12-hour format with AM/PM
+    // Convert 24-hour format to 12-hour format with AM/PM
     const convertTo12HourFormat = (time24h) => {
         if (!time24h) return '';
         
@@ -1026,7 +1084,7 @@ useEffect(() => {
         return `${hours}:${minutes} ${suffix}`;
     };
 
-
+    // Ensure all time ranges have consistent time format
     const formattedTimeRanges = timeRanges.map(range => ({
         ...range,
         start: parseTimeFormat(range.start),
@@ -1034,11 +1092,13 @@ useEffect(() => {
     }));
 
     return (
+        // Modal overlay with semi-transparent background
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={(e) => {
             if (e.target === e.currentTarget) {
                 onClose();
             }
         }}>
+            {/* Modal container */}
             <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-700 flex-shrink-0">
@@ -1052,7 +1112,7 @@ useEffect(() => {
                     </div>
                 </div>
 
-                {/* Content - make it scrollable */}
+                {/* Content - scrollable area */}
                 <div className="px-6 py-4 overflow-y-auto flex-grow">
                     {/* Time Ranges */}
                     <div className="space-y-4 mb-6">
@@ -1061,6 +1121,7 @@ useEffect(() => {
                             const startOptions = generateTimeOptions(range.id, 'start');
                             const endOptions = generateTimeOptions(range.id, 'end');
 
+                            // Check if this range has been edited
                             const isEdited = range.status === 'booking' && editedBookings.some(
                                 eb => eb.rangeId === range.id
                             );
@@ -1133,7 +1194,7 @@ useEffect(() => {
                                         <div className="flex items-center space-x-2">
                                             {/* Status Toggle Button */}
                                             <button
-                                                disabled={range.status === 'booking'}
+                                                disabled={range.status === 'booking'} // Can't toggle booked slots
                                                 onClick={() => range.status !== 'booking' ? handleToggleStatus(range.id) : null}
                                                 className={`px-3 py-2 rounded text-white ${getStatusColor(range.status)} ${
                                                     range.status === 'booking' ? 'opacity-100 cursor-default' : ''
@@ -1143,7 +1204,7 @@ useEffect(() => {
                                                 range.status === 'available' ? 'Available' : 'Unavailable'}
                                             </button>
 
-                                            {/* Action Buttons */}
+                                            {/* Action Buttons - different options based on status */}
                                             {range.status === 'available' && (
                                                 <button
                                                     onClick={() => handleSetManual({
@@ -1189,7 +1250,7 @@ useEffect(() => {
                         })}
                     </div>
 
-                    {/* Add Time Range Button - disable if full day is booked */}
+                    {/* Add Time Range Button - disabled if full day is booked */}
                     <button
                         onClick={handleAddTimeRange}
                         disabled={isFullDayBooked()}
@@ -1204,7 +1265,7 @@ useEffect(() => {
                     </button>
                 </div>
 
-                {/* Footer */}
+                {/* Footer with action buttons */}
                 <div className="px-6 py-4 border-t border-gray-700 flex justify-end space-x-4 flex-shrink-0">
                     <button
                         onClick={onClose}
@@ -1222,7 +1283,8 @@ useEffect(() => {
                 </div>
             </div>
             
-            {/* Set Manual Schedule modal */}
+            {/* Child modals - only shown when their state is true */}
+            {/* Manual Schedule Creation Modal */}
             {showManualSchedule && (
                 <SetManualSchedule
                     onClose={() => setShowManualSchedule(false)}
@@ -1232,7 +1294,7 @@ useEffect(() => {
                 />
             )}
             
-            {/* Show Booking Details modal */}
+            {/* Booking Details Modal */}
             {showDetailsModal && selectedBooking && (
                 <ShowScheduleDetails
                     booking={selectedBooking}

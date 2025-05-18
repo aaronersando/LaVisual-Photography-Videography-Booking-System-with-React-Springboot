@@ -1,62 +1,94 @@
-import { useState, useRef } from 'react';
-import emailjs from '@emailjs/browser';
-import BookingService from '../service/BookingService';
-import qrCode from '../../assets/booking/OngleoQR.webp'
+/**
+ * Booking Summary Component
+ * 
+ * This component handles the final step of the booking process where users review their booking details,
+ * select payment options, and complete their booking by uploading payment proof.
+ * 
+ * Key features:
+ * - Displays a comprehensive summary of the booking (package, date, time, customer details)
+ * - Allows users to choose between full payment or 50% down payment
+ * - Provides GCash payment integration with QR code scanning
+ * - Handles payment proof screenshot upload with preview functionality
+ * - Processes the booking submission to the backend API
+ * - Sends confirmation emails with booking details
+ * - Handles image compression for efficient storage and transmission
+ * - Implements responsive design for all screen sizes
+ * - Provides detailed error handling and loading states
+ * 
+ * The component has two main views:
+ * 1. Initial view: Shows booking summary and payment selection
+ * 2. Payment proof upload view: Shows QR code and allows screenshot upload
+ * 
+ * This component is the final step before the booking confirmation is displayed to the user.
+ */
+
+import { useState, useRef } from 'react'; // Import React hooks for state management and refs
+import emailjs from '@emailjs/browser'; // Import emailjs for sending confirmation emails
+import BookingService from '../service/BookingService'; // Import service for API calls
+import qrCode from '../../assets/booking/OngleoQR.webp' // Import GCash QR code image
 
 function BookingSummary({ onBack, data, onComplete }) {
+  // Payment method state - currently only GCash is implemented
   const [paymentMethod, setPaymentMethod] = useState('gcash');
+  // Payment type state - 'full' for full payment, 'down' for down payment
   const [paymentType, setPaymentType] = useState('');
+  // State to store customer's GCash number
   const [gcashNumber, setGcashNumber] = useState('');
+  // Loading state for form submission
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Error state to display any issues during submission
   const [error, setError] = useState(null);
   
-  // New states for file upload
-  const [showUploadStep, setShowUploadStep] = useState(false);
-  const [paymentProofFile, setPaymentProofFile] = useState(null);
-  const [uploadError, setUploadError] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const fileInputRef = useRef(null);
+  // State for file upload functionality
+  const [showUploadStep, setShowUploadStep] = useState(false); // Controls which view is displayed
+  const [paymentProofFile, setPaymentProofFile] = useState(null); // Stores the uploaded file
+  const [uploadError, setUploadError] = useState(null); // Stores upload-specific errors
+  const [previewUrl, setPreviewUrl] = useState(null); // Stores the image preview URL
+  const fileInputRef = useRef(null); // Reference to the file input element
 
+  // Helper function to calculate 50% down payment amount
   const calculateDownPayment = () => {
     return data.price * 0.5; // 50% down payment
   };
 
+  // Handler for when user selects a file to upload
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     
-    setPaymentProofFile(file);
+    setPaymentProofFile(file); // Store the file for later submission
     
-    // Preview the file
+    // Create a preview of the file
     const reader = new FileReader();
     reader.onload = (e) => {
-      setPreviewUrl(e.target.result);
+      setPreviewUrl(e.target.result); // Set the data URL as preview
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // Read the file as data URL
   };
 
+  // Main function to handle the final submission with payment proof
   const handleFileUploadSubmit = async () => {
-    setIsSubmitting(true);
-    setError(null);
+    setIsSubmitting(true); // Start loading state
+    setError(null); // Clear any previous errors
     
     try {
       console.log("Uploading payment proof and creating booking...");
       
-      // Create form data for combined file upload and booking creation
+      // Create form data for multipart/form-data submission
       const formData = new FormData();
       
-      // Add the payment proof file
+      // Add the payment proof file to form data
       formData.append('proofFile', paymentProofFile);
       
-      // Calculate payment amount
+      // Calculate final payment amount based on selected payment type
       const paymentAmount = paymentType === 'full' ? data.price : calculateDownPayment();
       
-      // Calculate booking hours
+      // Calculate booking duration in hours
       const startHour = parseInt(data.timeRange?.startTime?.split(':')[0] || 0);
       const endHour = parseInt(data.timeRange?.endTime?.split(':')[0] || 0);
       const bookingHours = endHour - startHour;
       
-      // Prepare booking data
+      // Prepare complete booking data object
       const bookingData = {
         guestName: data.customerDetails.name,
         guestEmail: data.customerDetails.email,
@@ -77,26 +109,28 @@ function BookingSummary({ onBack, data, onComplete }) {
         gcashNumber: gcashNumber
       };
       
-      // Add booking data as JSON string
+      // Add booking data as JSON string to form data
       formData.append('bookingData', JSON.stringify(bookingData));
       
       console.log("Creating booking with data:", bookingData);
       
-      // Send the combined data
+      // Send API request to create booking with payment proof
       const bookingResponse = await fetch('http://localhost:8080/api/bookings/with-proof', {
         method: 'POST',
         body: formData
         // Don't set Content-Type header - browser will set it correctly with boundary
       });
       
+      // Handle HTTP error responses
       if (!bookingResponse.ok) {
         throw new Error(`Server returned ${bookingResponse.status}: ${bookingResponse.statusText}`);
       }
       
+      // Parse the response JSON
       const bookingResult = await bookingResponse.json();
       console.log("Booking creation result:", bookingResult);
       
-      // Email parameters for confirmation
+      // Prepare email parameters for confirmation email
       const emailParams = {
         // Basic information
         name: data.customerDetails.name,
@@ -121,19 +155,21 @@ function BookingSummary({ onBack, data, onComplete }) {
         hasPaymentProof: "true"
       };
       
-      // Send email with compressed image if possible
+      // Try to send confirmation email with compressed image
       try {
         if (paymentProofFile) {
+          // Compress the image for email attachment
           const tinyImage = await compressImage(paymentProofFile, 300, 0.4);
-          const imageBase64 = tinyImage.split(',')[1];
-          emailParams.paymentProofImage = imageBase64;
+          const imageBase64 = tinyImage.split(',')[1]; // Extract base64 data
+          emailParams.paymentProofImage = imageBase64; // Add to email params
         }
         
+        // Send email with EmailJS service
         await emailjs.send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4');
       } catch (emailError) {
         console.error('Error sending email with image:', emailError);
         
-        // Try again without the image
+        // If sending with image fails, try again without the image
         delete emailParams.paymentProofImage;
         try {
           await emailjs.send('service_cs4kvtp', 'template_j6uer9r', emailParams, 'XEOTxlS2BnBaqReO4');
@@ -143,7 +179,7 @@ function BookingSummary({ onBack, data, onComplete }) {
       }
       
       if (bookingResult.success) {
-        // Add necessary data for completion
+        // If booking was successful, prepare final data for the confirmation page
         const completedBookingData = {
           ...data,
           paymentMethod: 'gcash',
@@ -155,24 +191,29 @@ function BookingSummary({ onBack, data, onComplete }) {
           paymentProof: bookingResult.data.paymentProof
         };
         
+        // Call parent component's completion handler with final data
         onComplete(completedBookingData);
       } else {
+        // If booking API returned an error
         setError("Failed to create booking: " + bookingResult.message);
       }
     } catch (error) {
+      // Handle any exceptions during the process
       console.error("Error during booking submission:", error);
       setError("Error: " + error.message);
     } finally {
+      // Always reset loading state
       setIsSubmitting(false);
     }
   };
 
-  // Step 1: Initial payment details submission
+  // Handler for the initial form submission 
   const handleInitialSubmit = (e) => {
     e.preventDefault();
-    setShowUploadStep(true);
+    setShowUploadStep(true); // Move to payment proof upload step
   };
 
+  // Helper function to compress images before sending
   const compressImage = (file, maxWidth, quality = 0.7) => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -181,11 +222,11 @@ function BookingSummary({ onBack, data, onComplete }) {
         const img = new Image();
         img.src = event.target.result;
         img.onload = () => {
-          // Create canvas
+          // Create canvas for image manipulation
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           
-          // Calculate new dimensions
+          // Calculate new dimensions to maintain aspect ratio
           let width = img.width;
           let height = img.height;
           
@@ -195,12 +236,12 @@ function BookingSummary({ onBack, data, onComplete }) {
             height = height * ratio;
           }
           
-          // Resize image
+          // Resize image using canvas
           canvas.width = width;
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Get compressed image as a data URL
+          // Convert canvas to compressed data URL
           const dataUrl = canvas.toDataURL('image/jpeg', quality);
           resolve(dataUrl);
         };
@@ -208,16 +249,17 @@ function BookingSummary({ onBack, data, onComplete }) {
     });
   };
 
+  // Helper function to format time from 24-hour to 12-hour format
   const formatTime = (timeString) => {
     if (!timeString) return '';
     const [hour] = timeString.split(':');
     const hourNum = parseInt(hour);
     const ampm = hourNum >= 12 ? 'PM' : 'AM';
-    const hour12 = hourNum % 12 || 12;
+    const hour12 = hourNum % 12 || 12; // Convert 0 to 12 for 12 AM
     return `${hour12}:00 ${ampm}`;
   };
 
-  // If we're on the file upload step (for GCash)
+  // CONDITIONAL RENDERING: If we're on the file upload step (for GCash)
   if (showUploadStep) {
     return (
       <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
@@ -262,6 +304,7 @@ function BookingSummary({ onBack, data, onComplete }) {
                   file:cursor-pointer cursor-pointer"
               />
               
+              {/* Show image preview if a file is selected */}
               {paymentProofFile && (
                 <div className="mt-3 sm:mt-4">
                   <h5 className="text-xs sm:text-sm text-gray-300 mb-2">Preview:</h5>
@@ -275,6 +318,7 @@ function BookingSummary({ onBack, data, onComplete }) {
                 </div>
               )}
               
+              {/* Show upload error if any */}
               {uploadError && (
                 <div className="text-red-500 text-xs sm:text-sm mt-2">
                   {uploadError}
@@ -297,15 +341,15 @@ function BookingSummary({ onBack, data, onComplete }) {
         {/* Navigation Buttons */}
         <div className="flex justify-between mt-4 sm:mt-6">
           <button
-            onClick={() => setShowUploadStep(false)}
+            onClick={() => setShowUploadStep(false)} // Return to payment selection view
             className="px-3 py-1.5 sm:px-4 sm:py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded text-sm sm:text-base"
             disabled={isSubmitting}
           >
             Back
           </button>
           <button
-            onClick={handleFileUploadSubmit}
-            disabled={!paymentProofFile || isSubmitting}
+            onClick={handleFileUploadSubmit} // Submit the booking with payment proof
+            disabled={!paymentProofFile || isSubmitting} // Disable if no file or already submitting
             className={`px-3 py-1.5 sm:px-4 sm:py-2 ${isSubmitting ? 'bg-purple-700 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded disabled:opacity-50 text-sm sm:text-base`}
           >
             {isSubmitting ? 'Processing...' : 'Complete Booking'}
@@ -315,12 +359,12 @@ function BookingSummary({ onBack, data, onComplete }) {
     );
   }
 
-  // Original payment selection view
+  // MAIN RENDER: Payment selection and booking review view
   return (
     <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
       <h2 className="text-lg sm:text-xl md:text-2xl text-white mb-4 sm:mb-6">Review & Payment</h2>
       
-      {/* Booking Summary */}
+      {/* Booking Summary Section */}
       <div className="space-y-3 sm:space-y-4 text-white mb-6 sm:mb-8">
         <div className="bg-gray-700 p-3 sm:p-4 rounded-lg">
           <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Booking Summary</h3>
@@ -355,7 +399,7 @@ function BookingSummary({ onBack, data, onComplete }) {
           </div>
         </div>
 
-        {/* Customer Details */}
+        {/* Customer Details Section */}
         <div className="bg-gray-700 p-3 sm:p-4 rounded-lg">
           <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Customer Details</h3>
           <div className="space-y-1.5 sm:space-y-2 text-sm sm:text-base">
@@ -369,21 +413,21 @@ function BookingSummary({ onBack, data, onComplete }) {
           </div>
         </div>
 
-        {/* Payment Options */}
+        {/* Payment Options Section */}
         <div className="bg-gray-700 p-3 sm:p-4 rounded-lg">
           <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Payment Options</h3>
           
-          {/* Payment Type Selection */}
+          {/* Payment Type Selection - Full vs Down Payment */}
           <div className="mb-3 sm:mb-4">
             <h4 className="text-xs sm:text-sm text-gray-400 mb-2">Select Payment Type</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
               <button
                 type="button"
-                onClick={() => setPaymentType('full')}
+                onClick={() => setPaymentType('full')} // Set full payment option
                 className={`p-2 sm:p-3 rounded-lg border ${
                   paymentType === 'full'
-                    ? 'border-purple-500 bg-purple-500/20'
-                    : 'border-gray-600 hover:border-purple-500'
+                    ? 'border-purple-500 bg-purple-500/20' // Active state
+                    : 'border-gray-600 hover:border-purple-500' // Inactive state
                 }`}
               >
                 <div className="text-xs sm:text-sm">Full Payment</div>
@@ -391,11 +435,11 @@ function BookingSummary({ onBack, data, onComplete }) {
               </button>
               <button
                 type="button"
-                onClick={() => setPaymentType('down')}
+                onClick={() => setPaymentType('down')} // Set down payment option
                 className={`p-2 sm:p-3 rounded-lg border ${
                   paymentType === 'down'
-                    ? 'border-purple-500 bg-purple-500/20'
-                    : 'border-gray-600 hover:border-purple-500'
+                    ? 'border-purple-500 bg-purple-500/20' // Active state
+                    : 'border-gray-600 hover:border-purple-500' // Inactive state
                 }`}
               >
                 <div className="text-xs sm:text-sm">50% Down Payment</div>
@@ -404,7 +448,7 @@ function BookingSummary({ onBack, data, onComplete }) {
             </div>
           </div>
 
-          {/* Payment Method Selection */}
+          {/* GCash Number Input - Only shown after payment type is selected */}
           {paymentType && (
             <div className="mb-3 sm:mb-4">
               <h4 className="text-xs sm:text-sm text-gray-400 mb-2">GCash Payment</h4>
@@ -437,15 +481,15 @@ function BookingSummary({ onBack, data, onComplete }) {
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-4 sm:mt-6">
         <button
-          onClick={onBack}
+          onClick={onBack} // Go back to previous booking step
           className="px-3 py-1.5 sm:px-4 sm:py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded text-sm sm:text-base"
           disabled={isSubmitting}
         >
           Back
         </button>
         <button
-          onClick={handleInitialSubmit}
-          disabled={!paymentType || isSubmitting || !gcashNumber}
+          onClick={handleInitialSubmit} // Move to payment proof upload step
+          disabled={!paymentType || isSubmitting || !gcashNumber} // Disable if required fields are missing
           className={`px-3 py-1.5 sm:px-4 sm:py-2 ${isSubmitting ? 'bg-purple-700 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded disabled:opacity-50 text-sm sm:text-base`}
         >
           {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
@@ -455,4 +499,4 @@ function BookingSummary({ onBack, data, onComplete }) {
   );
 }
 
-export default BookingSummary;
+export default BookingSummary; // Export component for use in booking flow

@@ -1,24 +1,43 @@
-import { useState, useEffect } from "react";
-import QuickInfoModal from "./QuickInfoModal"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAngleLeft, faAngleRight, faArrowLeft, faLeftLong, faLessThan } from "@fortawesome/free-solid-svg-icons";
-import axios from "axios";
+/**
+ * Admin Calendar Component
+ * 
+ * This component renders a monthly calendar view specifically designed for the admin dashboard.
+ * It displays bookings organized by date, allowing administrators to view and manage scheduled
+ * photography sessions.
+ * 
+ * Key features:
+ * - Monthly calendar view with navigation between months
+ * - Displays booking counts for each day
+ * - Fetches booking data from the server API
+ * - Filters to show only confirmed and completed bookings
+ * - Shows booking details in a modal when clicking on a day with bookings
+ * - Handles date selection for scheduling and management
+ * 
+ * The component works with both passed prop bookings and directly fetched bookings from the API,
+ * formatting them appropriately for calendar display.
+ */
+
+import { useState, useEffect } from "react"; // Import React hooks for state and lifecycle management
+import QuickInfoModal from "./QuickInfoModal" // Import modal component for displaying booking details
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesome for icons
+import { faAngleLeft, faAngleRight, faArrowLeft, faLeftLong, faLessThan } from "@fortawesome/free-solid-svg-icons"; // Import specific icons
+import axios from "axios"; // Import axios for making HTTP requests
 
 function Calendar2({onDateClick, bookings}){
 
     // Date today for basis
-    const [currentDate, setCurrentDate] = useState(new Date())
-    const [selectedBookings, setSelectedBookings] = useState(null);
+    const [currentDate, setCurrentDate] = useState(new Date()) // State to track the current month being viewed
+    const [selectedBookings, setSelectedBookings] = useState(null); // State to store bookings when a day is clicked
 
-    const [events, setEvents] = useState([]);
-    const [localBookings, setLocalBookings] = useState(bookings || []);
+    const [events, setEvents] = useState([]); // State to store formatted booking events for display
+    const [localBookings, setLocalBookings] = useState(bookings || []); // Local copy of bookings with fallback to empty array
 
     // Filter fetchBookings function to make double sure only confirmed bookings show
     const fetchBookings = async (date = currentDate) => {
         try {
             // Format year and month for API request
             const year = date.getFullYear();
-            const month = date.getMonth() + 1;
+            const month = date.getMonth() + 1; // JavaScript months are 0-indexed, API expects 1-indexed
             
             console.log(`Fetching bookings for ${year}-${month}`);
             
@@ -27,7 +46,7 @@ function Calendar2({onDateClick, bookings}){
                 `http://localhost:8080/api/bookings/calendar/month/${year}/${month}`,
                 {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Send auth token from local storage
                     }
                 }
             );
@@ -58,7 +77,7 @@ function Calendar2({onDateClick, bookings}){
         // if (!bookings || bookings.length === 0) {
             fetchBookings();
         // }
-    }, [currentDate]);
+    }, [currentDate]); // Re-fetch when current date changes (month navigation)
 
     // Format bookings data into the events format needed for calendar
     useEffect(() => {
@@ -146,9 +165,9 @@ function Calendar2({onDateClick, bookings}){
             
             // Format booking data for the modal
             acc[dateKey].push({
-                client: booking.customerDetails?.name || booking.guestName || 'Client',
-                clientEvent: booking.package || booking.packageName || 'Booking',
-                timeRange: formatBookingTimeRange(booking)
+                client: booking.customerDetails?.name || booking.guestName || 'Client', // Use different possible name fields with fallback
+                clientEvent: booking.package || booking.packageName || 'Booking', // Handle different package name fields
+                timeRange: formatBookingTimeRange(booking) // Format the time range
             });
             
             return acc;
@@ -160,7 +179,7 @@ function Calendar2({onDateClick, bookings}){
             bookings
         }));
         
-        setEvents(formattedEvents);
+        setEvents(formattedEvents); // Update the events state with formatted data
     };
     
     // Add this helper function for better time format handling
@@ -177,47 +196,54 @@ function Calendar2({onDateClick, bookings}){
     // Helper function to format time from 24h to 12h format
     const formatTime = (timeStr) => {
         if (!timeStr) return '';
-        const [hour] = timeStr.split(':');
+        const [hour] = timeStr.split(':'); // Extract hour part from time string
         const hourNum = parseInt(hour);
-        const ampm = hourNum >= 12 ? 'PM' : 'AM';
-        const hour12 = hourNum % 12 || 12;
+        const ampm = hourNum >= 12 ? 'PM' : 'AM'; // Determine AM/PM
+        const hour12 = hourNum % 12 || 12; // Convert 24h to 12h format (0 becomes 12)
         return `${hour12}${ampm}`;
     };
     
+    // Calculate the number of days in the current month
     const daysInMonth = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth() + 1,
         0
     ).getDate();
 
+    // Get the day of the week for the first day of the month (0 = Sunday, 1 = Monday, etc.)
     const firstDayOfMonth = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth(),
         1
     ).getDay();
 
+    // Navigate to previous month
     const handlePrevMonth = () => {
         // Clear events before changing month
         setEvents([]);
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() -1, 1));
     }
     
+    // Navigate to next month
     const handleNextMonth = () => {
         // Clear events before changing month
         setEvents([]);
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() +1, 1));
     }
 
+    // Format a day number to a full ISO date string (YYYY-MM-DD)
     const formatDate = (day) => {
         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
         return date.toISOString().split('T')[0];
     }
 
+    // Find events for a specific day
     const getEventsForDate = (day) => {
         const dateStr = formatDate(day);
         return events.find(event => event.date === dateStr)
     }
 
+    // Handle click on a calendar day
     const handleDateClick = (day) => {
         if (day > 0 && day <= daysInMonth) {
             // Create a date with time set to noon to avoid timezone issues
@@ -230,10 +256,11 @@ function Calendar2({onDateClick, bookings}){
             console.log("Calendar clicked YYYY-MM-DD:", date.toISOString().split('T')[0]);
             
             // Pass the date to parent component
-            onDateClick?.(date);
+            onDateClick?.(date); // Optional chaining in case onDateClick is not provided
         }
     }
 
+    // Render the calendar days grid
     const renderCalendarDays = () => {
         // Define the getEventForDate function inside renderCalendarDays
         const getEventForDate = (year, month, day) => {
@@ -243,10 +270,10 @@ function Calendar2({onDateClick, bookings}){
     
         const days = [];
         const totalDays = firstDayOfMonth + daysInMonth;
-        const weeks = Math.ceil(totalDays / 7);
+        const weeks = Math.ceil(totalDays / 7); // Calculate how many weeks to display
     
         for(let i = 0; i < weeks * 7; i++) {
-            const dayNumber = i - firstDayOfMonth + 1;
+            const dayNumber = i - firstDayOfMonth + 1; // Calculate the day number
             const event = dayNumber > 0 && dayNumber <= daysInMonth ? 
                 getEventForDate(currentDate.getFullYear(), currentDate.getMonth(), dayNumber) : 
                 null;
@@ -257,8 +284,8 @@ function Calendar2({onDateClick, bookings}){
                     onClick={() => handleDateClick(dayNumber)}
                     className={`border border-gray-700 p-2 min-h-[100px] ${
                         dayNumber <= 0 || dayNumber > daysInMonth
-                            ? 'bg-gray-900'
-                            : 'bg-gray-800 hover:bg-gray-700 cursor-pointer'
+                            ? 'bg-gray-900' // Color for days outside current month
+                            : 'bg-gray-800 hover:bg-gray-700 cursor-pointer' // Color for days in current month
                     }`} 
                 >
                     {dayNumber > 0 && dayNumber <= daysInMonth && (
@@ -267,7 +294,7 @@ function Calendar2({onDateClick, bookings}){
                             {event && (
                                 <div
                                     onClick={(e) => {
-                                        e.stopPropagation();
+                                        e.stopPropagation(); // Prevent triggering the parent onClick
                                         // Make sure each booking in the event has the correct date
                                         const formattedBookings = event.bookings.map(booking => ({
                                             ...booking,
@@ -288,6 +315,7 @@ function Calendar2({onDateClick, bookings}){
         return days;
     }
 
+    // Array of month names for displaying the current month
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
@@ -343,4 +371,4 @@ function Calendar2({onDateClick, bookings}){
     );
 }
 
-export default Calendar2;
+export default Calendar2; // Export the component for use in other parts of the application

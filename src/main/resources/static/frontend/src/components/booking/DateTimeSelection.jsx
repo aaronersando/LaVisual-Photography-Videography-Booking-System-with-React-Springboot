@@ -1,56 +1,75 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import 'react-calendar/dist/Calendar.css';
-import CalendarComp from './CalendarComp';
+/**
+ * Date and Time Selection Component
+ * 
+ * This component handles the date and time selection step in the booking process.
+ * It allows users to select an available date from a calendar and then choose from
+ * available time slots for their appointment. The component:
+ * 
+ * - Fetches existing booking data from the backend API to determine which slots are already booked
+ * - Prevents double-booking by disabling time slots that overlap with existing bookings
+ * - Shows a calendar interface for date selection
+ * - Dynamically generates time slots based on the selected package duration
+ * - Handles validation and error states
+ * - Provides responsive design for various screen sizes
+ * 
+ * The component is part of a multi-step booking flow and receives navigation and data
+ * management functions from its parent component.
+ */
 
-// Format time for display
+import { useState, useEffect } from 'react'; // Import React hooks for state management and side effects
+import axios from 'axios'; // Import axios for making HTTP requests
+import 'react-calendar/dist/Calendar.css'; // Import base calendar styling
+import CalendarComp from './CalendarComp'; // Import custom calendar component
+
+// Helper function to format time from 24-hour format to 12-hour AM/PM format
 const formatTime = (hour) => {
   const hourNum = parseInt(hour);
-  const ampm = hourNum >= 12 ? 'PM' : 'AM';
-  const hour12 = hourNum % 12 || 12;
+  const ampm = hourNum >= 12 ? 'PM' : 'AM'; // Determine if AM or PM
+  const hour12 = hourNum % 12 || 12; // Convert 24-hour to 12-hour format (0 becomes 12)
   return `${hour12}:00 ${ampm}`;
 };
 
-// Format date to YYYY-MM-DD in local timezone, avoiding timezone issues
+// Helper function to convert a Date object to YYYY-MM-DD string format
+// This is important for consistent date comparisons and API communication
 const formatDateToLocalString = (date) => {
   if (!date) return '';
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, adding 1
   const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${year}-${month}-${day}`; // Format as YYYY-MM-DD
 };
 
 function DateTimeSelection({ onNext, onBack, updateData, data }) {
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTimeRange, setSelectedTimeRange] = useState(null);
-  const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // State variables for component
+  const [selectedDate, setSelectedDate] = useState(null); // Currently selected date
+  const [selectedTimeRange, setSelectedTimeRange] = useState(null); // Currently selected time slot
+  const [bookedTimeSlots, setBookedTimeSlots] = useState([]); // Slots that are already booked
+  const [isLoading, setIsLoading] = useState(false); // Loading state for API calls
+  const [error, setError] = useState(null); // Error state for API failures
 
-  // Get package duration from the selected package
-  const packageDuration = data.packageDetails?.hours || 4; // default to 4 hours if not specified
+  // Extract package duration from the data passed from parent component
+  const packageDuration = data.packageDetails?.hours || 4; // Default to 4 hours if not specified
 
-  // Fetch booked time slots from the backend when component mounts
+  // Fetch booked time slots when component mounts
   useEffect(() => {
     fetchConfirmedBookedTimeSlots();
   }, []);
   
-  // Fetch only confirmed/approved booked slots
+  // Function to fetch existing bookings from the API
   const fetchConfirmedBookedTimeSlots = async () => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true); // Show loading indicator
+    setError(null); // Clear any previous errors
     
     try {
-      // Use the full URL with http://localhost:8080 prefix
-      // Modified to include a status filter for confirmed bookings
+      // Make API request to get booked slots with CONFIRMED status
       const response = await axios.get('http://localhost:8080/api/bookings/booked-slots?status=CONFIRMED');
       console.log("API Response:", response.data);
       
-      // Check if the response is HTML instead of JSON
+      // Handle case where response is HTML (typically an error page) instead of JSON
       if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
         console.error("Received HTML instead of JSON");
         setError('Failed to connect to booking API. Please try again later.');
-        // Fallback to dummy data for development
+        // Use fallback dummy data so the component still works during development
         setBookedTimeSlots([
           { date: '2025-04-18', startTime: '09:00', endTime: '13:00' },
           { date: '2025-04-19', startTime: '14:00', endTime: '18:00' },
@@ -58,9 +77,9 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
         return;
       }
       
+      // Process successful API response
       if (response.data && response.data.success) {
-        // Format the data to match our expected structure
-        // Only include bookings with CONFIRMED or APPROVED status
+        // Filter and map API data to the format needed by this component
         const formattedSlots = response.data.data.bookings
           .filter(booking => 
             booking.bookingStatus === "CONFIRMED" || booking.bookingStatus === "APPROVED"
@@ -72,41 +91,46 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
             bookingId: booking.bookingId
           }));
         
-        setBookedTimeSlots(formattedSlots);
+        setBookedTimeSlots(formattedSlots); // Save formatted booking data
       } else {
+        // Handle API error response
         const errorMsg = response.data?.message || 'Unknown error occurred';
         console.error("API returned error:", errorMsg);
         setError('Failed to load booking data: ' + errorMsg);
       }
     } catch (err) {
+      // Handle exception during API call
       console.error('Error fetching booked slots:', err);
       setError('Error loading booking data. Please try again.');
-      // For development - use dummy data instead of failing completely
+      // Use fallback dummy data for development
       setBookedTimeSlots([
         { date: '2025-04-18', startTime: '09:00', endTime: '13:00' },
         { date: '2025-04-19', startTime: '14:00', endTime: '18:00' },
       ]);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Hide loading indicator when done
     }
   };
 
-  // Enhanced check for overlapping time ranges based on the selected date
+  // Function to check if a time range overlaps with any existing bookings
   const isTimeRangeOverlapping = (date, startTime, endTime) => {
-    if (!date) return false;
+    if (!date) return false; // No date selected, so no overlap
     
-    // Use the custom formatter to avoid timezone issues
+    // Format the date for comparison with booked slots
     const dateStr = formatDateToLocalString(date);
+    // Convert time strings to integers for easier comparison
     const rangeStart = parseInt(startTime.split(':')[0]);
     const rangeEnd = parseInt(endTime.split(':')[0]);
 
+    // Check all booked slots for potential overlaps
     return bookedTimeSlots.some(slot => {
-      if (slot.date !== dateStr) return false;
+      if (slot.date !== dateStr) return false; // Different date, no overlap
       
+      // Get start and end hours for the booked slot
       const slotStart = parseInt(slot.startTime.split(':')[0]);
       const slotEnd = parseInt(slot.endTime.split(':')[0]);
       
-      // Check for any overlap between the ranges
+      // Three overlap conditions checked:
       return (
         (rangeStart >= slotStart && rangeStart < slotEnd) || // Start time is within a booked slot
         (rangeEnd > slotStart && rangeEnd <= slotEnd) || // End time is within a booked slot
@@ -115,35 +139,40 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
     });
   };
 
-  // When user selects a date, update the selected date and clear the time range
+  // Handler for date selection from calendar
   const handleDateSelect = (date) => {
-    setSelectedDate(date);
-    setSelectedTimeRange(null); // Clear selected time range when date changes
+    setSelectedDate(date); // Update selected date
+    setSelectedTimeRange(null); // Reset time selection when date changes
   };
 
-  // Generate time ranges and check for overlaps
+  // Function to get all possible time ranges with availability status
   const getTimeRangesWithAvailability = () => {
-    if (!selectedDate) return [];
+    if (!selectedDate) return []; // No date selected, return empty array
     
+    // Generate all possible time ranges for the day
     const ranges = generateTimeRanges();
+    
+    // Add availability flag to each range
     return ranges.map(range => ({
       ...range,
       isOverlapping: isTimeRangeOverlapping(selectedDate, range.startTime, range.endTime)
     }));
   };
 
-  // Generate available time slots based on duration
+  // Function to generate all possible time slots based on package duration
   const generateTimeRanges = () => {
     const ranges = [];
     const startHour = 0; // 12 AM (midnight)
     const endHour = 23 - packageDuration; // Last slot should end by 11 PM
 
+    // Generate time slots for the entire day with selected package duration
     for (let hour = startHour; hour <= endHour; hour++) {
-      const startTime = `${hour.toString().padStart(2, '0')}:00`;
+      const startTime = `${hour.toString().padStart(2, '0')}:00`; // Format: "HH:00"
       const endTime = `${(hour + packageDuration).toString().padStart(2, '0')}:00`;
-      const formattedStartTime = formatTime(hour);
+      const formattedStartTime = formatTime(hour); // 12-hour format with AM/PM
       const formattedEndTime = formatTime(hour + packageDuration);
       
+      // Add time range to array
       ranges.push({ 
         startTime, 
         endTime,
@@ -154,18 +183,20 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
     return ranges;
   };
 
+  // Handler for time slot selection
   const handleTimeSelect = (range) => {
     if (!selectedDate) {
       alert('Please select a date first');
       return;
     }
-    setSelectedTimeRange(range);
-    updateData({ 
+    setSelectedTimeRange(range); // Update selected time range
+    updateData({ // Pass data to parent component
       date: selectedDate,
       timeRange: range
     });
   };
 
+  // Handler for form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedDate && selectedTimeRange) {
@@ -174,11 +205,12 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
       // Set time to noon to prevent date shifts in further processing
       formattedDate.setHours(12, 0, 0, 0);
       
+      // Update parent component with final date and time selection
       updateData({ 
         date: formattedDate,
         timeRange: selectedTimeRange 
       });
-      onNext();
+      onNext(); // Navigate to next step in booking flow
     }
   };
 
@@ -186,19 +218,21 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
     <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
       <h2 className="text-lg sm:text-xl md:text-2xl text-white mb-4 sm:mb-6">Select Date & Time</h2>
       
+      {/* Loading indicator */}
       {isLoading && (
         <div className="text-center text-purple-400 mb-3 sm:mb-4">
           <p>Loading availability data...</p>
         </div>
       )}
       
+      {/* Error message display */}
       {error && (
         <div className="mb-3 sm:mb-4 p-3 bg-red-500/20 border border-red-500 text-red-100 rounded">
           <p className="text-sm sm:text-base">{error}</p>
         </div>
       )}
       
-      {/* Calendar */}
+      {/* Calendar for date selection */}
       <div className="mb-3 sm:mb-4 md:mb-5 mx-auto max-w-xs sm:max-w-sm md:max-w-md">
         <CalendarComp
           onDateSelect={handleDateSelect}
@@ -214,12 +248,13 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
         </div>
       )}
 
-      {/* Time Range Selection */}
+      {/* Time Range Selection - only shown when a date is selected */}
       {selectedDate && (
         <div className="mb-4 sm:mb-5 md:mb-6">
           <h3 className="text-white text-center text-base sm:text-lg font-bold mb-2 sm:mb-3">
             Select Time Range ({packageDuration} hours)
           </h3>
+          {/* Grid of time slots with scrolling for overflow */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-h-[40vh] sm:max-h-[50vh] overflow-y-auto pr-1 sm:pr-2">
             {getTimeRangesWithAvailability().map((range) => {
               const isSelected = selectedTimeRange?.startTime === range.startTime;
@@ -232,16 +267,17 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
                   className={`
                     p-2 sm:p-3 rounded-lg border transition-all
                     ${range.isOverlapping 
-                      ? 'bg-red-900/20 border-red-900/50 text-red-300/50 cursor-not-allowed'
+                      ? 'bg-red-900/20 border-red-900/50 text-red-300/50 cursor-not-allowed' // Style for unavailable slots
                       : isSelected
-                        ? 'bg-purple-500 border-purple-500 text-white'
-                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:border-purple-500'
+                        ? 'bg-purple-500 border-purple-500 text-white' // Style for selected slot
+                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:border-purple-500' // Style for available slots
                     }
                   `}
                 >
                   <div className="text-xs sm:text-sm">
                     {range.formattedStartTime} - {range.formattedEndTime}
                   </div>
+                  {/* Show "Already Booked" label for unavailable slots */}
                   {range.isOverlapping && (
                     <div className="text-xs mt-1">
                       Already Booked
@@ -254,17 +290,17 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
         </div>
       )}
 
-      {/* Navigation */}
+      {/* Navigation buttons */}
       <div className="flex justify-between mt-4 sm:mt-6">
         <button
-          onClick={onBack}
+          onClick={onBack} // Go back to previous step
           className="px-3 py-1.5 sm:px-4 sm:py-2 text-white border-[#4B5563] border-2 hover:bg-gray-700 rounded text-sm sm:text-base"
         >
           Back
         </button>
         <button
-          onClick={handleSubmit}
-          disabled={!selectedDate || !selectedTimeRange}
+          onClick={handleSubmit} // Proceed to next step
+          disabled={!selectedDate || !selectedTimeRange} // Disable if date or time not selected
           className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 text-sm sm:text-base"
         >
           Continue
@@ -274,4 +310,4 @@ function DateTimeSelection({ onNext, onBack, updateData, data }) {
   );
 }
 
-export default DateTimeSelection;
+export default DateTimeSelection; // Export component for use in the booking flow

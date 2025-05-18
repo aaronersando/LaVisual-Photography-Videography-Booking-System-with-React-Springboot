@@ -1,6 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { format, startOfMonth, endOfMonth, parseISO, subMonths } from 'date-fns';
+/**
+ * Analytics Dashboard Component
+ * 
+ * This component displays a comprehensive analytics dashboard for a photography/videography business.
+ * It shows key metrics like total bookings, revenue, monthly averages, and current month performance.
+ * The dashboard features multiple visualizations including line charts, bar charts, pie charts, and 
+ * doughnut charts to represent different aspects of the business data.
+ * 
+ * Key features:
+ * - Fetches analytics data from the backend API with authentication
+ * - Provides time range filtering (monthly, quarterly, yearly)
+ * - Displays high-level KPIs in card format with icons
+ * - Shows trend analysis with multiple chart types
+ * - Falls back to mock data generation for development/testing
+ * - Handles loading states and error conditions
+ * - Fully responsive layout that works across device sizes
+ * 
+ * This component is typically used in the admin dashboard section of the application
+ * to give business owners insight into their booking patterns and revenue.
+ */
+
+import React, { useState, useEffect } from 'react'; // Import React and core hooks
+import axios from 'axios'; // Import axios for API requests
+import { format, startOfMonth, endOfMonth, parseISO, subMonths } from 'date-fns'; // Import date utilities
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -13,171 +34,182 @@ import {
   Tooltip, 
   Legend,
   Filler
-} from 'chart.js';
-import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faCalendarAlt, faMoneyBillWave, faChartLine, faUsers, faCamera, faVideo } from '@fortawesome/free-solid-svg-icons';
+} from 'chart.js'; // Import Chart.js components
+import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2'; // Import React wrappers for Chart.js
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesome for icons
+import { faSpinner, faCalendarAlt, faMoneyBillWave, faChartLine, faUsers, faCamera, faVideo } from '@fortawesome/free-solid-svg-icons'; // Import specific icons
 
-// Register ChartJS components
+// Register ChartJS components so they can be used in any chart
 ChartJS.register(
-  CategoryScale, 
-  LinearScale, 
-  PointElement, 
-  LineElement, 
-  BarElement,
-  ArcElement,
-  Title, 
-  Tooltip, 
-  Legend,
-  Filler
+  CategoryScale, // For category axes (like months)
+  LinearScale, // For linear axes (like amounts)
+  PointElement, // For points in line charts
+  LineElement, // For lines in line charts
+  BarElement, // For bars in bar charts
+  ArcElement, // For pie and doughnut slices
+  Title, // For chart titles
+  Tooltip, // For tooltips on hover
+  Legend, // For chart legends
+  Filler // For filling area under line charts
 );
 
 function DataAnalytics() {
+  // State for tracking loading status of data fetching
   const [loading, setLoading] = useState(true);
+  // State for storing any error that occurs
   const [error, setError] = useState(null);
+  // State for storing all analytics data with default empty values
   const [analyticsData, setAnalyticsData] = useState({
-    totalBookings: 0,
-    totalProfit: 0,
-    monthlyAvgBookings: 0,
-    monthlyAvgProfit: 0,
-    currentMonthBookings: 0,
-    currentMonthProfit: 0,
-    monthlyBookings: [],
-    monthlyProfit: [],
-    categoryDistribution: {},
-    packagePopularity: {}
+    totalBookings: 0, // Total number of bookings
+    totalProfit: 0, // Total revenue from all bookings
+    monthlyAvgBookings: 0, // Average bookings per month
+    monthlyAvgProfit: 0, // Average revenue per month
+    currentMonthBookings: 0, // Bookings in the current month
+    currentMonthProfit: 0, // Revenue in the current month
+    monthlyBookings: [], // Array of booking counts per month
+    monthlyProfit: [], // Array of revenue amounts per month
+    categoryDistribution: {}, // Object mapping service categories to booking counts
+    packagePopularity: {} // Object mapping package names to booking counts
   });
-  const [timeRange, setTimeRange] = useState('year'); // 'year', 'quarter', 'month'
+  // State for tracking selected time range with default as 'year'
+  const [timeRange, setTimeRange] = useState('year'); // Options: 'year', 'quarter', 'month'
 
-  // Fetch analytics data
+  // Effect hook to fetch data whenever timeRange changes
   useEffect(() => {
     fetchAnalyticsData();
   }, [timeRange]);
 
+  // Function to fetch analytics data from the API
   const fetchAnalyticsData = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true); // Start loading state
+      setError(null); // Clear any previous errors
       
+      // Get authentication token from localStorage
       const token = localStorage.getItem('token');
       
-      // API endpoint with time range parameter
+      // Make API request with timeRange parameter and authentication
       const response = await axios.get(`http://localhost:8080/api/analytics/dashboard?range=${timeRange}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` } // Send token for authentication
       });
       
+      // If API request was successful, update state with the data
       if (response.data.success) {
         setAnalyticsData(response.data.data);
       } else {
+        // If API indicates an error, set the error message
         setError(response.data.message || 'Failed to fetch analytics data');
       }
     } catch (err) {
+      // Handle any exceptions during the API call
       console.error('Error fetching analytics data:', err);
       setError('Error loading analytics data. Please try again.');
       
-      // For demo/development purposes - generate mock data
+      // Generate mock data for development/demo purposes when API fails
       generateMockData();
     } finally {
+      // Always set loading to false when done, regardless of success/failure
       setLoading(false);
     }
   };
 
-  // Generate mock data for development/demo purposes
+  // Function to generate mock data for development and testing
   const generateMockData = () => {
-    // Generate last 12 months
+    // Generate array of the last 12 months in "MMM yyyy" format (e.g., "Jan 2023")
     const months = Array.from({ length: 12 }, (_, i) => {
-      const date = subMonths(new Date(), 11 - i);
-      return format(date, 'MMM yyyy');
+      const date = subMonths(new Date(), 11 - i); // Calculate date for each month, starting 11 months ago
+      return format(date, 'MMM yyyy'); // Format as "MMM yyyy"
     });
     
-    // Random data for monthly bookings (10-30 range)
+    // Generate random booking counts between 10-30 for each month
     const bookings = months.map(() => Math.floor(Math.random() * 20) + 10);
     
-    // Random data for monthly profit (₱30k-₱100k range)
+    // Generate random profit values based on booking counts (each booking generates ₱3000-₱6000)
     const profit = bookings.map(booking => booking * (Math.floor(Math.random() * 3000) + 3000));
     
-    // Category distribution
+    // Generate random data for category distribution
     const categories = {
-      'Photography': Math.floor(Math.random() * 50) + 50,
-      'Videography': Math.floor(Math.random() * 30) + 30,
-      'Combo Package': Math.floor(Math.random() * 20) + 10
+      'Photography': Math.floor(Math.random() * 50) + 50, // 50-100 photography bookings
+      'Videography': Math.floor(Math.random() * 30) + 30, // 30-60 videography bookings
+      'Combo Package': Math.floor(Math.random() * 20) + 10 // 10-30 combo package bookings
     };
     
-    // Package popularity
+    // Generate random data for package popularity
     const packages = {
-      'Intimate Session': Math.floor(Math.random() * 15) + 15,
-      'Wedding': Math.floor(Math.random() * 10) + 10,
-      'Event Coverage': Math.floor(Math.random() * 10) + 5,
-      'Wedding Complete': Math.floor(Math.random() * 5) + 5,
-      'Pre-Photoshoot': Math.floor(Math.random() * 5) + 3,
-      'Wedding Film': Math.floor(Math.random() * 5) + 2
+      'Intimate Session': Math.floor(Math.random() * 15) + 15, // 15-30 intimate sessions
+      'Wedding': Math.floor(Math.random() * 10) + 10, // 10-20 weddings
+      'Event Coverage': Math.floor(Math.random() * 10) + 5, // 5-15 event coverages
+      'Wedding Complete': Math.floor(Math.random() * 5) + 5, // 5-10 complete wedding packages
+      'Pre-Photoshoot': Math.floor(Math.random() * 5) + 3, // 3-8 pre-wedding photoshoots
+      'Wedding Film': Math.floor(Math.random() * 5) + 2 // 2-7 wedding films
     };
     
-    // Calculate totals and averages
+    // Calculate total bookings and profit for summary stats
     const totalBookings = bookings.reduce((sum, val) => sum + val, 0);
     const totalProfit = profit.reduce((sum, val) => sum + val, 0);
     
+    // Update state with generated mock data
     setAnalyticsData({
       totalBookings,
       totalProfit,
-      monthlyAvgBookings: Math.round(totalBookings / 12),
-      monthlyAvgProfit: Math.round(totalProfit / 12),
-      currentMonthBookings: bookings[bookings.length - 1],
-      currentMonthProfit: profit[profit.length - 1],
-      monthlyBookings: months.map((month, i) => ({ month, value: bookings[i] })),
-      monthlyProfit: months.map((month, i) => ({ month, value: profit[i] })),
+      monthlyAvgBookings: Math.round(totalBookings / 12), // Average bookings per month
+      monthlyAvgProfit: Math.round(totalProfit / 12), // Average profit per month
+      currentMonthBookings: bookings[bookings.length - 1], // Most recent month's bookings
+      currentMonthProfit: profit[profit.length - 1], // Most recent month's profit
+      monthlyBookings: months.map((month, i) => ({ month, value: bookings[i] })), // Format for chart display
+      monthlyProfit: months.map((month, i) => ({ month, value: profit[i] })), // Format for chart display
       categoryDistribution: categories,
       packagePopularity: packages
     });
   };
 
-  // Format currency
+  // Helper function to format currency values in PHP format
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-PH', { 
       style: 'currency', 
-      currency: 'PHP',
-      maximumFractionDigits: 0
+      currency: 'PHP', // Philippine Peso
+      maximumFractionDigits: 0 // No decimal places
     }).format(value);
   };
 
-  // Prepare data for monthly bookings chart
+  // Configuration for monthly bookings line chart
   const bookingsChartData = {
-    labels: analyticsData.monthlyBookings.map(item => item.month),
+    labels: analyticsData.monthlyBookings.map(item => item.month), // Month labels
     datasets: [
       {
         label: 'Bookings',
-        data: analyticsData.monthlyBookings.map(item => item.value),
-        borderColor: 'rgb(147, 51, 234)',
-        backgroundColor: 'rgba(147, 51, 234, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: 'rgb(147, 51, 234)',
-        pointRadius: 4,
-        pointHoverRadius: 6
+        data: analyticsData.monthlyBookings.map(item => item.value), // Booking values
+        borderColor: 'rgb(147, 51, 234)', // Purple line color
+        backgroundColor: 'rgba(147, 51, 234, 0.1)', // Light purple fill
+        fill: true, // Fill area under the line
+        tension: 0.4, // Curved line (0 = straight, 1 = very curved)
+        pointBackgroundColor: 'rgb(147, 51, 234)', // Point color
+        pointRadius: 4, // Size of points
+        pointHoverRadius: 6 // Size of points on hover
       }
     ]
   };
 
-  // Prepare data for monthly profit chart
+  // Configuration for monthly profit bar chart
   const profitChartData = {
-    labels: analyticsData.monthlyProfit.map(item => item.month),
+    labels: analyticsData.monthlyProfit.map(item => item.month), // Month labels
     datasets: [
       {
         label: 'Profit',
-        data: analyticsData.monthlyProfit.map(item => item.value),
-        backgroundColor: 'rgba(79, 70, 229, 0.7)',
-        borderColor: 'rgb(79, 70, 229)',
-        borderWidth: 1
+        data: analyticsData.monthlyProfit.map(item => item.value), // Profit values
+        backgroundColor: 'rgba(79, 70, 229, 0.7)', // Semi-transparent indigo bars
+        borderColor: 'rgb(79, 70, 229)', // Indigo border
+        borderWidth: 1 // Border thickness
       }
     ]
   };
 
-  // Prepare data for category distribution chart
+  // Configuration for category distribution pie chart
   const categoryChartData = {
-    labels: Object.keys(analyticsData.categoryDistribution),
+    labels: Object.keys(analyticsData.categoryDistribution), // Category names
     datasets: [
       {
-        data: Object.values(analyticsData.categoryDistribution),
+        data: Object.values(analyticsData.categoryDistribution), // Category values
         backgroundColor: [
           'rgba(147, 51, 234, 0.7)',  // Purple
           'rgba(79, 70, 229, 0.7)',   // Indigo
@@ -188,17 +220,17 @@ function DataAnalytics() {
           'rgb(79, 70, 229)',
           'rgb(59, 130, 246)'
         ],
-        borderWidth: 1
+        borderWidth: 1 // Slice border thickness
       }
     ]
   };
 
-  // Prepare data for package popularity chart
+  // Configuration for package popularity doughnut chart
   const packageChartData = {
-    labels: Object.keys(analyticsData.packagePopularity),
+    labels: Object.keys(analyticsData.packagePopularity), // Package names
     datasets: [
       {
-        data: Object.values(analyticsData.packagePopularity),
+        data: Object.values(analyticsData.packagePopularity), // Package values
         backgroundColor: [
           'rgba(147, 51, 234, 0.7)',  // Purple
           'rgba(79, 70, 229, 0.7)',   // Indigo
@@ -207,101 +239,105 @@ function DataAnalytics() {
           'rgba(245, 158, 11, 0.7)',  // Yellow
           'rgba(239, 68, 68, 0.7)'    // Red
         ],
-        borderWidth: 0,
-        hoverOffset: 5
+        borderWidth: 0, // No border
+        hoverOffset: 5 // Offset when hovering over a slice
       }
     ]
   };
 
-  // Chart options
+  // Options for line charts
   const lineChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, // Resize chart when container resizes
+    maintainAspectRatio: false, // Allow custom height
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top', // Legend position
         labels: {
-          color: 'white',
+          color: 'white', // Legend text color
           font: {
-            size: 12
+            size: 12 // Legend font size
           }
         }
       },
       tooltip: {
-        mode: 'index',
-        intersect: false
+        mode: 'index', // Show tooltip for all datasets at current index
+        intersect: false // Show tooltip when hover near the point, not only on it
       }
     },
     scales: {
       y: {
-        beginAtZero: true,
+        beginAtZero: true, // Start Y axis from zero
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: 'rgba(255, 255, 255, 0.1)' // Light grid lines
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.7)'
+          color: 'rgba(255, 255, 255, 0.7)' // Y-axis label color
         }
       },
       x: {
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: 'rgba(255, 255, 255, 0.1)' // Light grid lines
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.7)'
+          color: 'rgba(255, 255, 255, 0.7)' // X-axis label color
         }
       }
     }
   };
 
+  // Options for bar charts, extending line chart options
   const barChartOptions = {
-    ...lineChartOptions,
+    ...lineChartOptions, // Copy all line chart options
     plugins: {
-      ...lineChartOptions.plugins,
+      ...lineChartOptions.plugins, // Copy plugin options
       tooltip: {
         callbacks: {
           label: function(context) {
-            return `Profit: ${formatCurrency(context.parsed.y)}`;
+            return `Profit: ${formatCurrency(context.parsed.y)}`; // Format tooltip to show currency
           }
         }
       }
     }
   };
 
+  // Options for pie and doughnut charts
   const pieChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, // Resize chart when container resizes
+    maintainAspectRatio: false, // Allow custom height
     plugins: {
       legend: {
-        position: 'right',
+        position: 'right', // Legend on right side
         labels: {
-          color: 'white',
+          color: 'white', // Legend text color
           font: {
-            size: 12
+            size: 12 // Legend font size
           },
-          padding: 20
+          padding: 20 // Padding between legend items
         }
       }
     }
   };
 
+  // Conditional rendering for loading state
   if (loading) {
     return (
       <div className="p-4 text-center pt-20 mt-14">
         <div className="inline-block animate-spin text-purple-500 text-4xl mb-4">
-          <FontAwesomeIcon icon={faSpinner} />
+          <FontAwesomeIcon icon={faSpinner} /> {/* Spinning loading icon */}
         </div>
         <p className="text-gray-300">Loading Analytics Data...</p>
       </div>
     );
   }
 
+  // Conditional rendering for error state
   if (error) {
     return (
       <div className="p-4 bg-red-500/20 text-red-100 rounded-md mt-20">
         <p className="font-bold mb-2">Failed to load analytics data</p>
         <p className="mb-4">{error}</p>
         <button
-          onClick={fetchAnalyticsData}
+          onClick={fetchAnalyticsData} // Retry button calls fetchAnalyticsData again
           className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md"
         >
           Retry
@@ -310,27 +346,28 @@ function DataAnalytics() {
     );
   }
 
+  // Main dashboard rendering when data is loaded successfully
   return (
     <div className="pt-20 pb-10 px-4">
       <h2 className="text-2xl text-white font-bold mb-6">Analytics Dashboard</h2>
       
-      {/* Time range selector */}
+      {/* Time range selector - toggles between month, quarter, year views */}
       <div className="flex justify-end mb-6">
         <div className="bg-gray-800 rounded-lg p-1 inline-flex">
           <button 
-            onClick={() => setTimeRange('month')}
+            onClick={() => setTimeRange('month')} // Change time range to month
             className={`px-4 py-2 rounded-md ${timeRange === 'month' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
           >
             Month
           </button>
           <button 
-            onClick={() => setTimeRange('quarter')}
+            onClick={() => setTimeRange('quarter')} // Change time range to quarter
             className={`px-4 py-2 rounded-md ${timeRange === 'quarter' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
           >
             Quarter
           </button>
           <button 
-            onClick={() => setTimeRange('year')}
+            onClick={() => setTimeRange('year')} // Change time range to year
             className={`px-4 py-2 rounded-md ${timeRange === 'year' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
           >
             Year
@@ -338,9 +375,9 @@ function DataAnalytics() {
         </div>
       </div>
       
-      {/* Key metrics */}
+      {/* Key metrics cards section - responsive grid with 1, 2, or 3 columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {/* Total Bookings */}
+        {/* Total Bookings card */}
         <div className="bg-gradient-to-br from-purple-800/40 to-purple-600/40 rounded-lg p-6 border border-purple-700/50 shadow-lg">
           <div className="flex items-start justify-between">
             <div>
@@ -354,7 +391,7 @@ function DataAnalytics() {
           </div>
         </div>
         
-        {/* Total Revenue */}
+        {/* Total Revenue card */}
         <div className="bg-gradient-to-br from-indigo-800/40 to-indigo-600/40 rounded-lg p-6 border border-indigo-700/50 shadow-lg">
           <div className="flex items-start justify-between">
             <div>
@@ -368,7 +405,7 @@ function DataAnalytics() {
           </div>
         </div>
         
-        {/* Monthly Average Bookings */}
+        {/* Monthly Average Bookings card */}
         <div className="bg-gradient-to-br from-blue-800/40 to-blue-600/40 rounded-lg p-6 border border-blue-700/50 shadow-lg">
           <div className="flex items-start justify-between">
             <div>
@@ -382,7 +419,7 @@ function DataAnalytics() {
           </div>
         </div>
         
-        {/* Monthly Average Profit */}
+        {/* Monthly Average Profit card */}
         <div className="bg-gradient-to-br from-green-800/40 to-green-600/40 rounded-lg p-6 border border-green-700/50 shadow-lg">
           <div className="flex items-start justify-between">
             <div>
@@ -396,7 +433,7 @@ function DataAnalytics() {
           </div>
         </div>
         
-        {/* Current Month Bookings */}
+        {/* Current Month Bookings card */}
         <div className="bg-gradient-to-br from-yellow-800/40 to-yellow-600/40 rounded-lg p-6 border border-yellow-700/50 shadow-lg">
           <div className="flex items-start justify-between">
             <div>
@@ -410,7 +447,7 @@ function DataAnalytics() {
           </div>
         </div>
         
-        {/* Current Month Profit */}
+        {/* Current Month Profit card */}
         <div className="bg-gradient-to-br from-red-800/40 to-red-600/40 rounded-lg p-6 border border-red-700/50 shadow-lg">
           <div className="flex items-start justify-between">
             <div>
@@ -425,9 +462,9 @@ function DataAnalytics() {
         </div>
       </div>
       
-      {/* Charts */}
+      {/* Time-series charts section - 1 column on mobile, 2 on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Monthly Bookings Chart */}
+        {/* Monthly Bookings Chart - line chart */}
         <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
           <h3 className="text-xl text-white font-semibold mb-4">Monthly Bookings</h3>
           <div className="h-80">
@@ -435,7 +472,7 @@ function DataAnalytics() {
           </div>
         </div>
         
-        {/* Monthly Profit Chart */}
+        {/* Monthly Profit Chart - bar chart */}
         <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
           <h3 className="text-xl text-white font-semibold mb-4">Monthly Revenue</h3>
           <div className="h-80">
@@ -444,9 +481,9 @@ function DataAnalytics() {
         </div>
       </div>
       
-      {/* Additional Charts */}
+      {/* Distribution charts section - 1 column on mobile, 2 on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Category Distribution */}
+        {/* Category Distribution - pie chart */}
         <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
           <h3 className="text-xl text-white font-semibold mb-4">Service Category Distribution</h3>
           <div className="h-80 flex items-center justify-center">
@@ -456,7 +493,7 @@ function DataAnalytics() {
           </div>
         </div>
         
-        {/* Package Popularity */}
+        {/* Package Popularity - doughnut chart */}
         <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
           <h3 className="text-xl text-white font-semibold mb-4">Package Popularity</h3>
           <div className="h-80 flex items-center justify-center">
@@ -470,4 +507,4 @@ function DataAnalytics() {
   );
 }
 
-export default DataAnalytics;
+export default DataAnalytics; // Export the component for use in other parts of the application
