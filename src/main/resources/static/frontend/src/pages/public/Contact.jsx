@@ -222,7 +222,7 @@ function Contact() {
               whileHover={{ scale: 1.01, transition: { duration: 0.3 } }} // Subtle grow effect on hover
             >
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6823.980363313562!2d120.78751444563821!3d14.808826089789523!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x339651fde8c3e3e1%3A0xcb6b1aee43298929!2sSan%20Jose%2C%20Bulacan!5e0!3m2!1sen!2sph!4v1744600704411!5m2!1sen!2sph"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30858.946833293405!2d120.77677184844323!3d14.804570585181516!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x339651fde8c3e3e1%3A0xcb6b1aee43298929!2sSan%20Jose%2C%20Bulacan!5e0!3m2!1sen!2sph!4v1748306217840!5m2!1sen!2sph" // Embedded maps from google maps iframe link
                 className="w-full h-full border-0" // Full width and height
                 allowFullScreen="" // Allow fullscreen view
                 loading="lazy" // Lazy load iframe for performance
